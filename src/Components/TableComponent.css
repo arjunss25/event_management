@@ -1,0 +1,16 @@
+@media (min-width: 1024px) and (max-width: 1300px) {
+    .table-main-div{
+        width: 66vw;
+    }
+  }
+
+  @media (min-width: 1300px) and (max-width: 1400px) {
+    .table-main-div{
+        width: 70vw;
+    }
+  }
+
+
+  .table-main-div::-webkit-scrollbar{
+    display: none;
+  }

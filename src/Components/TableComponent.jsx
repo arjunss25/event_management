@@ -1,124 +1,61 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchEvents, updatePaymentStatus } from '../Redux/eventsadminSlice';
 
-const EventsTable = ({ columns, data }) => {
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'Up Coming':
-        return 'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-sm';
-      case 'Cancel':
-        return 'bg-red-500 text-white px-2 py-1 rounded-md text-sm';
-      case 'Completed':
-        return 'text-emerald-500 font-medium';
-      case 'Pending':
-        return 'text-red-400 font-medium';
-      default:
-        return '';
-    }
-  };
+const EventsTable = () => {
+  const dispatch = useDispatch();
+  const { data: events, loading, error } = useSelector((state) => state.events);
 
-  const renderCell = (row, columnKey) => {
-    const value = row[columnKey.toLowerCase().replace(/\s+/g, '')];
-    if (columnKey.includes('Status')) {
-      return (
-        <span className={getStatusStyle(value)}>
-          {value}
-        </span>
-      );
-    }
-    return value;
+  useEffect(() => {
+    dispatch(fetchEvents());
+  }, [dispatch]);
+
+  const handlePaymentStatusChange = (id, status) => {
+    dispatch(updatePaymentStatus({ id, status }));
   };
+  if (!Array.isArray(events)) {
+    return <div>No events available</div>;
+  }
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-      <table className="w-full text-sm text-left text-gray-500">
-        <thead className="text-xs text-black uppercase bg-gray-500 rounded-lg">
-          <tr>
-            {columns.map((column, index) => (
-              <th 
-                key={index} 
-                scope="col" 
-                className={`px-6 py-3 font-medium ${index === 0 ? 'rounded-l-lg' : ''} ${index === columns.length - 1 ? 'rounded-r-lg' : ''}`}
+    <table className="min-w-full text-xs md:text-sm text-left text-gray-500">
+      <thead className="text-xs text-white uppercase bg-gray-800">
+        <tr>
+          <th className="px-2 md:px-6 py-3 font-medium whitespace-nowrap">Event</th>
+          <th className="px-2 md:px-6 py-3 font-medium whitespace-nowrap">Event Group</th>
+          <th className="px-2 md:px-6 py-3 font-medium whitespace-nowrap">Event Date</th>
+          <th className="px-2 md:px-6 py-3 font-medium whitespace-nowrap">Event End Date</th>
+          <th className="px-2 md:px-6 py-3 font-medium whitespace-nowrap">Event Status</th>
+          <th className="px-2 md:px-6 py-3 font-medium whitespace-nowrap">Payment Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {events.map((event) => (
+          <tr key={event.id} className="bg-white border-b hover:bg-gray-50">
+            <td className="px-2 md:px-6 py-4 md:py-7 whitespace-nowrap">{event.event}</td>
+            <td className="px-2 md:px-6 py-4 md:py-7 whitespace-nowrap">{event.eventgroup}</td>
+            <td className="px-2 md:px-6 py-4 md:py-7 whitespace-nowrap">{event.eventdate}</td>
+            <td className="px-2 md:px-6 py-4 md:py-7 whitespace-nowrap">{event.eventenddate}</td>
+            <td className="px-2 md:px-6 py-4 md:py-7 whitespace-nowrap">{event.eventstatus}</td>
+            <td className="px-2 md:px-6 py-4 md:py-7 whitespace-nowrap">
+              <select
+                value={event.paymentstatus}
+                onChange={(e) => handlePaymentStatusChange(event.id, e.target.value)}
+                className="outline-none bg-gray-100 text-gray-700 px-2 py-1 rounded-md"
               >
-                {column}
-              </th>
-            ))}
+                <option value="Pending">Pending</option>
+                <option value="Advance Paid">Advance Paid</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          {data.map((row, rowIndex) => (
-            <tr key={rowIndex} className="bg-white border-b hover:bg-gray-50">
-              {columns.map((column, colIndex) => (
-                <td key={`${rowIndex}-${colIndex}`} className="px-6 py-4">
-                  {renderCell(row, column)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
   );
 };
 
-
-const ExampleTable = () => {
-
-  const columns = [
-    "Event",
-    "Event Group",
-    "Event Date",
-    "Event Duration",
-    "Event Status",
-    "Payment Status",
-    "Location",          
-    "Participants",       
-
-  ];
-
-  const sampleData = [
-    {
-      event: "Convocation",
-      eventgroup: "Royal Events",
-      eventdate: "25-02-2024",
-      eventduration: "10 days",
-      eventstatus: "Up Coming",
-      paymentstatus: "Completed",
-      location: "Main Hall",
-      participants: "500",
-    },
-    {
-      event: "Convocation",
-      eventgroup: "Royal Events",
-      eventdate: "25-02-2024",
-      eventduration: "10 days",
-      eventstatus: "Up Coming",
-      paymentstatus: "Completed",
-      location: "Main Hall",
-      participants: "500",
-    },
-    {
-      event: "Convocation",
-      eventgroup: "Royal Events",
-      eventdate: "25-02-2024",
-      eventduration: "10 days",
-      eventstatus: "Up Coming",
-      paymentstatus: "Completed",
-      location: "Main Hall",
-      participants: "500",
-    },
-    {
-      event: "Convocation",
-      eventgroup: "Royal Events",
-      eventdate: "25-02-2024",
-      eventduration: "10 days",
-      eventstatus: "Up Coming",
-      paymentstatus: "Completed",
-      location: "Main Hall",
-      participants: "500",
-    },
-  ];
-
-  return <EventsTable columns={columns} data={sampleData} />;
-};
-
-export default ExampleTable;
+export default EventsTable;

@@ -1,13 +1,17 @@
 import React from 'react'
 import SuperadminDashboard from './Dashboards/SuperadminDashboard'
+import { Provider } from 'react-redux'
+import { store } from './Redux/Store'
 
 
 
 const App = () => {
   return (
-    <div>
+    <Provider store={store}>
+      <div>
       <SuperadminDashboard/>
-    </div>
+      </div>
+    </Provider>
   )
 }
 

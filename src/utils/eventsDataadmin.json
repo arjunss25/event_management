@@ -1,0 +1,20 @@
+[
+    {
+      "id": 1,
+      "event": "Convocation",
+      "eventgroup": "Royal Events",
+      "eventdate": "2024-02-25",
+      "eventenddate": "2024-03-05",
+      "eventstatus": "Up Coming",
+      "paymentstatus": "Pending"
+    },
+    {
+      "id": 2,
+      "event": "Conference",
+      "eventgroup": "Business Meetings",
+      "eventdate": "2024-03-15",
+      "eventenddate": "2024-03-16",
+      "eventstatus": "Completed",
+      "paymentstatus": "Completed"
+    }
+  ]

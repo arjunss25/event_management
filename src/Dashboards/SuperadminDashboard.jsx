@@ -63,6 +63,7 @@ const SuperadminDashboard = () => {
 
             {/* table-componenet */}
           <div className="table-component">
+            <h1 className='text-xl lg:text-2xl font-semibold mb-6'>Events</h1>
             <TableComponent/>
           </div>
         </div>
