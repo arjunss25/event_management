@@ -1,8 +1,13 @@
 import React from 'react'
+import SuperadminDashboard from './Dashboards/SuperadminDashboard'
+
+
 
 const App = () => {
   return (
-    <div>App</div>
+    <div>
+      <SuperadminDashboard/>
+    </div>
   )
 }
 
