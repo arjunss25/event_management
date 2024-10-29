@@ -5,6 +5,7 @@ import { MdOutlineFestival } from "react-icons/md";
 import { IoTimerOutline } from "react-icons/io5";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { AiOutlineLogout } from "react-icons/ai";
+import { Link } from 'react-router-dom';
 
 const SidebarSuperadmin = () => {
   return (
@@ -19,16 +20,16 @@ const SidebarSuperadmin = () => {
       <div className="sidebar-links flex justify-center lg:justify-start lg:ml-10 text-[1.2rem] text-[#636e72]">
         <ul className='flex flex-col gap-6'>
           <li>
-            <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black">
+          <Link to="/" className="sidebar-link flex items-center gap-4 hover:text-black">
               <LuLayoutDashboard className="icon-size" />
               <span className='hidden lg:block'>Dashboard</span>
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black">
+          <Link to="/event-groups" className="sidebar-link flex items-center gap-4 hover:text-black">
               <MdGroups3 className="icon-size" />
-              <span className='hidden lg:block'>Event groups</span>
-            </a>
+              <span className='hidden lg:block'>Event Groups</span>
+            </Link>
           </li>
           <li>
             <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black">

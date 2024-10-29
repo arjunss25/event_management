@@ -1,20 +1,92 @@
 [
-    {
-      "id": 1,
-      "event": "Convocation",
-      "eventgroup": "Royal Events",
-      "eventdate": "2024-02-25",
-      "eventenddate": "2024-03-05",
-      "eventstatus": "Up Coming",
-      "paymentstatus": "Pending"
-    },
-    {
-      "id": 2,
-      "event": "Conference",
-      "eventgroup": "Business Meetings",
-      "eventdate": "2024-03-15",
-      "eventenddate": "2024-03-16",
-      "eventstatus": "Completed",
-      "paymentstatus": "Completed"
-    }
-  ]
+  {
+    "id": 1,
+    "event": "Convocation",
+    "eventgroup": "Royal Events",
+    "eventdate": "2024-02-25",
+    "eventenddate": "2024-03-05",
+    "eventstatus": "Upcoming",
+    "paymentstatus": "Pending"
+  },
+  {
+    "id": 2,
+    "event": "Annual Gala",
+    "eventgroup": "Charity Events",
+    "eventdate": "2024-04-10",
+    "eventenddate": "2024-04-10",
+    "eventstatus": "Upcoming",
+    "paymentstatus": "Advance Paid"
+  },
+  {
+    "id": 3,
+    "event": "Tech Summit 2024",
+    "eventgroup": "Technology",
+    "eventdate": "2024-05-20",
+    "eventenddate": "2024-05-22",
+    "eventstatus": "Upcoming",
+    "paymentstatus": "Pending"
+  },
+  {
+    "id": 4,
+    "event": "Art Exhibition",
+    "eventgroup": "Cultural Events",
+    "eventdate": "2024-06-01",
+    "eventenddate": "2024-06-15",
+    "eventstatus": "Ongoing",
+    "paymentstatus": "Completed"
+  },
+  {
+    "id": 5,
+    "event": "Summer Fest",
+    "eventgroup": "Community Events",
+    "eventdate": "2024-07-10",
+    "eventenddate": "2024-07-12",
+    "eventstatus": "Upcoming",
+    "paymentstatus": "Pending"
+  },
+  {
+    "id": 6,
+    "event": "Business Conference",
+    "eventgroup": "Corporate",
+    "eventdate": "2024-08-05",
+    "eventenddate": "2024-08-06",
+    "eventstatus": "Completed",
+    "paymentstatus": "Completed"
+  },
+  {
+    "id": 7,
+    "event": "Music Festival",
+    "eventgroup": "Entertainment",
+    "eventdate": "2024-09-01",
+    "eventenddate": "2024-09-03",
+    "eventstatus": "Upcoming",
+    "paymentstatus": "Advance Paid"
+  },
+  {
+    "id": 8,
+    "event": "Wellness Retreat",
+    "eventgroup": "Health & Wellness",
+    "eventdate": "2024-09-15",
+    "eventenddate": "2024-09-20",
+    "eventstatus": "Upcoming",
+    "paymentstatus": "Pending"
+  },
+  {
+    "id": 9,
+    "event": "Local Food Fair",
+    "eventgroup": "Community Events",
+    "eventdate": "2024-10-05",
+    "eventenddate": "2024-10-06",
+    "eventstatus": "Upcoming",
+    "paymentstatus": "Pending"
+  },
+  {
+    "id": 10,
+    "event": "Innovation Expo",
+    "eventgroup": "Technology",
+    "eventdate": "2024-11-15",
+    "eventenddate": "2024-11-17",
+    "eventstatus": "Completed",
+    "paymentstatus": "Completed"
+  }
+]

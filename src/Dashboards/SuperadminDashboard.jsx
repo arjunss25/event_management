@@ -36,12 +36,12 @@ const SuperadminDashboard = () => {
   return (
     <div className='flex w-full min-h-screen bg-[#f7fafc] overflow-x-hidden'>
       {/* sidebar */}
-      <aside className="fixed left-0 top-0 z-20 w-[78px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-all duration-300">
+      {/* <aside className="fixed left-0 top-0 z-20 w-[78px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-all duration-300">
         <SidebarSuperadmin/>
-      </aside>
+      </aside> */}
 
       {/* main content */}
-      <main className="w-full transition-all duration-300 ml-[78px] lg:ml-[300px]">
+      <main className="w-full">
         {/* Nav component */}
         <nav className="">
           <Navcomponent/>
