@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import "./TableComponent.css"
 import {
   fetchEvents,
   updatePaymentStatus,
@@ -51,7 +52,7 @@ const EventsTable = () => {
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
   return (
-    <div className="w-full bg-white rounded-lg p-4 md:p-8 mt-10">
+    <div className="w-full bg-white rounded-lg p-4 md:p-4 mt-10 events-table-main">
       {/* Table container with horizontal scroll */}
       <div className="relative overflow-x-auto">
         {/* Set minimum width to prevent table from becoming too narrow */}
@@ -85,19 +86,19 @@ const EventsTable = () => {
             <tbody className="divide-y divide-gray-200">
               {events.map((event) => (
                 <tr key={event.id} className="bg-white hover:bg-gray-50">
-                  <td className="px-6 py-4 text-black whitespace-nowrap">
+                  <td className="px-6 py-6 text-black whitespace-nowrap">
                     {event.event}
                   </td>
-                  <td className="px-6 py-4 text-black whitespace-nowrap">
+                  <td className="px-6 py-6 text-black whitespace-nowrap">
                     {event.eventgroup}
                   </td>
-                  <td className="px-6 py-4 text-black whitespace-nowrap">
+                  <td className="px-6 py-6 text-black whitespace-nowrap">
                     {event.eventdate}
                   </td>
-                  <td className="px-6 py-4 text-black whitespace-nowrap">
+                  <td className="px-6 py-6 text-black whitespace-nowrap">
                     {event.eventenddate}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-6 whitespace-nowrap">
                     <div className="w-28">
                       {' '}
                       {/* Fixed width container for status */}
@@ -106,7 +107,7 @@ const EventsTable = () => {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-6 whitespace-nowrap">
                     <div className="w-32">
                       {' '}
                       {/* Fixed width container for select */}

@@ -1,4 +1,4 @@
-@media (min-width: 768px) and (max-width: 1023px) {
+/* @media (min-width: 768px) and (max-width: 1023px) {
   .table-main-div{
       width: 85vw ;
   }
@@ -20,9 +20,9 @@
         width: 70vw;
     }
   }
- 
+  */
 
 
-  .table-main-div::-webkit-scrollbar{
+  .events-table-main::-webkit-scrollbar{
     display: none;
   }

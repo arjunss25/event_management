@@ -38,10 +38,10 @@ const SidebarSuperadmin = () => {
             </Link>
           </li>
           <li>
-            <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black">
+            <Link to="/expiredevents-superadmin" className="sidebar-link flex items-center gap-4 hover:text-black">
               <IoTimerOutline className="icon-size" />
               <span className='hidden lg:block'>Expired</span>
-            </a>
+            </Link>
           </li>
           <li>
             <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black">
