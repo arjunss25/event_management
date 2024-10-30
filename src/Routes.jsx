@@ -7,6 +7,8 @@ import SuperadminDashboard from './Dashboards/SuperadminDashboard';
 import EventsSuperadmin from './pages/Superadmin/EventsSuperadmin';
 import ExpiredeventsSuperadmin from './pages/Superadmin/ExpiredeventsSuperadmin';
 import PaymenthistorySuperadmin from './Components/Superadmin/PaymenthistorySuperadmin';
+import AdminDashboard from './Dashboards/AdminDashboard';
+import AdminLayout from './layouts/AdminLayout';
 
 
 
@@ -21,16 +23,15 @@ const AppRoutes = () => {
         <Route path="events-superadmin" element={<EventsSuperadmin/>} />
         <Route path="expiredevents-superadmin" element={<ExpiredeventsSuperadmin/>} />
         <Route path="paymenthistory-superadmin" element={<PaymenthistorySuperadmin/>} />
-        {/* Add other Super Admin routes here */}
       </Route>
 
-      {/* You can add Admin and Employee routes here in a similar way */}
-      {/* <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
+
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard/>} />
         
       </Route>
 
-      <Route path="/employee" element={<EmployeeLayout />}>
+      {/* <Route path="/employee" element={<EmployeeLayout />}>
         <Route index element={<EmployeeDashboard />} />
         
       </Route> */}

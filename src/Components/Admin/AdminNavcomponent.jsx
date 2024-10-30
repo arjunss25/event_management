@@ -1,7 +1,6 @@
-import React from 'react';
+import React from 'react'
 import { IoMdNotificationsOutline } from "react-icons/io";
-
-const Navcomponent = () => {
+const AdminNavcomponent = () => {
   return (
     <div className='w-full font-bold h-[8vh] flex items-center justify-end gap-5 p-10 '>
 
@@ -18,7 +17,7 @@ const Navcomponent = () => {
         <img className='w-[1rem]' src="/Neurocode.png" alt="" />
       </div>
     </div>
-  );
+  )
 }
 
-export default Navcomponent;
+export default AdminNavcomponent
