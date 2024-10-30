@@ -6,6 +6,7 @@ import EventgroupsSuperadmin from './pages/Superadmin/EventgroupsSuperadmin';
 import SuperadminDashboard from './Dashboards/SuperadminDashboard';
 import EventsSuperadmin from './pages/Superadmin/EventsSuperadmin';
 import ExpiredeventsSuperadmin from './pages/Superadmin/ExpiredeventsSuperadmin';
+import PaymenthistorySuperadmin from './Components/Superadmin/PaymenthistorySuperadmin';
 
 
 
@@ -19,6 +20,7 @@ const AppRoutes = () => {
         <Route path="event-groups" element={<EventgroupsSuperadmin />} />
         <Route path="events-superadmin" element={<EventsSuperadmin/>} />
         <Route path="expiredevents-superadmin" element={<ExpiredeventsSuperadmin/>} />
+        <Route path="paymenthistory-superadmin" element={<PaymenthistorySuperadmin/>} />
         {/* Add other Super Admin routes here */}
       </Route>
 

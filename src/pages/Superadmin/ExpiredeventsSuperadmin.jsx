@@ -1,5 +1,6 @@
 import React from 'react'
 import Navcomponent from '../../Components/Navcomponent';
+import ExpiredeventsTableSuperadmin from '../../Components/Superadmin/ExpiredeventsTableSuperadmin';
 
 const ExpiredeventsSuperadmin = () => {
   return (
@@ -26,7 +27,7 @@ const ExpiredeventsSuperadmin = () => {
 
         {/* Table Section */}
         <div className="table-section mt-6 overflow-x-auto w-full ">
-          
+          <ExpiredeventsTableSuperadmin/>
         </div>
       </div>
     </div>

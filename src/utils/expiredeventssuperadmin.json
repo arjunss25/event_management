@@ -1,0 +1,35 @@
+[
+    {
+      "id": 1,
+      "eventName": "Annual Tech Summit",
+      "eventGroup": "Technology",
+      "startDate": "2024-05-10",
+      "endDate": "2024-05-12",
+      "status": "Completed"
+    },
+    {
+      "id": 2,
+      "eventName": "Marketing Workshop",
+      "eventGroup": "Business",
+      "startDate": "2024-06-20",
+      "endDate": "2024-06-22",
+      "status": "Cancelled"
+    },
+    {
+      "id": 3,
+      "eventName": "Health & Wellness Expo",
+      "eventGroup": "Lifestyle",
+      "startDate": "2024-07-15",
+      "endDate": "2024-07-17",
+      "status": "Completed"
+    },
+    {
+      "id": 4,
+      "eventName": "Digital Innovation Conference",
+      "eventGroup": "Innovation",
+      "startDate": "2024-08-05",
+      "endDate": "2024-08-07",
+      "status": "Cancelled"
+    }
+  ]
+  

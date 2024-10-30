@@ -53,9 +53,7 @@ const EventsTable = () => {
 
   return (
     <div className="w-full bg-white rounded-lg p-4 md:p-4 mt-10 events-table-main">
-      {/* Table container with horizontal scroll */}
       <div className="relative overflow-x-auto">
-        {/* Set minimum width to prevent table from becoming too narrow */}
         <div className="min-w-[1000px]">
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-white uppercase bg-gray-800">
@@ -100,8 +98,6 @@ const EventsTable = () => {
                   </td>
                   <td className="px-6 py-6 whitespace-nowrap">
                     <div className="w-28">
-                      {' '}
-                      {/* Fixed width container for status */}
                       <span className={getEventStatusStyle(event.eventstatus)}>
                         {event.eventstatus}
                       </span>
@@ -109,16 +105,17 @@ const EventsTable = () => {
                   </td>
                   <td className="px-6 py-6 whitespace-nowrap">
                     <div className="w-32">
-                      {' '}
-                      {/* Fixed width container for select */}
                       <select
                         value={event.paymentstatus}
                         onChange={(e) =>
                           handlePaymentStatusChange(event.id, e.target.value)
                         }
-                        className={`w-full outline-none px-3 py-1 rounded-md ${getPaymentStatusStyle(
+                        className={`w-full outline-none px-3 pr-8 py-1 rounded-md appearance-none bg-no-repeat bg-[length:16px] bg-[center_right_8px] ${getPaymentStatusStyle(
                           event.paymentstatus
                         )}`}
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`
+                        }}
                       >
                         <option value="Pending">Pending</option>
                         <option value="Advance Paid">Advance Paid</option>
@@ -128,8 +125,6 @@ const EventsTable = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="w-20">
-                      {' '}
-                      {/* Fixed width container for button */}
                       {event.paymentstatus !== 'Completed' && (
                         <button
                           className="w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors"
