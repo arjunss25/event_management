@@ -1,14 +1,17 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Async thunk to fetch event data
 export const fetchEvents = createAsyncThunk('events/fetchEvents', async () => {
-  const response = await axios.get('src/utils/eventsDataadmin.json');
-  console.log('Fetched data:', response.data); 
-  return response.data;
+  try {
+    const response = await axios.get('src/utils/eventsDatasuperadmin.json');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    throw error;
+  }
 });
 
-const eventsadminSlice = createSlice({
+const eventssuperadminSlice = createSlice({
   name: 'events',
   initialState: {
     data: [],
@@ -32,7 +35,6 @@ const eventsadminSlice = createSlice({
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
         state.loading = false;
-        // Ensure data is an array or fallback to empty array
         state.data = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchEvents.rejected, (state, action) => {
@@ -42,5 +44,5 @@ const eventsadminSlice = createSlice({
   },
 });
 
-export const { updatePaymentStatus } = eventsadminSlice.actions;
-export default eventsadminSlice.reducer;
+export const { updatePaymentStatus } = eventssuperadminSlice.actions;
+export default eventssuperadminSlice.reducer;

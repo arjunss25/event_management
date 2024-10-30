@@ -1,0 +1,66 @@
+ [
+      {
+        "id": 1,
+        "eventGroup": "Royal Events",
+        "ownerName": "AAAAAAAAA",
+        "email": "royalevents@gmail.com",
+        "phone": "5463223563",
+        "status": true
+      },
+      {
+        "id": 2,
+        "eventGroup": "Royal Events",
+        "ownerName": "AAAAAAAAA",
+        "email": "royalevents@gmail.com",
+        "phone": "5463223563",
+        "status": true
+      },
+      {
+        "id": 3,
+        "eventGroup": "Royal Events",
+        "ownerName": "AAAAAAAAA",
+        "email": "royalevents@gmail.com",
+        "phone": "5463223563",
+        "status": true
+      },
+      {
+        "id": 4,
+        "eventGroup": "Royal Events",
+        "ownerName": "AAAAAAAAA",
+        "email": "royalevents@gmail.com",
+        "phone": "5463223563",
+        "status": false
+      },
+      {
+        "id": 5,
+        "eventGroup": "Royal Events",
+        "ownerName": "AAAAAAAAA",
+        "email": "royalevents@gmail.com",
+        "phone": "5463223563",
+        "status": false
+      },
+      {
+        "id": 6,
+        "eventGroup": "Royal Events",
+        "ownerName": "AAAAAAAAA",
+        "email": "royalevents@gmail.com",
+        "phone": "5463223563",
+        "status": false
+      },
+      {
+        "id": 7,
+        "eventGroup": "Royal Events",
+        "ownerName": "AAAAAAAAA",
+        "email": "royalevents@gmail.com",
+        "phone": "5463223563",
+        "status": true
+      },
+      {
+        "id": 8,
+        "eventGroup": "Royal Events",
+        "ownerName": "AAAAAAAAA",
+        "email": "royalevents@gmail.com",
+        "phone": "5463223563",
+        "status": false
+      }
+    ]

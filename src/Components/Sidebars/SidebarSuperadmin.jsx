@@ -32,10 +32,10 @@ const SidebarSuperadmin = () => {
             </Link>
           </li>
           <li>
-            <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black">
+            <Link to="/events-superadmin" className="sidebar-link flex items-center gap-4 hover:text-black">
               <MdOutlineFestival className="icon-size" />
               <span className='hidden lg:block'>Events</span>
-            </a>
+            </Link>
           </li>
           <li>
             <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black">
