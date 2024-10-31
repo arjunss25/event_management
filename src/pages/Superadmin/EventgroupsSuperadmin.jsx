@@ -6,7 +6,7 @@ import EventgroupsSuperadminTable from '../../Components/Superadmin/EventgroupsS
 const EventgroupsSuperadmin = () => {
   return (
     <div className="w-full min-h-screen bg-[#f7fafc] overflow-x-hidden">
-      <Navcomponent />
+      
 
       <div className="main-content-sec w-full p-4 md:p-6 lg:p-10">
         {/* Top Section */}

@@ -1,83 +1,86 @@
 import React from 'react';
 import { LuLayoutDashboard } from "react-icons/lu";
-import { MdGroups3 } from "react-icons/md";
-import { MdOutlineFestival } from "react-icons/md";
+import { MdGroups3, MdOutlineFestival } from "react-icons/md";
 import { IoTimerOutline } from "react-icons/io5";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
-import { AiOutlineLogout } from "react-icons/ai";
+import { AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
 import { Link, useLocation } from 'react-router-dom';
 
-const SidebarAdmin = () => {
+const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
+  const location = useLocation();
 
-    const location = useLocation();
+  const isActive = (path) => location.pathname === path;
 
-  
-    const isActive = (path) => {
-      return location.pathname === path;
-    };
-  
-   
-    const getLinkClass = (path) => {
-      return `sidebar-link flex items-center gap-4 hover:text-black ${
-        isActive(path) ? 'text-black' : 'text-[#636e72]'
-      }`;
-    };
-
-
+  const getLinkClass = (path) => (
+    `sidebar-link flex items-center gap-4 hover:text-black ${
+      isActive(path) ? 'text-black' : 'text-[#636e72]'
+    }`
+  );
 
   return (
-    <div className="w-full">
-      {/* logo-sec */}
-      <div className="logo-section w-full h-[30vh] flex items-center justify-center lg:justify-start lg:ml-10">
-        <img className="w-[4rem] lg:w-[12rem]" src="/Neurocode2.png" alt="Logo" />
+    <>
+      <div 
+        className={`fixed left-0 top-0 z-20 w-full sm:w-[300px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-transform duration-300 
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+      >
+        <div className="w-full relative">
+          {/* Close button for mobile screens */}
+          <div className="absolute top-4 right-4 lg:hidden cursor-pointer" onClick={toggleSidebar}>
+            <AiOutlineClose className="text-2xl text-gray-600 hover:text-black" />
+          </div>
+
+          {/* Logo section */}
+          <div className="logo-section w-full h-[30vh] flex items-center justify-center lg:justify-start lg:ml-10">
+            <img className="w-[10rem] lg:w-[12rem]" src="/Neurocode2.png" alt="Logo" />
+          </div>
+
+          {/* Sidebar links */}
+          <div className="sidebar-links flex justify-center lg:justify-start lg:ml-10 text-[1.2rem]">
+            <ul className="flex flex-col gap-6">
+              <li>
+                <Link to="/admin" className={getLinkClass('/admin')} onClick={toggleSidebar}>
+                  <LuLayoutDashboard className="icon-size" />
+                  <span>Dashboard</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/admin-events" className={getLinkClass('/admin/admin-events')} onClick={toggleSidebar}>
+                  <MdGroups3 className="icon-size" />
+                  <span>Events</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/admin-employees" className={getLinkClass('/admin/admin-employees')} onClick={toggleSidebar}>
+                  <MdOutlineFestival className="icon-size" />
+                  <span>Employees</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/admin-idcard" className={getLinkClass('/admin/admin-idcard')} onClick={toggleSidebar}>
+                  <IoTimerOutline className="icon-size" />
+                  <span>Id Card</span>
+                </Link>
+              </li>
+              <li>
+                <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]">
+                  <AiOutlineLogout className="icon-size" />
+                  <span>Logout</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
 
-      {/* sidebar-links */}
-      <div className="sidebar-links flex justify-center lg:justify-start lg:ml-10 text-[1.2rem]">
-        <ul className="flex flex-col gap-6">
-          <li>
-            <Link to="/admin" className={getLinkClass('/admin')}>
-              <LuLayoutDashboard className="icon-size" />
-              <span className="hidden lg:block">Dashboard</span>
-            </Link>
-          </li>
-          <li>
-            <Link to="" className={getLinkClass('')}>
-              <MdGroups3 className="icon-size" />
-              <span className="hidden lg:block">Events</span>
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="" 
-              className={getLinkClass('')}
-            >
-              <MdOutlineFestival className="icon-size" />
-              <span className="hidden lg:block">Employees</span>
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="" 
-              className={getLinkClass('')}
-            >
-              <IoTimerOutline className="icon-size" />
-              <span className="hidden lg:block">Id Card</span>
-            </Link>
-          </li>
-          <li>
-            <Link 
-              to="" 
-              className={getLinkClass('')}
-            >
-              <FaMoneyBillTransfer className="icon-size" />
-              <span className="hidden lg:block">Logout</span>
-            </Link>
-          </li>
-        </ul>
-      </div>
-    </div>
-  )
-}
+      {/* Overlay for small screens when sidebar is open */}
+      {isSidebarOpen && (
+        <div
+          onClick={toggleSidebar}
+          className="fixed inset-0 bg-black opacity-50 z-10 lg:hidden"
+        ></div>
+      )}
+    </>
+  );
+};
 
-export default SidebarAdmin
+export default SidebarAdmin;

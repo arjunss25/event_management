@@ -1,10 +1,9 @@
 import React from 'react'
-import AdminNavcomponent from '../Components/Admin/AdminNavcomponent'
 import Dashboardcards from '../Components/Dashboardcards';
-import Superadmingraph from '../Components/Superadmin/Superadmingraph';
 import { MdOutlineFoodBank } from "react-icons/md";
 import { FaBowlRice } from "react-icons/fa6";
 import { MdDinnerDining } from "react-icons/md";
+import AdminEventsTable from '../Components/Admin/AdminEventsTable';
 
 const AdminDashboard = () => {
 
@@ -33,15 +32,12 @@ const AdminDashboard = () => {
 
       {/* main content */}
       <main className="w-full">
-        {/* Nav component */}
-        <nav className="">
-        <AdminNavcomponent/>
-        </nav>
+
 
         {/* dashboard content */}
         <div className="p-4 lg:p-8 w-full overflow-hidden">
           {/* dashboard-cards */}
-          <div className="w-full flex gap-5 flex-wrap">
+          <div className="w-full flex gap-5 flex-wrap justify-center lg:justify-start">
             {eventData.map((item, i) => (
               <Dashboardcards key={i} eventData={item} />
             ))}
@@ -50,7 +46,7 @@ const AdminDashboard = () => {
           {/* table-componenet */}
           <div className="table-component mt-10">
             <h1 className="text-xl lg:text-2xl font-semibold mb-6">Events</h1>
-            {/* <TableComponent /> */}
+            <AdminEventsTable/>
           </div>
         </div>
       </main>

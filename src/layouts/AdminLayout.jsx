@@ -1,21 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import SidebarAdmin from '../Components/Sidebars/SidebarAdmin';
+import AdminNavcomponent from '../Components/Admin/AdminNavcomponent';
 
 const AdminLayout = () => {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen((prev) => !prev);
+  };
+
   return (
     <div className="flex">
-    {/* Sidebar */}
-    <div className="fixed left-0 top-0 z-20 w-[78px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-all duration-300">
-      <SidebarAdmin />
-    </div>
+      {/* Sidebar */}
+      <SidebarAdmin isSidebarOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
-    {/* Main content area */}
-    <div className="w-full transition-all duration-300 ml-[78px] lg:ml-[300px] overflow-x-hidden">
-      <Outlet />
-    </div>
-  </div>
-  )
-}
+      {/* Main content area */}
+      <div className="w-full transition-all duration-300 lg:ml-[300px] overflow-x-hidden bg-[#f7fafc]">
+        {/* Navbar */}
+        <AdminNavcomponent toggleSidebar={toggleSidebar} />
 
-export default AdminLayout
+        {/* Page content */}
+        <Outlet />
+      </div>
+    </div>
+  );
+};
+
+export default AdminLayout;

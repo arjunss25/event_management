@@ -1,12 +1,11 @@
 import React from 'react';
-import Navcomponent from '../../Components/Navcomponent';
 import EventsTable from '../../Components/Superadmin/TableComponent';
 
 
 const EventsSuperadmin = () => {
   return (
     <div className="w-full min-h-screen bg-[#f7fafc] overflow-x-hidden">
-      <Navcomponent />
+      
 
 
       <div className="main-content-sec w-full p-4 md:p-6 lg:p-10">

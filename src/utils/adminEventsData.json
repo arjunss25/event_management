@@ -1,0 +1,94 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "eventName": "Web Development Summit",
+      "startDate": "2024-05-15",
+      "endDate": "2024-05-17",
+      "venue": "Tech Convention Center",
+      "seatsBooked": 280,
+      "eventStatus": "Completed",
+      "totalSeats": 300
+    },
+    {
+      "id": 2,
+      "eventName": "Digital Marketing Conference",
+      "startDate": "2024-06-10",
+      "endDate": "2024-06-12",
+      "venue": "Business Hub Arena",
+      "seatsBooked": 150,
+      "eventStatus": "Upcoming",
+      "totalSeats": 200
+    },
+    {
+      "id": 3,
+      "eventName": "AI & Machine Learning Expo",
+      "startDate": "2024-07-20",
+      "endDate": "2024-07-22",
+      "venue": "Innovation Center",
+      "seatsBooked": 0,
+      "eventStatus": "Cancelled",
+      "totalSeats": 400
+    },
+    {
+      "id": 4,
+      "eventName": "Blockchain Workshop",
+      "startDate": "2024-08-05",
+      "endDate": "2024-08-07",
+      "venue": "Downtown Convention Hall",
+      "seatsBooked": 180,
+      "eventStatus": "Upcoming",
+      "totalSeats": 250
+    },
+    {
+      "id": 5,
+      "eventName": "Cloud Computing Conference",
+      "startDate": "2024-09-12",
+      "endDate": "2024-09-14",
+      "venue": "Global Tech Center",
+      "seatsBooked": 420,
+      "eventStatus": "Completed",
+      "totalSeats": 450
+    },
+    {
+      "id": 6,
+      "eventName": "Digital Marketing Conference",
+      "startDate": "2024-06-10",
+      "endDate": "2024-06-12",
+      "venue": "Business Hub Arena",
+      "seatsBooked": 150,
+      "eventStatus": "Upcoming",
+      "totalSeats": 200
+    },
+    {
+      "id": 7,
+      "eventName": "AI & Machine Learning Expo",
+      "startDate": "2024-07-20",
+      "endDate": "2024-07-22",
+      "venue": "Innovation Center",
+      "seatsBooked": 0,
+      "eventStatus": "Cancelled",
+      "totalSeats": 400
+    },
+    {
+      "id": 8,
+      "eventName": "Blockchain Workshop",
+      "startDate": "2024-08-05",
+      "endDate": "2024-08-07",
+      "venue": "Downtown Convention Hall",
+      "seatsBooked": 180,
+      "eventStatus": "Upcoming",
+      "totalSeats": 250
+    },
+    {
+      "id": 9,
+      "eventName": "Cloud Computing Conference",
+      "startDate": "2024-09-12",
+      "endDate": "2024-09-14",
+      "venue": "Global Tech Center",
+      "seatsBooked": 420,
+      "eventStatus": "Completed",
+      "totalSeats": 450
+    }
+  ]
+}

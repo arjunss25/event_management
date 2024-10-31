@@ -42,15 +42,11 @@ const SuperadminDashboard = () => {
 
       {/* main content */}
       <main className="w-full">
-        {/* Nav component */}
-        <nav className="">
-          <Navcomponent />
-        </nav>
 
         {/* dashboard content */}
         <div className="p-4 lg:p-8 w-full overflow-hidden">
           {/* dashboard-cards */}
-          <div className="w-full flex gap-5 flex-wrap">
+          <div className="w-full flex gap-5 flex-wrap justify-center lg:justify-start">
             {eventData.map((item, i) => (
               <Dashboardcards key={i} eventData={item} />
             ))}
@@ -58,6 +54,8 @@ const SuperadminDashboard = () => {
 
           {/* graph-component */}
           <div className="mt-8 lg:mt-12">
+            {/* title */}
+            <h1 className='text-xl lg:text-2xl font-semibold mb-6'>Events Overview</h1>
             <Superadmingraph />
           </div>
 
