@@ -1,16 +1,14 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  fetchAdminEvents,
-  deleteAdminEvent,
-  updateEventStatus
-} from '../../Redux/Slices/Admin/AdminEventSlice';
+import { fetchAdminEvents } from '../../Redux/Slices/Admin/AdminEventSlice';
 import { FaRegEye } from 'react-icons/fa';
 import { FiEdit3 } from 'react-icons/fi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
 
 const AdminEventsTable = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { events, loading, error } = useSelector((state) => state.adminEvents);
 
   useEffect(() => {
@@ -19,8 +17,13 @@ const AdminEventsTable = () => {
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
-      dispatch(deleteAdminEvent(id));
+      // Implement delete functionality here
+      console.log('Deleted event with ID:', id);
     }
+  };
+
+  const handleViewEvent = (id) => {
+    navigate(`/admin/admin-events/${id}`);
   };
 
   const formatDate = (dateString) => {
@@ -29,7 +32,7 @@ const AdminEventsTable = () => {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -37,10 +40,10 @@ const AdminEventsTable = () => {
     switch (status.toLowerCase()) {
       case 'upcoming':
         return 'bg-yellow-100 text-yellow-800';
-      case 'open':
-        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-50 text-red-700';
       case 'completed':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-green-50 text-green-700';
       default:
         return 'bg-blue-100 text-blue-800';
     }
@@ -59,36 +62,20 @@ const AdminEventsTable = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-800 text-white">
-                <th className="px-6 py-3 text-left whitespace-nowrap">
-                  Event
-                </th>
-                <th className="px-6 py-3 text-left whitespace-nowrap">
-                  Event Start Date
-                </th>
-                <th className="px-6 py-3 text-left whitespace-nowrap">
-                  Event End Date
-                </th>
-                <th className="px-6 py-3 text-left whitespace-nowrap">
-                  Venue
-                </th>
-                <th className="px-6 py-3 text-left whitespace-nowrap">
-                  Seats Booked
-                </th>
-                <th className="px-6 py-3 text-left whitespace-nowrap">
-                  Event Status
-                </th>
-                <th className="px-6 py-3 text-left whitespace-nowrap">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left whitespace-nowrap">Event</th>
+                <th className="px-6 py-3 text-left whitespace-nowrap">Event Start Date</th>
+                <th className="px-6 py-3 text-left whitespace-nowrap">Event End Date</th>
+                <th className="px-6 py-3 text-left whitespace-nowrap">Venue</th>
+                <th className="px-6 py-3 text-left whitespace-nowrap">Seats Booked</th>
+                <th className="px-6 py-3 text-left whitespace-nowrap">Event Status</th>
+                <th className="px-6 py-3 text-left whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">    
+            <tbody className="divide-y divide-gray-200">
               {events.map((event) => (
                 <tr key={event.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    
-                      <span className="font-medium">{event.eventName}</span>
-                    
+                    <span className="font-medium">{event.eventName}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {formatDate(event.startDate)}
@@ -102,7 +89,11 @@ const AdminEventsTable = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="w-24">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs text-center w-full ${getStatusColor(event.eventStatus)}`}>
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs text-center w-full ${getStatusColor(
+                          event.eventStatus
+                        )}`}
+                      >
                         {event.eventStatus}
                       </span>
                     </div>
@@ -111,7 +102,7 @@ const AdminEventsTable = () => {
                     <div className="flex gap-3">
                       <button
                         className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center"
-                        onClick={() => console.log('View event:', event.id)}
+                        onClick={() => handleViewEvent(event.id)}
                       >
                         <FaRegEye className="text-[1.2rem]" />
                       </button>

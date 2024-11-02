@@ -1,0 +1,184 @@
+{
+  "employees": [
+    {
+      "id": "EMP001",
+      "name": "John Doe",
+      "category": "Event Coordinator",
+      "email": "john@example.com"
+    },
+    {
+      "id": "EMP002",
+      "name": "Jane Smith",
+      "category": "Executive Chef",
+      "email": "jane@example.com"
+    },
+    {
+      "id": "EMP003",
+      "name": "Mike Johnson",
+      "category": "Venue Manager",
+      "email": "mike@example.com"
+    },
+    {
+      "id": "EMP004",
+      "name": "Sarah Wilson",
+      "category": "Decor Specialist",
+      "email": "sarah@example.com"
+    },
+    {
+      "id": "EMP005",
+      "name": "Tom Brown",
+      "category": "Technical Director",
+      "email": "tom@example.com"
+    },
+    {
+      "id": "EMP006",
+      "name": "Alice Cooper",
+      "category": "Event Coordinator",
+      "email": "alice@example.com"
+    },
+    {
+      "id": "EMP007",
+      "name": "Bob Martin",
+      "category": "Executive Chef",
+      "email": "bob@example.com"
+    },
+    {
+      "id": "EMP008",
+      "name": "Chris Davis",
+      "category": "Venue Manager",
+      "email": "chris@example.com"
+    },
+    {
+      "id": "EMP009",
+      "name": "Diana Carter",
+      "category": "Decor Specialist",
+      "email": "diana@example.com"
+    },
+    {
+      "id": "EMP010",
+      "name": "Evan Scott",
+      "category": "Technical Director",
+      "email": "evan@example.com"
+    },
+    {
+      "id": "EMP011",
+      "name": "Fiona Grant",
+      "category": "Event Coordinator",
+      "email": "fiona@example.com"
+    },
+    {
+      "id": "EMP012",
+      "name": "George Young",
+      "category": "Executive Chef",
+      "email": "george@example.com"
+    },
+    {
+      "id": "EMP013",
+      "name": "Hannah Roberts",
+      "category": "Venue Manager",
+      "email": "hannah@example.com"
+    },
+    {
+      "id": "EMP014",
+      "name": "Ian Lee",
+      "category": "Decor Specialist",
+      "email": "ian@example.com"
+    },
+    {
+      "id": "EMP015",
+      "name": "Julia Stone",
+      "category": "Technical Director",
+      "email": "julia@example.com"
+    },
+    {
+      "id": "EMP016",
+      "name": "Kevin Adams",
+      "category": "Event Coordinator",
+      "email": "kevin@example.com"
+    },
+    {
+      "id": "EMP017",
+      "name": "Laura White",
+      "category": "Executive Chef",
+      "email": "laura@example.com"
+    },
+    {
+      "id": "EMP018",
+      "name": "Michael Reed",
+      "category": "Venue Manager",
+      "email": "michael@example.com"
+    },
+    {
+      "id": "EMP019",
+      "name": "Nina Flores",
+      "category": "Decor Specialist",
+      "email": "nina@example.com"
+    },
+    {
+      "id": "EMP020",
+      "name": "Oscar Bennett",
+      "category": "Technical Director",
+      "email": "oscar@example.com"
+    },
+    {
+      "id": "EMP021",
+      "name": "Paula Evans",
+      "category": "Event Coordinator",
+      "email": "paula@example.com"
+    },
+    {
+      "id": "EMP022",
+      "name": "Quinn Murphy",
+      "category": "Executive Chef",
+      "email": "quinn@example.com"
+    },
+    {
+      "id": "EMP023",
+      "name": "Rachel Torres",
+      "category": "Venue Manager",
+      "email": "rachel@example.com"
+    },
+    {
+      "id": "EMP024",
+      "name": "Sam Collins",
+      "category": "Decor Specialist",
+      "email": "sam@example.com"
+    },
+    {
+      "id": "EMP025",
+      "name": "Tracy Powell",
+      "category": "Technical Director",
+      "email": "tracy@example.com"
+    },
+    {
+      "id": "EMP026",
+      "name": "Ursula Fox",
+      "category": "Event Coordinator",
+      "email": "ursula@example.com"
+    },
+    {
+      "id": "EMP027",
+      "name": "Victor Perez",
+      "category": "Executive Chef",
+      "email": "victor@example.com"
+    },
+    {
+      "id": "EMP028",
+      "name": "Wendy Foster",
+      "category": "Venue Manager",
+      "email": "wendy@example.com"
+    },
+    {
+      "id": "EMP029",
+      "name": "Xander King",
+      "category": "Decor Specialist",
+      "email": "xander@example.com"
+    },
+    {
+      "id": "EMP030",
+      "name": "Yara Lopez",
+      "category": "Technical Director",
+      "email": "yara@example.com"
+    }
+  ]
+}

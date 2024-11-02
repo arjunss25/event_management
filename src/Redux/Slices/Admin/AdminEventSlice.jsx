@@ -1,58 +1,51 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Async thunk for fetching events
+// Thunk to fetch all admin events
 export const fetchAdminEvents = createAsyncThunk(
   'adminEvents/fetchEvents',
   async () => {
     try {
-      const response = await axios.get('src/utils/adminEventsData.json');
-      return response.data.events;
+      const response = await axios.get('/src/utils/adminEventsData.json'); // Adjust path as necessary
+      return response.data.events; // Ensure this matches your JSON structure
     } catch (error) {
       throw error;
     }
   }
 );
 
-// Async thunk for updating event status
-export const updateEventStatus = createAsyncThunk(
-  'adminEvents/updateStatus',
-  async ({ id, status }) => {
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { id, status };
-    } catch (error) {
-      throw error;
-    }
-  }
-);
-
-// Async thunk for deleting event
-export const deleteAdminEvent = createAsyncThunk(
-  'adminEvents/deleteEvent',
+// Thunk to fetch a single event by ID
+export const fetchSingleEvent = createAsyncThunk(
+  'adminEvents/fetchSingleEvent',
   async (id) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return id;
+      const response = await axios.get('/src/utils/adminEventsData.json'); // Adjust path as necessary
+
+      const event = response.data.events.find((event) => event.id.toString() === id); // Ensure ID comparison is type-safe
+      return event || null; // Return null if not found
     } catch (error) {
       throw error;
     }
   }
 );
 
+// Create the admin events slice
 const AdminEventsSlice = createSlice({
   name: 'adminEvents',
   initialState: {
     events: [],
+    selectedEvent: null,
     loading: false,
-    error: null
+    error: null,
   },
-  reducers: {},
+  reducers: {
+    clearSelectedEvent: (state) => {
+      state.selectedEvent = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // Fetch events cases
+      // Fetch all events
       .addCase(fetchAdminEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -66,41 +59,23 @@ const AdminEventsSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
-      
-      // Update status cases
-      .addCase(updateEventStatus.pending, (state) => {
+      // Fetch a single event
+      .addCase(fetchSingleEvent.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateEventStatus.fulfilled, (state, action) => {
+      .addCase(fetchSingleEvent.fulfilled, (state, action) => {
         state.loading = false;
-        const { id, status } = action.payload;
-        const event = state.events.find(event => event.id === id);
-        if (event) {
-          event.eventStatus = status;
-        }
+        state.selectedEvent = action.payload; // Set the selected event
         state.error = null;
       })
-      .addCase(updateEventStatus.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
-
-      // Delete event cases
-      .addCase(deleteAdminEvent.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteAdminEvent.fulfilled, (state, action) => {
-        state.loading = false;
-        state.events = state.events.filter(event => event.id !== action.payload);
-        state.error = null;
-      })
-      .addCase(deleteAdminEvent.rejected, (state, action) => {
+      .addCase(fetchSingleEvent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });
-  }
+  },
 });
 
+// Export actions and reducer
+export const { clearSelectedEvent } = AdminEventsSlice.actions;
 export default AdminEventsSlice.reducer;

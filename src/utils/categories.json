@@ -1,0 +1,29 @@
+{
+    "categories": [
+      {
+        "id": 1,
+        "name": "Event Coordinator",
+        "description": "Manages and coordinates events"
+      },
+      {
+        "id": 2,
+        "name": "Executive Chef",
+        "description": "Leads kitchen operations"
+      },
+      {
+        "id": 3,
+        "name": "Venue Manager",
+        "description": "Manages event venues"
+      },
+      {
+        "id": 4,
+        "name": "Decor Specialist",
+        "description": "Handles event decoration"
+      },
+      {
+        "id": 5,
+        "name": "Technical Director",
+        "description": "Manages technical aspects"
+      }
+    ]
+  }

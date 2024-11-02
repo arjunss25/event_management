@@ -9,6 +9,7 @@ import PaymenthistorySuperadmin from './pages/Superadmin/PaymenthistorySuperadmi
 import AdminDashboard from './Dashboards/AdminDashboard';
 import AdminLayout from './layouts/AdminLayout';
 import AdminEvents from './pages/Admin/AdminEvents';
+import AdminEventDetails from './pages/Admin/AdminEventDetails';
 
 const AppRoutes = () => {
   return (
@@ -30,6 +31,7 @@ const AppRoutes = () => {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
         <Route path="admin-events" element={<AdminEvents />} />
+        <Route path="admin-events/:eventId" element={<AdminEventDetails />} />
       </Route>
 
       {/* <Route path="/employee" element={<EmployeeLayout />}>

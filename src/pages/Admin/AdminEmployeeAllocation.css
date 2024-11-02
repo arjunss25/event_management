@@ -1,0 +1,14 @@
+.employee-allocation-table::-webkit-scrollbar{
+    display: none;
+}
+
+
+
+@media (min-width: 1024px) and (max-width:1400px) {
+    .employee-allocation-main{
+        flex-direction: column;
+    }
+    .employee-allocation-left, .employee-allocation-right{
+        width: 100%;
+    }
+  }

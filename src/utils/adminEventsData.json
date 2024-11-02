@@ -8,7 +8,8 @@
       "venue": "Tech Convention Center",
       "seatsBooked": 280,
       "eventStatus": "Completed",
-      "totalSeats": 300
+      "totalSeats": 300,
+      "paymentStatus": "Completed"
     },
     {
       "id": 2,
@@ -18,7 +19,8 @@
       "venue": "Business Hub Arena",
       "seatsBooked": 150,
       "eventStatus": "Upcoming",
-      "totalSeats": 200
+      "totalSeats": 200,
+      "paymentStatus": "Advance Paid"
     },
     {
       "id": 3,
@@ -28,7 +30,8 @@
       "venue": "Innovation Center",
       "seatsBooked": 0,
       "eventStatus": "Cancelled",
-      "totalSeats": 400
+      "totalSeats": 400,
+      "paymentStatus": "Pending"
     },
     {
       "id": 4,
@@ -38,7 +41,8 @@
       "venue": "Downtown Convention Hall",
       "seatsBooked": 180,
       "eventStatus": "Upcoming",
-      "totalSeats": 250
+      "totalSeats": 250,
+      "paymentStatus": "Advance Paid"
     },
     {
       "id": 5,
@@ -48,7 +52,8 @@
       "venue": "Global Tech Center",
       "seatsBooked": 420,
       "eventStatus": "Completed",
-      "totalSeats": 450
+      "totalSeats": 450,
+      "paymentStatus": "Completed"
     },
     {
       "id": 6,
@@ -58,7 +63,8 @@
       "venue": "Business Hub Arena",
       "seatsBooked": 150,
       "eventStatus": "Upcoming",
-      "totalSeats": 200
+      "totalSeats": 200,
+      "paymentStatus": "Pending"
     },
     {
       "id": 7,
@@ -68,7 +74,8 @@
       "venue": "Innovation Center",
       "seatsBooked": 0,
       "eventStatus": "Cancelled",
-      "totalSeats": 400
+      "totalSeats": 400,
+      "paymentStatus": "Advance Paid"
     },
     {
       "id": 8,
@@ -78,7 +85,8 @@
       "venue": "Downtown Convention Hall",
       "seatsBooked": 180,
       "eventStatus": "Upcoming",
-      "totalSeats": 250
+      "totalSeats": 250,
+      "paymentStatus": "Completed"
     },
     {
       "id": 9,
@@ -88,7 +96,8 @@
       "venue": "Global Tech Center",
       "seatsBooked": 420,
       "eventStatus": "Completed",
-      "totalSeats": 450
+      "totalSeats": 450,
+      "paymentStatus": "Pending"
     }
   ]
 }
