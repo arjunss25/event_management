@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import adminEventsReducer from './AdminEventSlice';
 import employeeAllocationReducer from './employeeAllocationSlice';
+import eventFoodReducer from './eventFoodSlice';
 
 const adminSlice = createSlice({
   name: 'admin',
@@ -10,7 +11,8 @@ const adminSlice = createSlice({
 
 export const adminReducers = {
   events: adminEventsReducer,
-  employeeAllocation: employeeAllocationReducer
+  employeeAllocation: employeeAllocationReducer,
+  eventFood: eventFoodReducer,
 };
 
 export default adminSlice.reducer;

@@ -1,15 +1,4 @@
-// import { configureStore } from '@reduxjs/toolkit';
-// import eventsReducer from './eventssuperadminSlice.jsx';
-// import eventgroupsSuperadminReducer from './EventgroupssuperadminSlice';
 
-// export const store = configureStore({
-//   reducer: {
-//     events: eventsReducer,
-//     eventgroupsSuperadmin: eventgroupsSuperadminReducer,
-//   },
-// });
-
-// store.js
 import { configureStore } from '@reduxjs/toolkit';
 import eventsReducer from './Slices/SuperAdmin/eventssuperadminSlice';
 import eventgroupsReducer from './Slices/SuperAdmin/EventgroupssuperadminSlice';
@@ -23,7 +12,7 @@ export const store = configureStore({
     eventGroups: eventgroupsReducer,
     // Admin reducers
     adminEvents: adminEventsReducer,
-    adminEmployeeAllocation: employeeAllocationReducer, // Add this line
+    adminEmployeeAllocation: employeeAllocationReducer, 
   },
 });
 
