@@ -1,0 +1,11 @@
+{
+    "id": 1,
+    "eventName": "Web Development Summit",
+    "startDate": "2024-05-15",
+    "endDate": "2024-05-18",
+    "venue": "Tech Convention Center",
+    "seatsBooked": 280,
+    "eventStatus": "Completed",
+    "totalSeats": 300,
+    "paymentStatus": "Completed"
+  }

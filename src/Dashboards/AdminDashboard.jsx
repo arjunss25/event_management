@@ -3,7 +3,8 @@ import Dashboardcards from '../Components/Dashboardcards';
 import { MdOutlineFoodBank } from "react-icons/md";
 import { FaBowlRice } from "react-icons/fa6";
 import { MdDinnerDining } from "react-icons/md";
-import AdminEventsTable from '../Components/Admin/AdminEventsTable';
+import RegisteredUserTable from '../Components/Admin/RegisteredUserTable';
+
 
 const AdminDashboard = () => {
 
@@ -46,7 +47,7 @@ const AdminDashboard = () => {
           {/* table-componenet */}
           <div className="table-component mt-10">
             <h1 className="text-xl lg:text-2xl font-semibold mb-6">Events</h1>
-            <AdminEventsTable/>
+              <RegisteredUserTable/>
           </div>
         </div>
       </main>

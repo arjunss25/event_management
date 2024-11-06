@@ -1,28 +1,28 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Thunk to fetch all admin events
-export const fetchAdminEvents = createAsyncThunk(
-  'adminEvents/fetchEvents',
+// Thunk to fetch event details (single event)
+export const fetchEventDetails = createAsyncThunk(
+  'adminEvents/fetchEventDetails',
   async () => {
     try {
-      const response = await axios.get('/src/utils/adminEventsData.json'); // Adjust path as necessary
-      return response.data.events; // Ensure this matches your JSON structure
+      const response = await axios.get('/src/utils/adminEventData.json');
+      return response.data;
     } catch (error) {
       throw error;
     }
   }
 );
 
-// Thunk to fetch a single event by ID
-export const fetchSingleEvent = createAsyncThunk(
-  'adminEvents/fetchSingleEvent',
-  async (id) => {
+// Thunk to fetch all admin events
+export const fetchAdminEvents = createAsyncThunk(
+  'adminEvents/fetchEvents',
+  async () => {
     try {
-      const response = await axios.get('/src/utils/adminEventsData.json'); // Adjust path as necessary
-
-      const event = response.data.events.find((event) => event.id.toString() === id); // Ensure ID comparison is type-safe
-      return event || null; // Return null if not found
+      const response = await axios.get('/src/utils/adminEventsData.json');
+      // Wrap the single event in an array if it's not already an array
+      const events = Array.isArray(response.data) ? response.data : [response.data];
+      return events;
     } catch (error) {
       throw error;
     }
@@ -39,13 +39,37 @@ const AdminEventsSlice = createSlice({
     error: null,
   },
   reducers: {
-    clearSelectedEvent: (state) => {
+    clearEventDetails: (state) => {
       state.selectedEvent = null;
+    },
+    updateEventDetails: (state, action) => {
+      state.selectedEvent = { ...state.selectedEvent, ...action.payload };
+      // Also update the event in the events array if it exists
+      if (state.events.length > 0) {
+        const index = state.events.findIndex(event => event.id === state.selectedEvent.id);
+        if (index !== -1) {
+          state.events[index] = { ...state.events[index], ...action.payload };
+        }
+      }
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all events
+      // Handle fetchEventDetails
+      .addCase(fetchEventDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEventDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedEvent = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchEventDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      // Handle fetchAdminEvents
       .addCase(fetchAdminEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -58,24 +82,9 @@ const AdminEventsSlice = createSlice({
       .addCase(fetchAdminEvents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
-      })
-      // Fetch a single event
-      .addCase(fetchSingleEvent.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchSingleEvent.fulfilled, (state, action) => {
-        state.loading = false;
-        state.selectedEvent = action.payload; // Set the selected event
-        state.error = null;
-      })
-      .addCase(fetchSingleEvent.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
       });
   },
 });
 
-// Export actions and reducer
-export const { clearSelectedEvent } = AdminEventsSlice.actions;
+export const { clearEventDetails, updateEventDetails } = AdminEventsSlice.actions;
 export default AdminEventsSlice.reducer;

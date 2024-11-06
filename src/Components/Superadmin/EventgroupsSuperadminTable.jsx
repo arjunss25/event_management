@@ -107,12 +107,12 @@ const EventgroupsSuperadminTable = () => {
                       >
                         <FaRegEye className="text-[1.2rem]" />
                       </button>
-                      <button
+                      {/* <button
                         className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center"
                         onClick={() => console.log('Edit event:', event.id)}
                       >
                         <FiEdit3 className="text-[1.2rem]" />
-                      </button>
+                      </button> */}
                       <button
                         className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center"
                         onClick={() => handleDelete(event.id)}

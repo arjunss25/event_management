@@ -1,0 +1,3 @@
+.meal-sec::-webkit-scrollbar{
+    width: 0px !important;
+}

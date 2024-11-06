@@ -1,16 +1,13 @@
-import { createSlice } from '@reduxjs/toolkit';
+// superadminSlice.js
+import { combineReducers } from '@reduxjs/toolkit';
 import eventsReducer from './eventssuperadminSlice';
 import eventgroupsSuperadminReducer from './EventgroupssuperadminSlice';
+import chartReducer from './chartSlice';
 
-const superadminSlice = createSlice({
-  name: 'superadmin',
-  initialState: {},
-  reducers: {},
-});
-
-export const superadminReducer = {
+const superadminReducer = combineReducers({
   events: eventsReducer,
   eventGroups: eventgroupsSuperadminReducer,
-};
+  chart: chartReducer
+});
 
-export default superadminSlice.reducer;
+export { superadminReducer };

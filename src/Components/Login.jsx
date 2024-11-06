@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { loginWithEmail, loginWithGoogle, authenticateWithBackend } from '../authService';
+import { loginWithEmail, loginWithGoogle } from '../authService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -20,22 +20,33 @@ const Login = () => {
     });
 
     // Authenticate with backend
-    const backendResult = await authenticateWithBackend({
-      email: firebaseResult.user.email,
-      firebaseToken: firebaseResult.firebaseToken,
-      firebaseUID: firebaseResult.user.uid,
-      displayName: firebaseResult.user.displayName
-    });
+    const backendResult = await fetch('http://127.0.0.1:8000/api/superadmin-login/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: firebaseResult.user.email,
+        firebaseToken: firebaseResult.firebaseToken,
+        firebaseUID: firebaseResult.user.uid,
+        displayName: firebaseResult.user.displayName
+      }),
+    }).then(res => res.json());
 
-    // Store authentication data
-    localStorage.setItem('authToken', backendResult.token);
-    localStorage.setItem('userEmail', firebaseResult.user.email);
-    
-    // Log the stored token
-    console.log('Stored authentication token:', backendResult.token);
-    
-    setMessage(backendResult.message || 'Login successful!');
-    return true;
+    if (backendResult.token) {
+      // Store authentication data
+      localStorage.setItem('authToken', backendResult.token);
+      localStorage.setItem('userEmail', firebaseResult.user.email);
+      
+      // Log the stored token
+      console.log('Stored authentication token:', backendResult.token);
+      
+      setMessage(backendResult.message || 'Login successful!');
+      return true;
+    } else {
+      setMessage(backendResult.error || 'Failed to authenticate with backend');
+      return false;
+    }
   }, []);
 
   const handleSubmit = async (e) => {

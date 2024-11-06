@@ -54,8 +54,7 @@ const SuperadminDashboard = () => {
 
           {/* graph-component */}
           <div className="mt-8 lg:mt-12">
-            {/* title */}
-            <h1 className='text-xl lg:text-2xl font-semibold mb-6'>Events Overview</h1>
+            
             <Superadmingraph />
           </div>
 
