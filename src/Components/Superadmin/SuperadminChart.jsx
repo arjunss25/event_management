@@ -1,4 +1,4 @@
-
+import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import {
   BarChart,
@@ -10,21 +10,19 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-const allData = [
-  { name: 'Jan', events: 4000 },
-  { name: 'Feb', events: 3000 },
-  { name: 'Mar', events: 2000 },
-  { name: 'Apr', events: 2780 },
-  { name: 'May', events: 1890 },
-  { name: 'Jun', events: 2390 },
-  { name: 'Jul', events: 3490 },
-  { name: 'Aug', events: 2000 },
-  { name: 'Sep', events: 2780 },
-  { name: 'Oct', events: 1890 },
-  { name: 'Nov', events: 2390 },
-  { name: 'Dec', events: 3490 },
-];
+// Fetch events data from the JSON file
+const fetchEvents = async () => {
+  try {
+    const response = await axios.get('src/utils/chartData.json');
+    console.log('Fetched data:', response.data); // Log to check the structure of the data
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    throw error;
+  }
+};
 
+// Custom tooltip for chart display
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
@@ -39,18 +37,40 @@ const CustomTooltip = ({ active, payload }) => {
 
 const SuperadminChart = () => {
   const [isMobile, setIsMobile] = useState(false);
-  const [chartData, setChartData] = useState(allData);
+  const [chartData, setChartData] = useState([]);
 
+  // Handle mobile responsiveness
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth <= 640;
-      setIsMobile(mobile);
-      setChartData(allData);
+      setIsMobile(window.innerWidth <= 640);
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Load chart data from JSON file
+  useEffect(() => {
+    const loadChartData = async () => {
+      try {
+        const data = await fetchEvents();
+
+        // If data is an array, format it for the chart, otherwise set it as an empty array
+        const formattedData = Array.isArray(data)
+          ? data.map(item => ({
+              name: item.month,
+              events: item.events,
+            }))
+          : [];
+          
+        setChartData(formattedData);
+      } catch (error) {
+        console.error('Error loading chart data:', error);
+      }
+    };
+
+    loadChartData();
   }, []);
 
   return (
@@ -65,7 +85,6 @@ const SuperadminChart = () => {
             bottom: 0,
           }}
         >
-          
           <XAxis
             dataKey="name"
             tick={!isMobile}
@@ -92,12 +111,10 @@ const SuperadminChart = () => {
             content={<CustomTooltip />}
             cursor={{ fill: 'transparent' }}
           />
-
           <Bar
             dataKey="events"
             fill="#2D3436"
             radius={[4, 4, 0, 0]}
-            onMouseEnter={(data, index) => {}}
             cursor={{ fill: 'rgba(45, 52, 54, 0.05)' }}
             background={{ fill: '#eaeef1' }}
           />

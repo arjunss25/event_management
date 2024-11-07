@@ -8,6 +8,7 @@ import { MdOutlineCancel } from 'react-icons/md';
 import { MdOutlineEventAvailable } from 'react-icons/md';
 import Superadmingraph from '../Components/Superadmin/Superadmingraph';
 import TableComponent from '../Components/Superadmin/TableComponent';
+import PaymentDetailsModal from '../Components/Superadmin/PaymentDetailsModal';
 
 const SuperadminDashboard = () => {
   const eventData = [
@@ -62,6 +63,12 @@ const SuperadminDashboard = () => {
           <div className="table-component">
             <h1 className="text-xl lg:text-2xl font-semibold mb-6">Events</h1>
             <TableComponent />
+            {/* <PaymentDetailsModal/> */}
+          </div>
+
+
+          <div className="modal w-full">
+          
           </div>
         </div>
       </main>

@@ -5,6 +5,7 @@ import adminEventsReducer from './Slices/Admin/AdminEventSlice';
 import employeeAllocationReducer from './Slices/Admin/employeeAllocationSlice'; 
 import eventFoodReducer from './Slices/Admin/eventFoodSlice';
 import adminUserRegistrationReducer from './Slices/Admin/adminUserRegistrationSlice';
+// import chartReducer from './Slices/SuperAdmin/chartSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     adminEmployeeAllocation: employeeAllocationReducer, 
     eventFood: eventFoodReducer,
     adminUserRegistration: adminUserRegistrationReducer,
+    // chart: chartReducer
   },
 });
 
