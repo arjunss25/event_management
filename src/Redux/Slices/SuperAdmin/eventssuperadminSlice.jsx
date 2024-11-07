@@ -19,13 +19,13 @@ const eventssuperadminSlice = createSlice({
     error: null,
   },
   reducers: {
-    updatePaymentStatus: (state, action) => {
-      const { id, status } = action.payload;
-      const event = state.data.find(event => event.id === id);
-      if (event) {
-        event.paymentstatus = status;
-      }
-    },
+    // updatePaymentStatus: (state, action) => {
+    //   const { id, status } = action.payload;
+    //   const event = state.data.find(event => event.id === id);
+    //   if (event) {
+    //     event.paymentstatus = status;
+    //   }
+    // },
   },
   extraReducers: (builder) => {
     builder

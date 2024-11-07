@@ -1,15 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { registeredUsersData } from '../../../data/mockUsers';
+import axios from 'axios';
 
+// Create a thunk to fetch users
 export const fetchRegisteredUsers = createAsyncThunk(
   'adminUserRegistration/fetchRegisteredUsers',
   async () => {
-    // Simulating API call with a promise
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(registeredUsersData);
-      }, 500);
-    });
+    // Fetch data from local JSON file or API
+    const response = await axios.get('src/utils/registeredUsers.json');
+    return response.data;
   }
 );
 
