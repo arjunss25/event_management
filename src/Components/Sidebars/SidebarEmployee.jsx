@@ -1,12 +1,10 @@
 import React from 'react';
-import { LuLayoutDashboard } from "react-icons/lu";
-import { MdGroups3, MdOutlineFestival } from "react-icons/md";
-import { IoTimerOutline } from "react-icons/io5";
-import { FaMoneyBillTransfer } from "react-icons/fa6";
+import { MdQrCodeScanner } from "react-icons/md";
+import { IoPersonCircleOutline } from "react-icons/io5";
 import { AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
 import { Link, useLocation } from 'react-router-dom';
 
-const SidebarSuperadmin = ({ isSidebarOpen, toggleSidebar }) => {
+const SidebarEmployee = ({ isSidebarOpen, toggleSidebar }) => {
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
@@ -39,33 +37,15 @@ const SidebarSuperadmin = ({ isSidebarOpen, toggleSidebar }) => {
           <div className="sidebar-links flex justify-center lg:justify-start lg:ml-10 text-[1.2rem]">
             <ul className="flex flex-col gap-6">
               <li>
-                <Link to="/" className={getLinkClass('/')} onClick={toggleSidebar}>
-                  <LuLayoutDashboard className="icon-size" />
-                  <span>Dashboard</span>
+                <Link to="/employee" className={getLinkClass('/employee')} onClick={toggleSidebar}>
+                    <MdQrCodeScanner />
+                  <span>Meal scanner</span>
                 </Link>
               </li>
               <li>
                 <Link to="/event-groups" className={getLinkClass('/event-groups')} onClick={toggleSidebar}>
-                  <MdGroups3 className="icon-size" />
-                  <span>Event Groups</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/events-superadmin" className={getLinkClass('/events-superadmin')} onClick={toggleSidebar}>
-                  <MdOutlineFestival className="icon-size" />
-                  <span>Events</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/expiredevents-superadmin" className={getLinkClass('/expiredevents-superadmin')} onClick={toggleSidebar}>
-                  <IoTimerOutline className="icon-size" />
-                  <span>Expired</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/paymenthistory-superadmin" className={getLinkClass('/paymenthistory-superadmin')} onClick={toggleSidebar}>
-                  <FaMoneyBillTransfer className="icon-size" />
-                  <span>Payment</span>
+                <IoPersonCircleOutline />
+                  <span>profile</span>
                 </Link>
               </li>
               <li>
@@ -90,4 +70,4 @@ const SidebarSuperadmin = ({ isSidebarOpen, toggleSidebar }) => {
   );
 };
 
-export default SidebarSuperadmin;
+export default SidebarEmployee

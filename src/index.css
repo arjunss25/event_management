@@ -9,8 +9,10 @@
 
 body {
     font-family: 'Poppins', sans-serif;
+    background: #f7fafc;
   }
   
 .dashboard-content-section::-webkit-scrollbar{
     display: none;
 }
+

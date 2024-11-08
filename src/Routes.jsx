@@ -11,6 +11,8 @@ import AdminLayout from './layouts/AdminLayout';
 import AdminEvents from './pages/Admin/AdminEvents';
 import AdminEventDetails from './pages/Admin/AdminEventDetails';
 import Login from './Components/Login';
+import MealScanner from './pages/Employee/MealScanner';
+import EmployeeLayout from './layouts/EmployeeLayout';
 
 const AppRoutes = () => {
   return (
@@ -36,10 +38,10 @@ const AppRoutes = () => {
         <Route path="admin-events/:eventId" element={<AdminEventDetails />} />
       </Route>
 
-      {/* <Route path="/employee" element={<EmployeeLayout />}>
-        <Route index element={<EmployeeDashboard />} />
+      <Route path="/employee" element={<EmployeeLayout />}>
+        <Route index element={<MealScanner />} />
         
-      </Route> */}
+      </Route>
     </Routes>
   );
 };

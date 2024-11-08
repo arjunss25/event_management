@@ -1,0 +1,56 @@
+{
+    "days": [
+      {
+        "id": 1,
+        "day": "Day 1",
+        "mealCategories": [
+          "Breakfast",
+          "Morning Refreshments",
+          "Lunch",
+          "Evening Refreshments",
+          "Dinner"
+        ]
+      },
+      {
+        "id": 2,
+        "day": "Day 2",
+        "mealCategories": [
+          "Breakfast",
+          "Lunch",
+          "Evening Refreshments",
+          "Dinner"
+        ]
+      },
+      {
+        "id": 3,
+        "day": "Day 3",
+        "mealCategories": [
+          "Breakfast",
+          "Morning Refreshments",
+          "Lunch",
+          "Dinner"
+        ]
+      },
+      {
+        "id": 4,
+        "day": "Day 4",
+        "mealCategories": [
+          "Breakfast",
+          "Lunch",
+          "Evening Refreshments",
+          "Dinner"
+        ]
+      },
+      {
+        "id": 5,
+        "day": "Day 5",
+        "mealCategories": [
+          "Breakfast",
+          "Morning Refreshments",
+          "Lunch",
+          "Evening Refreshments",
+          "Dinner"
+        ]
+      }
+    ]
+  }
