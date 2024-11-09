@@ -1,0 +1,36 @@
+{
+    "employees": [
+      {
+        "id": "123",
+        "name": "Raju Kumar",
+        "position": "Coordinator",
+        "email": "raju@gmail.com",
+        "phone": "5463223563",
+        "currentlyAssigned": true
+      },
+      {
+        "id": "124",
+        "name": "Priya Singh",
+        "position": "Manager",
+        "email": "priya@gmail.com",
+        "phone": "5463223564",
+        "currentlyAssigned": false
+      },
+      {
+        "id": "125",
+        "name": "Amit Patel",
+        "position": "Developer",
+        "email": "amit@gmail.com",
+        "phone": "5463223565",
+        "currentlyAssigned": true
+      },
+      {
+        "id": "126",
+        "name": "Sarah Johnson",
+        "position": "Designer",
+        "email": "sarah@gmail.com",
+        "phone": "5463223566",
+        "currentlyAssigned": false
+      }
+    ]
+  }

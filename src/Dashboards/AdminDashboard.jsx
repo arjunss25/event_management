@@ -37,7 +37,7 @@ const AdminDashboard = () => {
 
 
         {/* dashboard content */}
-        <div className="p-4 lg:p-8 w-full overflow-hidden">
+        <div className=" w-full overflow-hidden">
           {/* dashboard-cards */}
           <div className="w-full flex gap-5 flex-wrap justify-center lg:justify-start">
             {eventData.map((item, i) => (

@@ -14,6 +14,10 @@ import Login from './Components/Login';
 import MealScanner from './pages/Employee/MealScanner';
 import EmployeeLayout from './layouts/EmployeeLayout';
 import EmployeeDetails from './pages/Admin/EmployeeDetails';
+import AddCategory from './pages/Admin/AddCategory';
+import Userprofile from './pages/User/Userprofile';
+import RegisteredUserTable from './Components/Admin/RegisteredUserTable';
+
 
 const AppRoutes = () => {
   return (
@@ -37,12 +41,15 @@ const AppRoutes = () => {
         <Route index element={<AdminDashboard />} />
         <Route path="admin-events" element={<AdminEvents />} />
         <Route path="admin-events/:eventId" element={<AdminEventDetails />} />
-        <Route path="/admin/employee-details" element={<EmployeeDetails />} />
+        <Route path="employee-details" element={<EmployeeDetails />} />
+        <Route path="add-category" element={<AddCategory/>} />
+        {/* Add these two new routes */}
+        <Route path="registered-users" element={<RegisteredUserTable />} />
+        <Route path="user-profile/:userId" element={<Userprofile />} />
       </Route>
 
       <Route path="/employee" element={<EmployeeLayout />}>
         <Route index element={<MealScanner />} />
-        
       </Route>
     </Routes>
   );

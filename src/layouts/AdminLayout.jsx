@@ -21,7 +21,9 @@ const AdminLayout = () => {
         <AdminNavcomponent toggleSidebar={toggleSidebar} />
 
         {/* Page content */}
+        <div className="pages-com p-4 lg:p-8">
         <Outlet />
+        </div>
       </div>
     </div>
   );

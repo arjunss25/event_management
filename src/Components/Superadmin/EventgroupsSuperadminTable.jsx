@@ -49,9 +49,9 @@ const EventgroupsSuperadminTable = () => {
                   e-mail
                 </th>
                 <th className="px-6 py-3 text-left whitespace-nowrap">Phone</th>
-                <th className="px-6 py-3 text-left whitespace-nowrap">
+                {/* <th className="px-6 py-3 text-left whitespace-nowrap">
                   Event Status
-                </th>
+                </th> */}
                 <th className="px-6 py-3 text-left whitespace-nowrap">
                   Actions
                 </th>
@@ -86,7 +86,7 @@ const EventgroupsSuperadminTable = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{event.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{event.phone}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="w-24">
                       {event.status ? (
                         <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs text-center w-full">
@@ -98,7 +98,7 @@ const EventgroupsSuperadminTable = () => {
                         </span>
                       )}
                     </div>
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex gap-3">
                       <button

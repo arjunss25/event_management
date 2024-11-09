@@ -1,15 +1,17 @@
 import React, { useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchRegisteredUsers } from '../../Redux/Slices/Admin/adminUserRegistrationSlice';
 
 const RegisteredUserTable = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Accessing data from Redux store
   const { users, loading, error } = useSelector((state) => state.adminUserRegistration);
 
   useEffect(() => {
-    dispatch(fetchRegisteredUsers()); // Dispatch the action to fetch users
+    dispatch(fetchRegisteredUsers());
   }, [dispatch]);
 
   const tableRows = useMemo(() => {
@@ -22,7 +24,10 @@ const RegisteredUserTable = () => {
           <td className="px-6 py-6 text-black whitespace-nowrap">{user.phone}</td>
           <td className="px-6 py-6 text-black whitespace-nowrap">{user.registrationDate}</td>
           <td className="px-6 py-6 whitespace-nowrap">
-            <button className="bg-blue-500 text-white px-4 py-1 rounded-md text-xs hover:bg-blue-600 transition-colors">
+            <button 
+              onClick={() => navigate(`/admin/user-profile/${user.id}`)}
+              className="bg-blue-500 text-white px-4 py-1 rounded-md text-xs hover:bg-blue-600 transition-colors"
+            >
               View Profile
             </button>
           </td>
@@ -37,7 +42,10 @@ const RegisteredUserTable = () => {
           <td className="px-6 py-6 text-black whitespace-nowrap">{user.phone}</td>
           <td className="px-6 py-6 text-black whitespace-nowrap">{user.registrationDate}</td>
           <td className="px-6 py-6 whitespace-nowrap">
-            <button className="bg-blue-500 text-white px-4 py-1 rounded-md text-xs hover:bg-blue-600 transition-colors">
+            <button 
+              onClick={() => navigate(`/admin/user/${user.id}`)}
+              className="bg-blue-500 text-white px-4 py-1 rounded-md text-xs hover:bg-blue-600 transition-colors"
+            >
               View Profile
             </button>
           </td>
@@ -46,7 +54,7 @@ const RegisteredUserTable = () => {
     } else {
       return null;
     }
-  }, [users]);
+  }, [users, navigate]);
 
   if (loading) return <div className="p-4">Loading...</div>;
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;

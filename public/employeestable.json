@@ -1,0 +1,29 @@
+{
+    "employees": [
+      {
+        "id": "E001",
+        "name": "John Doe",
+        "position": "Software Engineer",
+        "email": "john.doe@example.com",
+        "phone": "123-456-7890",
+        "currentlyAssigned": true
+      },
+      {
+        "id": "E002",
+        "name": "Jane Smith",
+        "position": "Project Manager",
+        "email": "jane.smith@example.com",
+        "phone": "234-567-8901",
+        "currentlyAssigned": false
+      },
+      {
+        "id": "E003",
+        "name": "Samuel Green",
+        "position": "Designer",
+        "email": "samuel.green@example.com",
+        "phone": "345-678-9012",
+        "currentlyAssigned": true
+      }
+    ]
+  }
+  
