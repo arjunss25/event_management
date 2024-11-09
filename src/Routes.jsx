@@ -13,6 +13,7 @@ import AdminEventDetails from './pages/Admin/AdminEventDetails';
 import Login from './Components/Login';
 import MealScanner from './pages/Employee/MealScanner';
 import EmployeeLayout from './layouts/EmployeeLayout';
+import EmployeeDetails from './pages/Admin/EmployeeDetails';
 
 const AppRoutes = () => {
   return (
@@ -36,6 +37,7 @@ const AppRoutes = () => {
         <Route index element={<AdminDashboard />} />
         <Route path="admin-events" element={<AdminEvents />} />
         <Route path="admin-events/:eventId" element={<AdminEventDetails />} />
+        <Route path="/admin/employee-details" element={<EmployeeDetails />} />
       </Route>
 
       <Route path="/employee" element={<EmployeeLayout />}>

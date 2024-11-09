@@ -48,8 +48,8 @@ const AdminDashboard = () => {
           {/* table-componenet */}
           <div className="table-component mt-10">
             <h1 className="text-xl lg:text-2xl font-semibold mb-6">Events</h1>
-              {/* <RegisteredUserTable/> */}
-              <EmployeeScanner/>
+              <RegisteredUserTable/>
+              {/* <EmployeeScanner/> */}
           </div>
         </div>
       </main>

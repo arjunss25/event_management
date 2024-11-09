@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LuLayoutDashboard } from "react-icons/lu";
 import { MdGroups3, MdOutlineFestival } from "react-icons/md";
 import { IoTimerOutline } from "react-icons/io5";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
 import { Link, useLocation } from 'react-router-dom';
+import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 
 const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   const location = useLocation();
+  const [isEmployeesOpen, setIsEmployeesOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
@@ -16,6 +18,10 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
       isActive(path) ? 'text-black' : 'text-[#636e72]'
     }`
   );
+
+  const toggleEmployees = () => {
+    setIsEmployeesOpen(!isEmployeesOpen);
+  };
 
   return (
     <>
@@ -49,11 +55,43 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                   <span>Events</span>
                 </Link>
               </li>
-              <li>
-                <Link to="/admin/admin-employees" className={getLinkClass('/admin/admin-employees')} onClick={toggleSidebar}>
-                  <MdOutlineFestival className="icon-size" />
-                  <span>Employees</span>
-                </Link>
+              <li className="flex flex-col">
+                <button 
+                  onClick={toggleEmployees}
+                  className={`sidebar-link flex items-center justify-between gap-4 hover:text-black text-[#636e72] w-full`}
+                >
+                  <div className="flex items-center gap-4">
+                    <MdOutlineFestival className="icon-size" />
+                    <span>Employees</span>
+                  </div>
+                  {isEmployeesOpen ? (
+                    <FiChevronUp className="text-xl" />
+                  ) : (
+                    <FiChevronDown className="text-xl" />
+                  )}
+                </button>
+                {isEmployeesOpen && (
+                  <ul className="ml-8 mt-2 flex flex-col gap-2">
+                    <li>
+                      <Link 
+                        to="/admin/employee-details" 
+                        className={`${getLinkClass('/admin/employee-details')} text-base`}
+                        onClick={toggleSidebar}
+                      >
+                        Employee Details
+                      </Link>
+                    </li>
+                    <li>
+                      <Link 
+                        to="/admin/add-category" 
+                        className={`${getLinkClass('/admin/add-category')} text-base`}
+                        onClick={toggleSidebar}
+                      >
+                        Add Category
+                      </Link>
+                    </li>
+                  </ul>
+                )}
               </li>
               <li>
                 <Link to="/admin/admin-idcard" className={getLinkClass('/admin/admin-idcard')} onClick={toggleSidebar}>
