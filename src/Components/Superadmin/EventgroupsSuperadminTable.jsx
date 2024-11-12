@@ -1,15 +1,16 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   fetchEvents,
   deleteEvent,
 } from '../../Redux/Slices/SuperAdmin/EventgroupssuperadminSlice';
 import { FaRegEye } from 'react-icons/fa';
-import { FiEdit3 } from 'react-icons/fi';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
 
 const EventgroupsSuperadminTable = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { events, loading, error } = useSelector((state) => state.eventGroups);
 
   useEffect(() => {
@@ -22,14 +23,32 @@ const EventgroupsSuperadminTable = () => {
     }
   };
 
+  const handleView = (event) => {
+    navigate(`/event-group-profile/${event.id}`, { state: { eventData: event } });
+  };
+
   const handleImageError = (e) => {
     e.target.src = '/api/placeholder/40/40';
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
+  if (loading) return (
+    <div className="w-full h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="w-full p-4 bg-red-50 border border-red-200 rounded-lg">
+      <p className="text-red-500 text-center">Error: {error}</p>
+    </div>
+  );
+
   if (!Array.isArray(events) || events.length === 0) {
-    return <div className="p-4">No events available.</div>;
+    return (
+      <div className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        <p className="text-gray-500 text-center">No events available.</p>
+      </div>
+    );
   }
 
   return (
@@ -49,9 +68,6 @@ const EventgroupsSuperadminTable = () => {
                   e-mail
                 </th>
                 <th className="px-6 py-3 text-left whitespace-nowrap">Phone</th>
-                {/* <th className="px-6 py-3 text-left whitespace-nowrap">
-                  Event Status
-                </th> */}
                 <th className="px-6 py-3 text-left whitespace-nowrap">
                   Actions
                 </th>
@@ -86,36 +102,19 @@ const EventgroupsSuperadminTable = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{event.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{event.phone}</td>
-                  {/* <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="w-24">
-                      {event.status ? (
-                        <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs text-center w-full">
-                          Up Coming
-                        </span>
-                      ) : (
-                        <span className="inline-block px-2 text-center w-full">
-                          -
-                        </span>
-                      )}
-                    </div>
-                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex gap-3">
                       <button
-                        className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center"
-                        onClick={() => console.log('View event:', event.id)}
+                        className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center transition-colors duration-200"
+                        onClick={() => handleView(event)}
+                        title="View Details"
                       >
                         <FaRegEye className="text-[1.2rem]" />
                       </button>
-                      {/* <button
-                        className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center"
-                        onClick={() => console.log('Edit event:', event.id)}
-                      >
-                        <FiEdit3 className="text-[1.2rem]" />
-                      </button> */}
                       <button
-                        className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center"
+                        className="text-gray-600 hover:text-red-600 w-10 h-10 flex items-center justify-center transition-colors duration-200"
                         onClick={() => handleDelete(event.id)}
+                        title="Delete Event"
                       >
                         <MdOutlineDeleteOutline className="text-[1.2rem]" />
                       </button>

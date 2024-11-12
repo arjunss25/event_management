@@ -17,6 +17,7 @@ import EmployeeDetails from './pages/Admin/EmployeeDetails';
 import AddCategory from './pages/Admin/AddCategory';
 import Userprofile from './pages/User/Userprofile';
 import RegisteredUserTable from './Components/Admin/RegisteredUserTable';
+import EventgroupProfile from './pages/Superadmin/EventgroupProfile';
 
 
 const AppRoutes = () => {
@@ -35,6 +36,7 @@ const AppRoutes = () => {
           element={<PaymenthistorySuperadmin />}
         />
         <Route path="login" element={<Login />} />
+        <Route path="/event-group-profile/:id" element={<EventgroupProfile />} />
       </Route>
 
       <Route path="/admin" element={<AdminLayout />}>
