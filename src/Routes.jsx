@@ -19,7 +19,6 @@ import Userprofile from './pages/User/Userprofile';
 import RegisteredUserTable from './Components/Admin/RegisteredUserTable';
 import EventgroupProfile from './pages/Superadmin/EventgroupProfile';
 
-
 const AppRoutes = () => {
   return (
     <Routes>
@@ -27,14 +26,8 @@ const AppRoutes = () => {
         <Route index element={<SuperadminDashboard />} />
         <Route path="event-groups" element={<EventgroupsSuperadmin />} />
         <Route path="events-superadmin" element={<EventsSuperadmin />} />
-        <Route
-          path="expiredevents-superadmin"
-          element={<ExpiredeventsSuperadmin />}
-        />
-        <Route
-          path="paymenthistory-superadmin"
-          element={<PaymenthistorySuperadmin />}
-        />
+        <Route path="expiredevents-superadmin" element={<ExpiredeventsSuperadmin />} />
+        <Route path="paymenthistory-superadmin" element={<PaymenthistorySuperadmin />} />
         <Route path="login" element={<Login />} />
         <Route path="/event-group-profile/:id" element={<EventgroupProfile />} />
       </Route>
@@ -44,8 +37,7 @@ const AppRoutes = () => {
         <Route path="admin-events" element={<AdminEvents />} />
         <Route path="admin-events/:eventId" element={<AdminEventDetails />} />
         <Route path="employee-details" element={<EmployeeDetails />} />
-        <Route path="add-category" element={<AddCategory/>} />
-        {/* Add these two new routes */}
+        <Route path="add-category" element={<AddCategory />} />
         <Route path="registered-users" element={<RegisteredUserTable />} />
         <Route path="user-profile/:userId" element={<Userprofile />} />
       </Route>

@@ -26,7 +26,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   return (
     <>
       <div 
-        className={`fixed left-0 top-0 z-20 w-full sm:w-[300px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-transform duration-300 
+        className={`fixed left-0 top-0 z-[10] w-full sm:w-[300px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-transform duration-300 
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
         <div className="w-full relative">
