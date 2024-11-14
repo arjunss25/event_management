@@ -1,6 +1,9 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import SuperadminLayout from './layouts/SuperAdminLayout';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+
+// Import all components
+import SuperadminLayout from './layouts/SuperadminLayout';
 import EventgroupsSuperadmin from './pages/Superadmin/EventgroupsSuperadmin';
 import SuperadminDashboard from './Dashboards/SuperadminDashboard';
 import EventsSuperadmin from './pages/Superadmin/EventsSuperadmin';
@@ -19,32 +22,114 @@ import Userprofile from './pages/User/Userprofile';
 import RegisteredUserTable from './Components/Admin/RegisteredUserTable';
 import EventgroupProfile from './pages/Superadmin/EventgroupProfile';
 
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const auth = useSelector((state) => state.auth);
+  
+  // Debug logs
+  console.log('Current auth state:', auth);
+  console.log('Required role:', requiredRole);
+  console.log('Current user role:', auth.user?.role);
+
+  if (!auth.token) {
+    console.log('No token found, redirecting to login');
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && auth.user?.role !== requiredRole) {
+    console.log('Role mismatch, redirecting to appropriate dashboard');
+    // Redirect to appropriate dashboard based on actual role
+    if (auth.user?.role === 'Superadmin') {
+      return <Navigate to="/" replace />;
+    } else if (auth.user?.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else if (auth.user?.role === 'employee') {
+      return <Navigate to="/employee/dashboard" replace />;
+    }
+    return <Navigate to="/" replace />;
+  }
+
+  console.log('Access granted to protected route');
+  return children;
+};
+
 const AppRoutes = () => {
+  const auth = useSelector((state) => state.auth);
+  
   return (
     <Routes>
-      <Route path="/" element={<SuperadminLayout />}>
-        <Route index element={<SuperadminDashboard />} />
-        <Route path="event-groups" element={<EventgroupsSuperadmin />} />
-        <Route path="events-superadmin" element={<EventsSuperadmin />} />
-        <Route path="expiredevents-superadmin" element={<ExpiredeventsSuperadmin />} />
-        <Route path="paymenthistory-superadmin" element={<PaymenthistorySuperadmin />} />
-        <Route path="login" element={<Login />} />
-        <Route path="/event-group-profile/:id" element={<EventgroupProfile />} />
+      {/* Public Route */}
+      <Route 
+        path="/login" 
+        element={
+          auth.token ? (
+            <Navigate to={`/${auth.user?.role}/`} replace />
+          ) : (
+            <Login />
+          )
+        } 
+      />
+
+      {/* Superadmin Routes */}
+      <Route
+        path="/superadmin"
+        element={
+          <ProtectedRoute requiredRole="superadmin">
+            <SuperadminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<SuperadminDashboard />} />
+        <Route path="eventgroups" element={<EventgroupsSuperadmin />} />
+        <Route path="events" element={<EventsSuperadmin />} />
+        <Route path="expired-events" element={<ExpiredeventsSuperadmin />} />
+        <Route path="payment-history" element={<PaymenthistorySuperadmin />} />
+        <Route path="eventgroup-profile" element={<EventgroupProfile />} />
       </Route>
 
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="admin-events" element={<AdminEvents />} />
-        <Route path="admin-events/:eventId" element={<AdminEventDetails />} />
+      {/* Admin Routes */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="events" element={<AdminEvents />} />
+        <Route path="event-details" element={<AdminEventDetails />} />
         <Route path="employee-details" element={<EmployeeDetails />} />
         <Route path="add-category" element={<AddCategory />} />
         <Route path="registered-users" element={<RegisteredUserTable />} />
-        <Route path="user-profile/:userId" element={<Userprofile />} />
+        <Route path="user-profile" element={<Userprofile />} />
       </Route>
 
-      <Route path="/employee" element={<EmployeeLayout />}>
-        <Route index element={<MealScanner />} />
+      {/* Employee Routes */}
+      <Route
+        path="/employee"
+        element={
+          <ProtectedRoute requiredRole="employee">
+            <EmployeeLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="scanner" element={<MealScanner />} />
       </Route>
+
+      {/* Root redirect */}
+      <Route
+        path="/"
+        element={
+          auth.token ? (
+            <Navigate to={`/${auth.user?.role}/dashboard`} replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      {/* Catch all other routes */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };

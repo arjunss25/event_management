@@ -14,31 +14,48 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Log the Firebase token for debugging purposes
+  
     console.log('Firebase Token:', firebaseToken);
-
-    // Validate if either firebaseToken or email/password is provided
+  
+    // Ensure either Firebase token or email/password is provided
     if (!firebaseToken && (!email || !password)) {
       setError('Please provide either a Firebase token or email/password for authentication.');
       return;
     }
-
+  
     try {
-      // Making API request with either Firebase token or email/password
       const loginData = firebaseToken
         ? { firebaseToken }
         : { email, password };
-
+  
       const response = await axios.post(
         'https://event.neurocode.in/webapi/superadmin-login/', 
         loginData
       );
-
-      if (response.status === 200) {
-        // Dispatch loginSuccess action with token
-        dispatch(loginSuccess({ token: response.data.token }));
-        navigate('/');  // Navigate to the admin dashboard (or change this as per your routes)
+  
+      if (response.status === 200 && response.data.status === 'Success') {
+        const { access, refresh, role } = response.data.data;
+  
+        // Dispatch loginSuccess with tokens and role
+        dispatch(loginSuccess({ accessToken: access, refreshToken: refresh, role }));
+  
+        // Navigate based on user role
+        switch(role.toLowerCase()) {
+          case 'superadmin':
+            navigate('/superadmin');  // Navigate to Superadmin dashboard
+            break;
+          case 'admin':
+            navigate('/admin');  // Navigate to Admin dashboard
+            break;
+          case 'employee':
+            navigate('/employee');  // Navigate to Employee dashboard
+            break;
+          default:
+            setError('Unauthorized role.');
+            break;
+        }
+      } else {
+        setError(response.data.message || 'Authentication failed. Please check your credentials or token.');
       }
     } catch (error) {
       console.error('Authentication error:', error);
@@ -46,7 +63,7 @@ const Login = () => {
       setError('Authentication failed. Please check your credentials or token.');
     }
   };
-
+  
   return (
     <div className="login-container">
       <h2>Login</h2>

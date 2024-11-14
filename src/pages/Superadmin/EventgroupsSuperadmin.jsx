@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IoAddOutline } from 'react-icons/io5';
 import { FaTimes } from 'react-icons/fa';
 import EventgroupsSuperadminTable from '../../Components/Superadmin/EventgroupsSuperadminTable';
-import axiosInstance from '../../axiosConfig';  
+import axiosInstance from '../../axiosConfig';
 
 const EventgroupsSuperadmin = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -12,7 +12,7 @@ const EventgroupsSuperadmin = () => {
 
   const handleAddEventGroup = async (eventGroupData) => {
     try {
-      setLoading(true);  
+      setLoading(true);
       const response = await axiosInstance.post('/register-eventgroup/', eventGroupData);
 
       if (response.status === 200) {
@@ -23,7 +23,26 @@ const EventgroupsSuperadmin = () => {
         throw new Error('Failed to add event group');
       }
     } catch (err) {
-      alert('Failed to add event group: ' + err.message);
+      // Checking for 401 error to refresh token
+      if (err.response && err.response.status === 401) {
+        try {
+          // Attempt to refresh token
+          await axiosInstance.post('/auth/refresh-token');
+          // Retry the original request after refreshing token
+          const retryResponse = await axiosInstance.post('/register-eventgroup/', eventGroupData);
+          if (retryResponse.status === 200) {
+            alert('Event group added successfully after token refresh');
+            toggleDrawer();
+          } else {
+            throw new Error('Failed to add event group');
+          }
+        } catch (refreshError) {
+          alert('Authentication error: Unable to refresh token. Please log in again.');
+          // Redirect user to login if token refresh fails
+        }
+      } else {
+        alert('Failed to add event group: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }

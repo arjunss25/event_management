@@ -33,7 +33,7 @@ export const refreshAccessToken = async () => {
       throw new Error('Missing tokens for refresh');
     }
 
-    const response = await fetch('https://event.neurocode.in/webapi/token/refresh/', {
+    const response = await fetch('https://event.neurocode.in/webapi/refresh-token/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ export const authenticateWithBackend = async (credentials) => {
       email: credentials.email,
       uid: credentials.uid,
       displayName: credentials.displayName,
-      role: data.role
+      role: data.role // Store role after backend authentication
     });
 
     return { success: true, ...data };

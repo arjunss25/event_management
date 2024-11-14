@@ -1,16 +1,21 @@
+
 import * as jwtDecode from "jwt-decode";
 
 const TOKEN_CONFIG = {
   ACCESS_TOKEN: 'accessToken',
   REFRESH_TOKEN: 'refreshToken',
   USER_DATA: 'userData',
-  FIREBASE_TOKEN: 'firebaseToken' // Added to store Firebase token
+  FIREBASE_TOKEN: 'firebaseToken'
 };
 
 export const tokenService = {
   setTokens(accessToken, refreshToken) {
     localStorage.setItem(TOKEN_CONFIG.ACCESS_TOKEN, accessToken);
     localStorage.setItem(TOKEN_CONFIG.REFRESH_TOKEN, refreshToken);
+  },
+
+  setAccessToken(accessToken) {
+    localStorage.setItem(TOKEN_CONFIG.ACCESS_TOKEN, accessToken);
   },
 
   setFirebaseToken(token) {
@@ -34,9 +39,6 @@ export const tokenService = {
     localStorage.removeItem(TOKEN_CONFIG.REFRESH_TOKEN);
     localStorage.removeItem(TOKEN_CONFIG.USER_DATA);
     localStorage.removeItem(TOKEN_CONFIG.FIREBASE_TOKEN);
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('uid');
   },
 
   isTokenExpired(token) {
@@ -44,7 +46,8 @@ export const tokenService = {
     try {
       const decoded = jwtDecode(token);
       return decoded.exp * 1000 < Date.now();
-    } catch {
+    } catch (error) {
+      console.error('Token decoding failed:', error);
       return true;
     }
   },

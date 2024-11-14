@@ -1,38 +1,63 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Initial state
 const initialState = {
   token: null,
   isAuthenticated: false,
+  user: null,
   error: null,
+  loading: false,
 };
 
-// Create a slice of the Redux store
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    loginStart(state) {
+      state.loading = true;
+      state.error = null; 
+    },
     loginSuccess(state, action) {
       state.token = action.payload.token;
+      state.user = action.payload.user;
       state.isAuthenticated = true;
+      state.loading = false;
+      state.error = null; 
+    },
+    loginFailure(state, action) {
+      state.error = action.payload; 
+      state.isAuthenticated = false;
+      state.loading = false;
+      state.token = null;
+      state.user = null;
     },
     logout(state) {
       state.token = null;
       state.isAuthenticated = false;
+      state.user = null;
+      state.error = null;
+      state.loading = false;
     },
-    loginFailure(state, action) {
-      state.error = action.payload.error;
+    updateUserData(state, action) {
+      state.user = { ...state.user, ...action.payload };
     },
   },
 });
 
-// Export actions
-export const { loginSuccess, logout, loginFailure } = authSlice.actions;
+// Action creators
+export const {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+  logout,
+  updateUserData,
+} = authSlice.actions;
 
-// Selectors to access auth state
-export const selectAuthToken = (state) => state.auth.token;
+// Selectors
+export const selectAuth = (state) => state.auth;
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
+export const selectUser = (state) => state.auth.user;
 export const selectAuthError = (state) => state.auth.error;
+export const selectAuthLoading = (state) => state.auth.loading;
 
-// Export the reducer
+// Auth slice reducer
 export default authSlice.reducer;

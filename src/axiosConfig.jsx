@@ -7,28 +7,35 @@ const axiosInstance = axios.create({
   timeout: 10000,
 });
 
+// Request interceptor to add tokens to request headers
 axiosInstance.interceptors.request.use(
   async (config) => {
     const firebaseToken = tokenService.getFirebaseToken();
     let accessToken = tokenService.getAccessToken();
+    const userRole = tokenService.getUserRole();  // Assuming role is saved in tokenService
 
-    // Check if access token exists and is expired
     if (accessToken && tokenService.isTokenExpired(accessToken)) {
       try {
-        // Refresh the access token if expired
         accessToken = await refreshAccessToken();
+        tokenService.setAccessToken(accessToken); // Save the new access token
       } catch (error) {
-        // If refresh fails, clear tokens and redirect to login
         tokenService.clearTokens();
-        window.location.href = '/login';
+        window.location.href = '/login'; // Redirect to login if refreshing token fails
         return Promise.reject(error);
       }
     }
 
-    // Set both Firebase and JWT tokens in headers
+    // Add Authorization headers for access token
     config.headers.Authorization = `Bearer ${accessToken}`;
+
+    // Add Firebase token if available
     if (firebaseToken) {
       config.headers['Firebase-Token'] = `Bearer ${firebaseToken}`;
+    }
+
+    // Optionally, add the user role to headers for role-based access control
+    if (userRole) {
+      config.headers['User-Role'] = userRole; // You can add role-specific checks on the backend
     }
 
     return config;
@@ -36,38 +43,36 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor to handle token expiry and retry
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Handle 401 Unauthorized error and check if request has been retried
+    // If token expired (401), try to refresh the token and retry the original request
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
-        // Attempt to refresh the access token
         const newAccessToken = await refreshAccessToken();
-        
-        // Update the Authorization header with the new token
+        tokenService.setAccessToken(newAccessToken); // Update token in storage
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        
-        // Keep the Firebase token in the headers
+
+        // Retry the original request with the new token
         const firebaseToken = tokenService.getFirebaseToken();
         if (firebaseToken) {
           originalRequest.headers['Firebase-Token'] = `Bearer ${firebaseToken}`;
         }
 
-        // Retry the original request with the new tokens
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        // If token refresh fails, clear tokens and redirect to login
         tokenService.clearTokens();
-        window.location.href = '/login';
+        window.location.href = '/login'; // Redirect to login if refresh token fails
         return Promise.reject(refreshError);
       }
     }
 
+    // If the error is not token-related, reject it
     return Promise.reject(error);
   }
 );
