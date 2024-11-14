@@ -3,50 +3,102 @@ import { IoAddOutline } from 'react-icons/io5';
 import { FaTimes } from 'react-icons/fa';
 import EventgroupsSuperadminTable from '../../Components/Superadmin/EventgroupsSuperadminTable';
 import axiosInstance from '../../axiosConfig';
+import { tokenService } from '../../tokenService';  // Ensure correct import path
 
 const EventgroupsSuperadmin = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // State to store tokens and user role
+  const [accessToken, setAccessToken] = useState('');
+  const [firebaseToken, setFirebaseToken] = useState('');
+  const [userRole, setUserRole] = useState('');
+
+  // Fetch tokens and role from tokenService when component mounts
+  useEffect(() => {
+    const token = tokenService.getAccessToken();
+    const firebaseToken = tokenService.getFirebaseToken();
+    const userRole = tokenService.getUserRole();
+
+    if (token && firebaseToken && userRole) {
+      setAccessToken(token);
+      setFirebaseToken(firebaseToken);
+      setUserRole(userRole);
+    }
+  }, []);
 
   const toggleDrawer = () => setDrawerOpen(!isDrawerOpen);
 
   const handleAddEventGroup = async (eventGroupData) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.post('/register-eventgroup/', eventGroupData);
-
+  
+      // Send the original request
+      const response = await axiosInstance.post('/register-eventgroup/', eventGroupData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Firebase-Token': `Bearer ${firebaseToken}`,
+          'User-Role': userRole,
+        },
+      });
+  
       if (response.status === 200) {
         alert('Event group added successfully');
         toggleDrawer();
-        // Optionally, refresh or re-fetch the table data to show the new event group
       } else {
         throw new Error('Failed to add event group');
       }
     } catch (err) {
-      // Checking for 401 error to refresh token
       if (err.response && err.response.status === 401) {
+        console.log("401 Unauthorized error detected. Trying to refresh token...");
+  
         try {
-          // Attempt to refresh token
-          await axiosInstance.post('/auth/refresh-token');
-          // Retry the original request after refreshing token
-          const retryResponse = await axiosInstance.post('/register-eventgroup/', eventGroupData);
-          if (retryResponse.status === 200) {
-            alert('Event group added successfully after token refresh');
-            toggleDrawer();
+          const refreshResponse = await axiosInstance.post('/refresh-token/', {
+            refreshToken: tokenService.getRefreshToken() // Make sure you are sending the correct refresh token
+          });
+  
+          if (refreshResponse.status === 200) {
+            const newAccessToken = refreshResponse.data.accessToken;
+            const newFirebaseToken = refreshResponse.data.firebaseToken;
+  
+            // Update state with new tokens
+            setAccessToken(newAccessToken);
+            setFirebaseToken(newFirebaseToken);
+  
+            console.log("Token refreshed successfully. Retrying the original request...");
+  
+            // Retry the original request with the new tokens
+            const retryResponse = await axiosInstance.post('/register-eventgroup/', eventGroupData, {
+              headers: {
+                Authorization: `Bearer ${newAccessToken}`,
+                'Firebase-Token': `Bearer ${newFirebaseToken}`,
+                'User-Role': userRole,
+              },
+            });
+  
+            if (retryResponse.status === 200) {
+              alert('Event group added successfully after token refresh');
+              toggleDrawer();
+            } else {
+              throw new Error('Failed to add event group');
+            }
           } else {
-            throw new Error('Failed to add event group');
+            throw new Error('Token refresh failed');
           }
         } catch (refreshError) {
+          console.error("Token refresh failed: ", refreshError);
           alert('Authentication error: Unable to refresh token. Please log in again.');
-          // Redirect user to login if token refresh fails
+          window.location.href = '/login'; // Redirect to login
         }
       } else {
+        console.error("Request failed: ", err);
         alert('Failed to add event group: ' + err.message);
       }
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="w-full min-h-screen bg-[#f7fafc] overflow-x-hidden">

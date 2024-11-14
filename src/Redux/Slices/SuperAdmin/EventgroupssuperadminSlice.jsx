@@ -5,7 +5,7 @@ export const fetchEvents = createAsyncThunk(
   'eventgroups/fetchEvents',
   async () => {
     try {
-      const response = await axios.get('src/utils/eventgroupsDataSuperadmin.json');
+      const response = await axios.get('');
       return response.data;
     } catch (error) {
       throw error;

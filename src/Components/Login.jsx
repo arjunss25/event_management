@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux'; 
-import { loginSuccess, loginFailure } from '../Redux/authSlice';  
+import { useDispatch } from 'react-redux';
+import { loginSuccess, loginFailure } from '../Redux/authSlice';
 import axios from 'axios';
 
 const Login = () => {
@@ -9,52 +9,60 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [firebaseToken, setFirebaseToken] = useState('');
   const [error, setError] = useState('');
-  const dispatch = useDispatch();  
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     console.log('Firebase Token:', firebaseToken);
-  
+
     // Ensure either Firebase token or email/password is provided
     if (!firebaseToken && (!email || !password)) {
       setError('Please provide either a Firebase token or email/password for authentication.');
       return;
     }
-  
+
     try {
-      const loginData = firebaseToken
-        ? { firebaseToken }
-        : { email, password };
-  
+      const loginData = firebaseToken ? { firebaseToken } : { email, password };
+
       const response = await axios.post(
-        'https://event.neurocode.in/webapi/superadmin-login/', 
+        'https://event.neurocode.in/webapi/superadmin-login/',
         loginData
       );
-  
+      console.log('Response Data:', response.data);
+
       if (response.status === 200 && response.data.status === 'Success') {
-        const { access, refresh, role } = response.data.data;
-  
-        // Dispatch loginSuccess with tokens and role
-        dispatch(loginSuccess({ accessToken: access, refreshToken: refresh, role }));
-  
+        const { access: token, refresh, role } = response.data.data;
+      
+        // Log the extracted data for verification
+        console.log('Access Token:', token);
+        console.log('Refresh Token:', refresh);
+        console.log('User Role:', role);
+      
+        // Dispatch loginSuccess with the correct payload
+        dispatch(loginSuccess({
+          token,
+          user: { role },
+        }));
+      
         // Navigate based on user role
-        switch(role.toLowerCase()) {
+        switch (role?.trim().toLowerCase()) {
           case 'superadmin':
-            navigate('/superadmin');  // Navigate to Superadmin dashboard
+            navigate('/superadmin/dashboard');
             break;
           case 'admin':
-            navigate('/admin');  // Navigate to Admin dashboard
+            navigate('/admin');
             break;
           case 'employee':
-            navigate('/employee');  // Navigate to Employee dashboard
+            navigate('/employee');
             break;
           default:
-            setError('Unauthorized role.');
+            setError(`Unauthorized role: ${role}`);
             break;
         }
-      } else {
+      }
+       else {
         setError(response.data.message || 'Authentication failed. Please check your credentials or token.');
       }
     } catch (error) {
@@ -63,7 +71,7 @@ const Login = () => {
       setError('Authentication failed. Please check your credentials or token.');
     }
   };
-  
+
   return (
     <div className="login-container">
       <h2>Login</h2>

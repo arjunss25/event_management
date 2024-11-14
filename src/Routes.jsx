@@ -25,27 +25,34 @@ import EventgroupProfile from './pages/Superadmin/EventgroupProfile';
 const ProtectedRoute = ({ children, requiredRole }) => {
   const auth = useSelector((state) => state.auth);
   
+  // Normalize roles to lowercase
+  const userRole = auth.user?.role?.trim().toLowerCase();
+  const expectedRole = requiredRole?.trim().toLowerCase();
+
   // Debug logs
   console.log('Current auth state:', auth);
-  console.log('Required role:', requiredRole);
-  console.log('Current user role:', auth.user?.role);
+  console.log('Required role:', expectedRole);
+  console.log('Current user role:', userRole);
 
+  // Check if the token exists
   if (!auth.token) {
     console.log('No token found, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && auth.user?.role !== requiredRole) {
+  // Role mismatch handling
+  if (expectedRole && userRole !== expectedRole) {
     console.log('Role mismatch, redirecting to appropriate dashboard');
-    // Redirect to appropriate dashboard based on actual role
-    if (auth.user?.role === 'Superadmin') {
-      return <Navigate to="/" replace />;
-    } else if (auth.user?.role === 'admin') {
-      return <Navigate to="/admin/dashboard" replace />;
-    } else if (auth.user?.role === 'employee') {
-      return <Navigate to="/employee/dashboard" replace />;
+    switch (userRole) {
+      case 'superadmin':
+        return <Navigate to="/superadmin/dashboard" replace />;
+      case 'admin':
+        return <Navigate to="/admin/dashboard" replace />;
+      case 'employee':
+        return <Navigate to="/employee/scanner" replace />;
+      default:
+        return <Navigate to="/login" replace />;
     }
-    return <Navigate to="/" replace />;
   }
 
   console.log('Access granted to protected route');
@@ -62,7 +69,7 @@ const AppRoutes = () => {
         path="/login" 
         element={
           auth.token ? (
-            <Navigate to={`/${auth.user?.role}/`} replace />
+            <Navigate to={`/${auth.user?.role?.toLowerCase()}/dashboard`} replace />
           ) : (
             <Login />
           )
@@ -78,6 +85,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
+        <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<SuperadminDashboard />} />
         <Route path="eventgroups" element={<EventgroupsSuperadmin />} />
         <Route path="events" element={<EventsSuperadmin />} />
@@ -95,6 +103,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
+        <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="event-details" element={<AdminEventDetails />} />
@@ -113,6 +122,7 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
+        <Route index element={<Navigate to="scanner" replace />} />
         <Route path="scanner" element={<MealScanner />} />
       </Route>
 
@@ -121,7 +131,7 @@ const AppRoutes = () => {
         path="/"
         element={
           auth.token ? (
-            <Navigate to={`/${auth.user?.role}/dashboard`} replace />
+            <Navigate to={`/${auth.user?.role?.toLowerCase()}/dashboard`} replace />
           ) : (
             <Navigate to="/login" replace />
           )

@@ -28,7 +28,7 @@ export const refreshAccessToken = async () => {
   try {
     const refreshToken = tokenService.getRefreshToken();
     const firebaseToken = tokenService.getFirebaseToken();
-    
+
     if (!refreshToken || !firebaseToken) {
       throw new Error('Missing tokens for refresh');
     }
@@ -37,20 +37,22 @@ export const refreshAccessToken = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${firebaseToken}` // Include Firebase token
+        'Authorization': `Bearer ${firebaseToken}`, // Firebase token
       },
-      body: JSON.stringify({
-        refresh: refreshToken
-      })
-    });
+      body: JSON.stringify({ refresh: refreshToken }),
+    }); 
+    
 
-    if (!response.ok) throw new Error('Failed to refresh token');
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to refresh token');
+    }
 
     const data = await response.json();
-    tokenService.setTokens(data.access, data.refresh);
+    tokenService.setTokens(data.access, data.refresh); // Update tokens
     return data.access;
   } catch (error) {
-    console.error('Token refresh failed:', error);
+    console.error('Token refresh failed:', error.message);
     tokenService.clearTokens();
     throw error;
   }
@@ -61,28 +63,28 @@ export const loginWithEmail = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const firebaseToken = await userCredential.user.getIdToken();
     tokenService.setFirebaseToken(firebaseToken); // Store Firebase token
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       firebaseToken,
       user: {
         email: userCredential.user.email,
         uid: userCredential.user.uid,
-        displayName: userCredential.user.displayName
-      }
+        displayName: userCredential.user.displayName,
+      },
     };
   } catch (error) {
     console.error('Firebase login error:', error);
-    let errorMessage = "Login failed";
+    let errorMessage = 'Login failed';
     switch (error.code) {
       case 'auth/invalid-credential':
-        errorMessage = "Invalid email or password";
+        errorMessage = 'Invalid email or password';
         break;
       case 'auth/user-not-found':
-        errorMessage = "No account found with this email";
+        errorMessage = 'No account found with this email';
         break;
       case 'auth/wrong-password':
-        errorMessage = "Incorrect password";
+        errorMessage = 'Incorrect password';
         break;
       default:
         errorMessage = error.message;
@@ -97,25 +99,25 @@ export const loginWithGoogle = async () => {
     const userCredential = await signInWithPopup(auth, provider);
     const firebaseToken = await userCredential.user.getIdToken();
     tokenService.setFirebaseToken(firebaseToken); // Store Firebase token
-    
-    return { 
-      success: true, 
+
+    return {
+      success: true,
       firebaseToken,
       user: {
         email: userCredential.user.email,
         uid: userCredential.user.uid,
-        displayName: userCredential.user.displayName
-      }
+        displayName: userCredential.user.displayName,
+      },
     };
   } catch (error) {
     console.error('Google login error:', error);
-    let errorMessage = "Google sign-in failed";
+    let errorMessage = 'Google sign-in failed';
     switch (error.code) {
       case 'auth/popup-closed-by-user':
-        errorMessage = "Sign-in popup was closed";
+        errorMessage = 'Sign-in popup was closed';
         break;
       case 'auth/popup-blocked':
-        errorMessage = "Sign-in popup was blocked. Please allow popups for this site.";
+        errorMessage = 'Sign-in popup was blocked. Please allow popups for this site.';
         break;
       default:
         errorMessage = error.message;
@@ -131,14 +133,14 @@ export const authenticateWithBackend = async (credentials) => {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': `Bearer ${credentials.firebaseToken}` // Include Firebase token
+        'Authorization': `Bearer ${credentials.firebaseToken}`, // Firebase token
       },
       body: JSON.stringify({
         email: credentials.email,
         token: credentials.firebaseToken,
         uid: credentials.uid,
-        displayName: credentials.displayName || ''
-      })
+        displayName: credentials.displayName || '',
+      }),
     });
 
     if (!response.ok) {
@@ -147,26 +149,23 @@ export const authenticateWithBackend = async (credentials) => {
     }
 
     const data = await response.json();
-    
-    // Store tokens and user data
+
     tokenService.setTokens(data.access, data.refresh);
     tokenService.setUserData({
       email: credentials.email,
       uid: credentials.uid,
       displayName: credentials.displayName,
-      role: data.role // Store role after backend authentication
+      role: data.role, // Store role
     });
 
     return { success: true, ...data };
   } catch (error) {
-    console.error('Backend authentication error:', error);
+    console.error('Backend authentication error:', error.message);
     throw error;
   }
 };
 
-export const getUserData = () => {
-  return tokenService.getUserData();
-};
+export const getUserData = () => tokenService.getUserData();
 
 export const logout = () => {
   tokenService.clearTokens();

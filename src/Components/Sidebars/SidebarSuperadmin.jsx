@@ -4,12 +4,16 @@ import { MdGroups3, MdOutlineFestival } from "react-icons/md";
 import { IoTimerOutline } from "react-icons/io5";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../Redux/authSlice'; 
 
 const SidebarSuperadmin = ({ isSidebarOpen, toggleSidebar }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === `/superadmin${path}`;
 
   const getLinkClass = (path) => (
     `sidebar-link flex items-center gap-4 hover:text-black ${
@@ -17,9 +21,13 @@ const SidebarSuperadmin = ({ isSidebarOpen, toggleSidebar }) => {
     }`
   );
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
   return (
     <>
-    
       <div 
         className={`fixed left-0 top-0 z-[10] w-full sm:w-[300px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-transform duration-300 
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
@@ -39,40 +47,43 @@ const SidebarSuperadmin = ({ isSidebarOpen, toggleSidebar }) => {
           <div className="sidebar-links flex justify-center lg:justify-start lg:ml-10 text-[1.2rem]">
             <ul className="flex flex-col gap-6">
               <li>
-                <Link to="/" className={getLinkClass('/')} onClick={toggleSidebar}>
+                <Link to="/superadmin/dashboard" className={getLinkClass('/dashboard')} onClick={toggleSidebar}>
                   <LuLayoutDashboard className="icon-size" />
                   <span>Dashboard</span>
                 </Link>
               </li>
               <li>
-                <Link to="/event-groups" className={getLinkClass('/event-groups')} onClick={toggleSidebar}>
+                <Link to="/superadmin/eventgroups" className={getLinkClass('/eventgroups')} onClick={toggleSidebar}>
                   <MdGroups3 className="icon-size" />
                   <span>Event Groups</span>
                 </Link>
               </li>
               <li>
-                <Link to="/events-superadmin" className={getLinkClass('/events-superadmin')} onClick={toggleSidebar}>
+                <Link to="/superadmin/events" className={getLinkClass('/events')} onClick={toggleSidebar}>
                   <MdOutlineFestival className="icon-size" />
                   <span>Events</span>
                 </Link>
               </li>
               <li>
-                <Link to="/expiredevents-superadmin" className={getLinkClass('/expiredevents-superadmin')} onClick={toggleSidebar}>
+                <Link to="/superadmin/expired-events" className={getLinkClass('/expired-events')} onClick={toggleSidebar}>
                   <IoTimerOutline className="icon-size" />
                   <span>Expired</span>
                 </Link>
               </li>
               <li>
-                <Link to="/paymenthistory-superadmin" className={getLinkClass('/paymenthistory-superadmin')} onClick={toggleSidebar}>
+                <Link to="/superadmin/payment-history" className={getLinkClass('/payment-history')} onClick={toggleSidebar}>
                   <FaMoneyBillTransfer className="icon-size" />
                   <span>Payment</span>
                 </Link>
               </li>
               <li>
-                <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]">
+                <button 
+                  onClick={handleLogout} 
+                  className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]"
+                >
                   <AiOutlineLogout className="icon-size" />
                   <span>Logout</span>
-                </a>
+                </button>
               </li>
             </ul>
           </div>
