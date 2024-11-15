@@ -117,6 +117,7 @@ export const tokenService = {
       return true;
     }
     try {
+      console.log('Decoding token:', token);  // Add logging here
       const decoded = jwtDecode(token);
       const currentTime = Math.floor(Date.now() / 1000);
       const isExpired = decoded.exp < currentTime;

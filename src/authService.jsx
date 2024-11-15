@@ -29,6 +29,10 @@ export const refreshAccessToken = async () => {
     const refreshToken = tokenService.getRefreshToken();
     const firebaseToken = tokenService.getFirebaseToken();
 
+    console.log('Attempting to refresh access token...');
+    console.log('Refresh Token:', refreshToken);
+    console.log('Firebase Token:', firebaseToken);
+
     if (!refreshToken || !firebaseToken) {
       throw new Error('Missing tokens for refresh');
     }
@@ -37,11 +41,10 @@ export const refreshAccessToken = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${firebaseToken}`, // Firebase token
+        'Authorization': `Bearer ${firebaseToken}`,
       },
       body: JSON.stringify({ refresh: refreshToken }),
-    }); 
-    
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -49,7 +52,7 @@ export const refreshAccessToken = async () => {
     }
 
     const data = await response.json();
-    tokenService.setTokens(data.access, data.refresh); // Update tokens
+    tokenService.setTokens(data.access, data.refresh);
     return data.access;
   } catch (error) {
     console.error('Token refresh failed:', error.message);
@@ -62,7 +65,7 @@ export const loginWithEmail = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const firebaseToken = await userCredential.user.getIdToken();
-    tokenService.setFirebaseToken(firebaseToken); // Store Firebase token
+    tokenService.setFirebaseToken(firebaseToken);
 
     return {
       success: true,
@@ -98,7 +101,7 @@ export const loginWithGoogle = async () => {
   try {
     const userCredential = await signInWithPopup(auth, provider);
     const firebaseToken = await userCredential.user.getIdToken();
-    tokenService.setFirebaseToken(firebaseToken); // Store Firebase token
+    tokenService.setFirebaseToken(firebaseToken);
 
     return {
       success: true,
@@ -133,7 +136,7 @@ export const authenticateWithBackend = async (credentials) => {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': `Bearer ${credentials.firebaseToken}`, // Firebase token
+        'Authorization': `Bearer ${credentials.firebaseToken}`,
       },
       body: JSON.stringify({
         email: credentials.email,
@@ -149,13 +152,12 @@ export const authenticateWithBackend = async (credentials) => {
     }
 
     const data = await response.json();
-
     tokenService.setTokens(data.access, data.refresh);
     tokenService.setUserData({
       email: credentials.email,
       uid: credentials.uid,
       displayName: credentials.displayName,
-      role: data.role, // Store role
+      role: data.role,
     });
 
     return { success: true, ...data };

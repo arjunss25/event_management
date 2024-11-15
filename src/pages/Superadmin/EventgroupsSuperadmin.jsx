@@ -33,65 +33,29 @@ const EventgroupsSuperadmin = () => {
     try {
       setLoading(true);
   
-      // Send the original request
-      const response = await axiosInstance.post('/register-eventgroup/', eventGroupData, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Firebase-Token': `Bearer ${firebaseToken}`,
-          'User-Role': userRole,
-        },
-      });
+      const accessToken = tokenService.getAccessToken();
+      const firebaseToken = tokenService.getFirebaseToken();
+      
+      if (!accessToken || !firebaseToken) {
+        throw new Error('Missing authentication tokens');
+      }
+  
+      const response = await axiosInstance.post('/register-eventgroup/', eventGroupData);
   
       if (response.status === 200) {
         alert('Event group added successfully');
         toggleDrawer();
+        // Optionally refresh the event groups list here
       } else {
         throw new Error('Failed to add event group');
       }
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        console.log("401 Unauthorized error detected. Trying to refresh token...");
-  
-        try {
-          const refreshResponse = await axiosInstance.post('/refresh-token/', {
-            refreshToken: tokenService.getRefreshToken() // Make sure you are sending the correct refresh token
-          });
-  
-          if (refreshResponse.status === 200) {
-            const newAccessToken = refreshResponse.data.accessToken;
-            const newFirebaseToken = refreshResponse.data.firebaseToken;
-  
-            // Update state with new tokens
-            setAccessToken(newAccessToken);
-            setFirebaseToken(newFirebaseToken);
-  
-            console.log("Token refreshed successfully. Retrying the original request...");
-  
-            // Retry the original request with the new tokens
-            const retryResponse = await axiosInstance.post('/register-eventgroup/', eventGroupData, {
-              headers: {
-                Authorization: `Bearer ${newAccessToken}`,
-                'Firebase-Token': `Bearer ${newFirebaseToken}`,
-                'User-Role': userRole,
-              },
-            });
-  
-            if (retryResponse.status === 200) {
-              alert('Event group added successfully after token refresh');
-              toggleDrawer();
-            } else {
-              throw new Error('Failed to add event group');
-            }
-          } else {
-            throw new Error('Token refresh failed');
-          }
-        } catch (refreshError) {
-          console.error("Token refresh failed: ", refreshError);
-          alert('Authentication error: Unable to refresh token. Please log in again.');
-          window.location.href = '/login'; // Redirect to login
-        }
+      console.error("Request failed: ", err);
+      
+      if (err.message === 'Missing authentication tokens') {
+        alert('Please log in again to continue');
+        window.location.href = '/login';
       } else {
-        console.error("Request failed: ", err);
         alert('Failed to add event group: ' + err.message);
       }
     } finally {
