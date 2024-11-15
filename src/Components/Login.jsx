@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { loginSuccess, loginFailure } from '../Redux/authSlice';
@@ -11,6 +11,19 @@ const Login = () => {
   const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if there's a token in localStorage and dispatch loginSuccess if found
+    const savedToken = localStorage.getItem('access_token');
+    const savedUser = JSON.parse(localStorage.getItem('user'));
+    if (savedToken && savedUser) {
+      dispatch(loginSuccess({
+        token: savedToken,
+        user: savedUser,
+      }));
+      navigate(`/${savedUser.role.toLowerCase()}/dashboard`);
+    }
+  }, [dispatch, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +58,11 @@ const Login = () => {
           token,
           user: { role },
         }));
-      
+
+        // Store token and user data in localStorage
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('user', JSON.stringify({ role }));
+
         // Navigate based on user role
         switch (role?.trim().toLowerCase()) {
           case 'superadmin':
@@ -61,8 +78,7 @@ const Login = () => {
             setError(`Unauthorized role: ${role}`);
             break;
         }
-      }
-       else {
+      } else {
         setError(response.data.message || 'Authentication failed. Please check your credentials or token.');
       }
     } catch (error) {

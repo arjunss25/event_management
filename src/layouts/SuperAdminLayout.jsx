@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux'; // Access Redux state
+
 import SidebarSuperadmin from '../Components/Sidebars/SidebarSuperadmin';
 import Navcomponent from '../Components/Navcomponent';
 
 const SuperadminLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  
+  // Get auth state from Redux store
+  const auth = useSelector((state) => state.auth);
+
+  // Check if the user is authenticated and has the 'superadmin' role
+  if (!auth.token || auth.user?.role?.toLowerCase() !== 'superadmin') {
+    // If not authenticated or not a superadmin, redirect to login
+    return <Navigate to="/login" replace />;
+  }
 
   const toggleSidebar = () => {
     setSidebarOpen((prev) => !prev);

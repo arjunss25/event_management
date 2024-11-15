@@ -29,11 +29,6 @@ const ProtectedRoute = ({ children, requiredRole }) => {
   const userRole = auth.user?.role?.trim().toLowerCase();
   const expectedRole = requiredRole?.trim().toLowerCase();
 
-  // Debug logs
-  console.log('Current auth state:', auth);
-  console.log('Required role:', expectedRole);
-  console.log('Current user role:', userRole);
-
   // Check if the token exists
   if (!auth.token) {
     console.log('No token found, redirecting to login');
@@ -80,9 +75,11 @@ const AppRoutes = () => {
       <Route
         path="/superadmin"
         element={
-          <ProtectedRoute requiredRole="superadmin">
+          auth.token && auth.user?.role.toLowerCase() === 'superadmin' ? (
             <SuperadminLayout />
-          </ProtectedRoute>
+          ) : (
+            <Navigate to="/login" replace />
+          )
         }
       >
         <Route index element={<Navigate to="dashboard" replace />} />

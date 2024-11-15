@@ -9,74 +9,99 @@ const TOKEN_CONFIG = {
 
 export const tokenService = {
   setTokens(accessToken, refreshToken) {
-    if (accessToken) {
-      localStorage.setItem(TOKEN_CONFIG.ACCESS_TOKEN, accessToken);
-      console.log('Access Token Set:', accessToken);
-    }
-    if (refreshToken) {
-      localStorage.setItem(TOKEN_CONFIG.REFRESH_TOKEN, refreshToken);
-      console.log('Refresh Token Set:', refreshToken);
+    if (typeof window !== "undefined") {
+      // Check if localStorage is available
+      if (accessToken) {
+        localStorage.setItem(TOKEN_CONFIG.ACCESS_TOKEN, accessToken);
+        console.log('Access Token Set:', accessToken);
+      }
+      if (refreshToken) {
+        localStorage.setItem(TOKEN_CONFIG.REFRESH_TOKEN, refreshToken);
+        console.log('Refresh Token Set:', refreshToken);
+      }
+    } else {
+      console.error("localStorage is not available in this environment.");
     }
   },
 
   setAccessToken(accessToken) {
-    if (accessToken) {
+    if (typeof window !== "undefined" && accessToken) {
       localStorage.setItem(TOKEN_CONFIG.ACCESS_TOKEN, accessToken);
       console.log('Access Token Set:', accessToken);
     }
   },
 
   setFirebaseToken(token) {
-    if (token) {
+    if (typeof window !== "undefined" && token) {
       localStorage.setItem(TOKEN_CONFIG.FIREBASE_TOKEN, token);
       console.log('Firebase Token Set:', token);
     }
   },
 
   getFirebaseToken() {
-    const token = localStorage.getItem(TOKEN_CONFIG.FIREBASE_TOKEN) || null;
-    console.log('Firebase Token Retrieved:', token);
-    return token;
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem(TOKEN_CONFIG.FIREBASE_TOKEN) || null;
+      console.log('Firebase Token Retrieved:', token);
+      return token;
+    }
+    console.error("localStorage is not available.");
+    return null;
   },
 
   getAccessToken() {
-    const token = localStorage.getItem(TOKEN_CONFIG.ACCESS_TOKEN) || null;
-    console.log('Access Token Retrieved:', token);
-    return token;
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem(TOKEN_CONFIG.ACCESS_TOKEN) || null;
+      console.log('Access Token Retrieved:', token);
+      return token;
+    }
+    console.error("localStorage is not available.");
+    return null;
   },
 
   getRefreshToken() {
-    const token = localStorage.getItem(TOKEN_CONFIG.REFRESH_TOKEN) || null;
-    console.log('Refresh Token Retrieved:', token);
-    return token;
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem(TOKEN_CONFIG.REFRESH_TOKEN) || null;
+      console.log('Refresh Token Retrieved:', token);
+      return token;
+    }
+    console.error("localStorage is not available.");
+    return null;
   },
 
   clearTokens() {
-    console.log('Clearing Tokens...');
-    localStorage.removeItem(TOKEN_CONFIG.ACCESS_TOKEN);
-    localStorage.removeItem(TOKEN_CONFIG.REFRESH_TOKEN);
-    localStorage.removeItem(TOKEN_CONFIG.FIREBASE_TOKEN);
-    localStorage.removeItem(TOKEN_CONFIG.USER_DATA);
-    console.log('Tokens Cleared');
+    if (typeof window !== "undefined") {
+      console.log('Clearing Tokens...');
+      localStorage.removeItem(TOKEN_CONFIG.ACCESS_TOKEN);
+      localStorage.removeItem(TOKEN_CONFIG.REFRESH_TOKEN);
+      localStorage.removeItem(TOKEN_CONFIG.FIREBASE_TOKEN);
+      localStorage.removeItem(TOKEN_CONFIG.USER_DATA);
+      console.log('Tokens Cleared');
+    } else {
+      console.error("localStorage is not available.");
+    }
   },
 
   setUserData(userData) {
-    if (userData) {
+    if (typeof window !== "undefined" && userData) {
       localStorage.setItem(TOKEN_CONFIG.USER_DATA, JSON.stringify(userData));
       console.log('User Data Set:', userData);
     }
   },
 
   getUserData() {
-    const userData = localStorage.getItem(TOKEN_CONFIG.USER_DATA);
-    try {
-      const parsedData = userData ? JSON.parse(userData) : null;
-      console.log('User Data Retrieved:', parsedData);
-      return parsedData;
-    } catch (error) {
-      console.error('Failed to parse user data:', error);
-      return null;
+    if (typeof window !== "undefined") {
+      const userData = localStorage.getItem(TOKEN_CONFIG.USER_DATA);
+      try {
+        const parsedData = userData ? JSON.parse(userData) : null;
+        console.log('User Data Retrieved:', parsedData);
+        return parsedData;
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+        return null;
+      }
     }
+    console.error("localStorage is not available.");
+    return null;
   },
 
   getUserRole() {

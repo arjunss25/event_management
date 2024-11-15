@@ -94,7 +94,7 @@ const SidebarSuperadmin = ({ isSidebarOpen, toggleSidebar }) => {
       {isSidebarOpen && (
         <div
           onClick={toggleSidebar}
-          className="fixed inset-0 bg-black opacity-50 z-10 lg:hidden"
+          className="fixed inset-0 bg-black opacity-50 z-[9] lg:hidden"
         ></div>
       )}
     </>
