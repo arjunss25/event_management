@@ -3,67 +3,103 @@ import { IoAddOutline } from 'react-icons/io5';
 import { FaTimes } from 'react-icons/fa';
 import EventgroupsSuperadminTable from '../../Components/Superadmin/EventgroupsSuperadminTable';
 import axiosInstance from '../../axiosConfig';
-import { tokenService } from '../../tokenService';  // Ensure correct import path
+import { tokenService } from '../../tokenService';
 
 const EventgroupsSuperadmin = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // State to store tokens and user role
   const [accessToken, setAccessToken] = useState('');
   const [firebaseToken, setFirebaseToken] = useState('');
   const [userRole, setUserRole] = useState('');
 
-  // Fetch tokens and role from tokenService when component mounts
   useEffect(() => {
     const token = tokenService.getAccessToken();
-    const firebaseToken = tokenService.getFirebaseToken();
-    const userRole = tokenService.getUserRole();
+    const fbToken = tokenService.getFirebaseToken();
+    const role = tokenService.getUserRole();
 
-    if (token && firebaseToken && userRole) {
+    if (token && role) {
       setAccessToken(token);
-      setFirebaseToken(firebaseToken);
-      setUserRole(userRole);
+      setFirebaseToken(fbToken);
+      setUserRole(role);
+      console.log('Tokens and role loaded successfully');
     }
   }, []);
 
-  const toggleDrawer = () => setDrawerOpen(!isDrawerOpen);
+  const toggleDrawer = () => {
+    setDrawerOpen(!isDrawerOpen);
+    setError(null); // Clear any existing errors
+  };
 
   const handleAddEventGroup = async (eventGroupData) => {
     try {
       setLoading(true);
+      setError(null);
   
-      const accessToken = tokenService.getAccessToken();
-      const firebaseToken = tokenService.getFirebaseToken();
-      
-      if (!accessToken || !firebaseToken) {
-        throw new Error('Missing authentication tokens');
-      }
+      // Format the request data according to API requirements
+      const requestData = {
+        company_name: eventGroupData.eventGroupName,
+        owner_name: eventGroupData.ownerName,
+        email: eventGroupData.email,
+        phone: eventGroupData.phone
+      };
   
-      const response = await axiosInstance.post('/register-eventgroup/', eventGroupData);
+      console.log('Sending request with data:', requestData);
   
-      if (response.status === 200) {
+      // Make the API request using the correct endpoint
+      const response = await axiosInstance.post('/register-eventgroup/', requestData); 
+  
+      console.log('API Response:', response);
+  
+      if (response.status === 200 || response.status === 201) {
         alert('Event group added successfully');
         toggleDrawer();
-        // Optionally refresh the event groups list here
-      } else {
-        throw new Error('Failed to add event group');
+        // Add any refresh logic here if needed
       }
     } catch (err) {
-      console.error("Request failed: ", err);
+      console.error("Error details:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
       
-      if (err.message === 'Missing authentication tokens') {
-        alert('Please log in again to continue');
-        window.location.href = '/login';
-      } else {
-        alert('Failed to add event group: ' + err.message);
+      let errorMessage = 'Failed to add event group';
+      
+      if (err.response) {
+        switch (err.response.status) {
+          case 400:
+            errorMessage = err.response.data?.message || 'Invalid data provided';
+            break;
+          case 401:
+            errorMessage = 'Please log in again to continue';
+            tokenService.clearTokens();
+            window.location.href = '/login';
+            break;
+          case 403:
+            errorMessage = 'You do not have permission to perform this action';
+            break;
+          case 404:
+            errorMessage = 'Service endpoint not found. Please contact support.';
+            break;
+          case 422:
+            errorMessage = err.response.data?.message || 'Invalid event group data';
+            break;
+          default:
+            errorMessage = err.response.data?.message || 'An unexpected error occurred';
+        }
+      } else if (err.request) {
+        errorMessage = 'Unable to reach the server. Please check your connection.';
       }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
-  
 
+ 
   return (
     <div className="w-full min-h-screen bg-[#f7fafc] overflow-x-hidden">
       <div className="main-content-sec w-full p-4 md:p-6 lg:p-10">
@@ -102,10 +138,9 @@ const EventgroupsSuperadmin = () => {
           onClick={toggleDrawer}
         >
           <div 
-            className="absolute bottom-0 left-0 right-0 bg-[#F0F3F5] p-5 md:p-10 rounded-t-lg shadow-lg transform transition-transform duration-300 "
+            className="absolute bottom-0 left-0 right-0 bg-[#F0F3F5] p-5 md:p-10 rounded-t-lg shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with centered title */}
             <div className="relative flex justify-center items-center mb-8">
               <h2 className="text-xl font-semibold">Add Event Group</h2>
               <button 
@@ -115,7 +150,13 @@ const EventgroupsSuperadmin = () => {
                 <FaTimes />
               </button>
             </div>
-            
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+
             <form 
               onSubmit={(e) => {
                 e.preventDefault();
@@ -130,9 +171,7 @@ const EventgroupsSuperadmin = () => {
               className="w-full flex flex-col items-center justify-center"
             >
               <div className="w-full max-w-6xl px-4 md:px-8">
-                {/* Grid container for form fields with increased gap */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-16">
-                  {/* Event Group Name Field */}
                   <div>
                     <label className="block text-gray-700 mb-2">Event Group Name</label>
                     <input 
@@ -144,7 +183,6 @@ const EventgroupsSuperadmin = () => {
                     />
                   </div>
 
-                  {/* Owner's Name Field */}
                   <div>
                     <label className="block text-gray-700 mb-2">Owner's Name</label>
                     <input 
@@ -156,7 +194,6 @@ const EventgroupsSuperadmin = () => {
                     />
                   </div>
 
-                  {/* Email Field */}
                   <div>
                     <label className="block text-gray-700 mb-2">Email</label>
                     <input 
@@ -168,7 +205,6 @@ const EventgroupsSuperadmin = () => {
                     />
                   </div>
 
-                  {/* Phone Field */}
                   <div>
                     <label className="block text-gray-700 mb-2">Phone</label>
                     <input 
@@ -181,7 +217,6 @@ const EventgroupsSuperadmin = () => {
                   </div>
                 </div>
 
-                {/* Submit Button */}
                 <div className="flex justify-center mt-10">
                   <button 
                     type="submit"

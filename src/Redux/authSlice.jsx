@@ -1,11 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  token: localStorage.getItem('accessToken') || null, // Retrieve token from localStorage if available
-  isAuthenticated: !!localStorage.getItem('accessToken'), // Determine authentication status based on token presence
-  user: JSON.parse(localStorage.getItem('userData')) || null, // Retrieve user data from localStorage
-  error: null,
-  loading: false,
+  // token: localStorage.getItem('accessToken') || null, 
+  // isAuthenticated: !!localStorage.getItem('accessToken'), 
+  // user: JSON.parse(localStorage.getItem('userData')) || null, 
+  // error: null,
+  // loading: false,
 };
 
 const authSlice = createSlice({

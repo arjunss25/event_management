@@ -278,7 +278,7 @@ const EventgroupProfile = () => {
                 + Add Events
               </button>
             </div>
-            <TableComponent eventGroupId={id} />
+            {/* <TableComponent eventGroupId={id} /> */}
           </div>
         )}
 

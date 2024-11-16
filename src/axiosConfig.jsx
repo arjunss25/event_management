@@ -2,9 +2,13 @@ import axios from 'axios';
 import { refreshAccessToken } from './authService';
 import { tokenService } from './tokenService';
 
+// Create axios instance with updated baseURL
 const axiosInstance = axios.create({
   baseURL: 'https://event.neurocode.in/webapi',
   timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 let isRefreshing = false;
@@ -21,6 +25,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+// Request interceptor
 axiosInstance.interceptors.request.use(
   async (config) => {
     const firebaseToken = tokenService.getFirebaseToken();
@@ -30,7 +35,17 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     if (firebaseToken) {
-      config.headers['Firebase-Token'] = `Bearer ${firebaseToken}`;
+      config.headers['Firebase-Token'] = firebaseToken; // Removed 'Bearer' prefix for Firebase token
+    }
+
+    // Log outgoing requests in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Request:', {
+        url: config.url,
+        method: config.method,
+        headers: config.headers,
+        data: config.data
+      });
     }
 
     return config;
@@ -38,10 +53,29 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log successful responses in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Response:', {
+        status: response.status,
+        data: response.data
+      });
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
+
+    // Log errors in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Response Error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        config: originalRequest
+      });
+    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
