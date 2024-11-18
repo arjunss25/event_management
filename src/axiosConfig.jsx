@@ -35,10 +35,9 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     if (firebaseToken) {
-      config.headers['Firebase-Token'] = firebaseToken; // Removed 'Bearer' prefix for Firebase token
+      config.headers['Firebase-Token'] = firebaseToken; 
     }
 
-    // Log outgoing requests in development
     if (process.env.NODE_ENV === 'development') {
       console.log('Request:', {
         url: config.url,
@@ -56,7 +55,7 @@ axiosInstance.interceptors.request.use(
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
-    // Log successful responses in development
+    
     if (process.env.NODE_ENV === 'development') {
       console.log('Response:', {
         status: response.status,

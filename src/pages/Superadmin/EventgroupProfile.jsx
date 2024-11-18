@@ -3,6 +3,8 @@ import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { RxPerson } from "react-icons/rx";
 import TableComponent from '../../Components/Superadmin/EventgroupsSuperadminTable';
+import axiosInstance from '../../axiosConfig';
+import EventgroupEventsList from '../../Components/Superadmin/EventgroupEventsList';
 
 const EventgroupProfile = () => {
   const { id } = useParams();
@@ -21,8 +23,9 @@ const EventgroupProfile = () => {
   const [basicInfo, setBasicInfo] = useState({
     eventGroupName: '',
     ownerName: '',
+    id: '',
   });
-  
+
   const [contactInfo, setContactInfo] = useState({
     email: '',
     phone: '',
@@ -34,8 +37,9 @@ const EventgroupProfile = () => {
   useEffect(() => {
     if (eventData) {
       setBasicInfo({
-        eventGroupName: eventData.eventGroup || '',
-        ownerName: eventData.ownerName || '',
+        eventGroupName: eventData.company_name || '',
+        ownerName: eventData.owner_name || '',
+        id: eventData.id || '',
       });
       setContactInfo({
         email: eventData.email || '',
@@ -56,7 +60,7 @@ const EventgroupProfile = () => {
       const response = await fetch(`/api/event-groups/${id}`);
       if (!response.ok) throw new Error('Failed to fetch event data');
       const data = await response.json();
-      
+
       setBasicInfo({
         eventGroupName: data.eventGroup,
         ownerName: data.ownerName,
@@ -87,48 +91,152 @@ const EventgroupProfile = () => {
     setTempData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  
+
   const saveChanges = async () => {
+    const eventId = eventData?.id || id;
+    
+    if (!eventId) {
+      alert('Error: Event Group ID is missing!');
+      return;
+    }
+  
     try {
-      // Replace with your actual API call
-      const response = await fetch(`/api/event-groups/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          section: editSection,
-          data: tempData,
-        }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update data');
-
-      if (editSection === 'basic-info') setBasicInfo(tempData);
-      else if (editSection === 'contact-info') setContactInfo(tempData);
+      // Create an object to store only the changed fields
+      let changedFields = {};
       
-      setModalOpen(false);
+      if (editSection === 'basic-info') {
+        // Compare basic info fields with original data
+        if (tempData.eventGroupName !== basicInfo.eventGroupName) {
+          changedFields.company_name = tempData.eventGroupName;
+        }
+        if (tempData.ownerName !== basicInfo.ownerName) {
+          changedFields.owner_name = tempData.ownerName;
+        }
+      } else if (editSection === 'contact-info') {
+        // Compare contact info fields with original data
+        if (tempData.email !== contactInfo.email) {
+          changedFields.email = tempData.email;
+        }
+        if (tempData.phone !== contactInfo.phone) {
+          changedFields.phone = tempData.phone;
+        }
+        if (tempData.address !== contactInfo.address) {
+          changedFields.address = tempData.address;
+        }
+      }
+  
+      // If no fields have changed, return early
+      if (Object.keys(changedFields).length === 0) {
+        alert('No changes detected');
+        setModalOpen(false);
+        return;
+      }
+  
+      // Add ID to the payload
+      changedFields.id = eventId;
+  
+      // Make the API call with only the changed fields
+      const response = await axiosInstance.put(`/list-eventgroup-by-id/${eventId}/`, changedFields);
+  
+      if (response.status === 200) {
+        // Update the local state based on which section was edited
+        if (editSection === 'basic-info') {
+          setBasicInfo(prev => ({
+            ...prev,
+            eventGroupName: tempData.eventGroupName || prev.eventGroupName,
+            ownerName: tempData.ownerName || prev.ownerName,
+          }));
+        } else if (editSection === 'contact-info') {
+          setContactInfo(prev => ({
+            ...prev,
+            email: tempData.email || prev.email,
+            phone: tempData.phone || prev.phone,
+            address: tempData.address || prev.address,
+          }));
+        }
+  
+        setModalOpen(false);
+        alert('Changes saved successfully!');
+      }
     } catch (err) {
-      alert('Failed to save changes: ' + err.message);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      
+      // More specific error messages based on the error type
+      if (err.response?.status === 404) {
+        alert('Error: The event group could not be found. Please check the ID and try again.');
+      } else if (err.response?.status === 400) {
+        alert('Error: Invalid data provided. Please check your input and try again.');
+      } else {
+        alert('Failed to save changes: ' + (err.response?.data?.message || err.message));
+      }
     }
   };
-
   const handleAddEvent = async (eventData) => {
     try {
-      // Replace with your actual API call
-      const response = await fetch(`/api/event-groups/${id}/events`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData),
+      // Log incoming data
+      console.log('Received event data:', eventData);
+      console.log('Current event group ID:', basicInfo.id);
+
+      const payload = {
+        event_group: basicInfo.id, // Convert ID to string if needed
+        event_name: eventData.eventName,
+        start_date: eventData.startDate,
+        end_date: eventData.endDate,
+        total_amount: eventData.amount.toString() // Convert amount to string
+      };
+
+      // Log the formatted payload
+      console.log('Sending payload:', payload);
+
+      // Log the full request details
+      console.log('Making request to:', 'register-events/');
+      console.log('Request headers:', {
+        'Content-Type': 'application/json',
+        ...axiosInstance.defaults.headers
       });
 
-      if (!response.ok) throw new Error('Failed to add event');
-      
-      toggleDrawer();
-      // Optionally refresh the events list
+      // Make the API call to register the event
+      const response = await axiosInstance.post('register-events/', payload);
+
+      // Log successful response
+      console.log('Response received:', response);
+
+      if (response.status === 200 || response.status === 201) {
+        console.log('Event added successfully:', response.data);
+        alert('Event added successfully!');
+        toggleDrawer(); // Close the drawer
+      } else {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
     } catch (err) {
-      alert('Failed to add event: ' + err.message);
+      // Detailed error logging
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        headers: err.response?.headers,
+        config: err.config
+      });
+
+      // Check for specific error conditions
+      if (err.response?.status === 400) {
+        console.error('Bad request error:', err.response.data);
+        alert('Invalid data provided: ' + JSON.stringify(err.response.data));
+      } else if (err.response?.status === 401) {
+        console.error('Authentication error');
+        alert('Authentication error. Please log in again.');
+      } else if (err.response?.status === 404) {
+        console.error('Endpoint not found');
+        alert('API endpoint not found. Please check the URL.');
+      } else {
+        console.error('Unexpected error:', err);
+        alert('Failed to add event: ' + (err.response?.data?.message || err.message));
+      }
     }
   };
 
@@ -210,10 +318,10 @@ const EventgroupProfile = () => {
             <FaBars size={24} />
           </button>
           <button 
-            onClick={() => navigate('/event-groups')}
+            onClick={() => navigate('/superadmin/eventgroups')}
             className="px-4 py-2 text-gray-600 hover:text-gray-900 flex items-center"
           >
-            <span className="mr-2">←</span> Back to Event Groups
+            <span  className="mr-2">←</span> Back to Event Groups
           </button>
         </div>
 
@@ -278,7 +386,7 @@ const EventgroupProfile = () => {
                 + Add Events
               </button>
             </div>
-            {/* <TableComponent eventGroupId={id} /> */}
+            <EventgroupEventsList/>
           </div>
         )}
 
@@ -376,79 +484,90 @@ const EventgroupProfile = () => {
         )}
 
         {/* Add Event Drawer */}
-        {isDrawerOpen && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+ {/* Add Event Drawer */}
+ {isDrawerOpen && (
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 z-50"
+      onClick={toggleDrawer}
+    >
+      <div 
+        className="absolute bottom-0 left-0 right-0 bg-[#F0F3F5] p-6 rounded-t-lg shadow-lg transform transition-transform duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Add Event</h2>
+          <button 
             onClick={toggleDrawer}
+            className="text-gray-600 hover:text-gray-800 text-[1.5rem]"
           >
-            <div 
-              className="absolute bottom-0 left-0 right-0 bg-[#F0F3F5] p-6 rounded-t-lg shadow-lg transform transition-transform duration-300"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Add Event</h2>
-                <button 
-                  onClick={toggleDrawer}
-                  className="text-gray-600 hover:text-gray-800 text-[1.5rem]"
-                >
-                  <FaTimes />
-                </button>
-              </div>
-              
-              <form 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.target);
-                  handleAddEvent({
-                    name: formData.get('eventName'),
-                    startDate: formData.get('startDate'),
-                    endDate: formData.get('endDate')
-                  });
-                }}
-                className="w-full flex flex-col items-center justify-center px-3"
+            <FaTimes />
+          </button>
+        </div>
+        
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            handleAddEvent({
+              eventName: formData.get('eventName'),
+              startDate: formData.get('startDate'),
+              endDate: formData.get('endDate'),
+              amount: formData.get('amount')
+            });
+          }}
+          className="w-full flex flex-col items-center justify-center px-3"
+        >
+          <div className="w-full max-w-2xl">
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Event Name</label>
+              <input 
+                type="text" 
+                name="eventName"
+                className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                placeholder="Enter event name"
+                required 
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Start Date</label>
+              <input 
+                type="date" 
+                name="startDate"
+                className="w-full border p-2 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                required
+              />
+            </div>
+            <div className="mb-6">
+              <label className="block text-gray-700 mb-2">End Date</label>
+              <input 
+                type="date" 
+                name="endDate"
+                className="w-full border p-2 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                required
+              />
+            </div>
+            <div className="mb-6">
+              <label className="block text-gray-700 mb-2">Amount</label>
+              <input 
+                type="number" 
+                name="amount"
+                className="w-full border p-2 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                required
+              />
+            </div>
+            <div className="flex justify-center">
+              <button 
+                type="submit"
+                className="bg-black text-white px-10 py-2 rounded hover:bg-gray-800 transition-colors duration-200"
               >
-                <div className="w-full max-w-2xl">
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Event Name</label>
-                    <input 
-                      type="text" 
-                      name="eventName"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                      placeholder="Enter event name"
-                      required 
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 mb-2">Start Date</label>
-                    <input 
-                      type="date" 
-                      name="startDate"
-                      className="w-full border p-2 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                      required
-                    />
-                  </div>
-                  <div className="mb-6">
-                    <label className="block text-gray-700 mb-2">End Date</label>
-                    <input 
-                      type="date" 
-                      name="endDate"
-                      className="w-full border p-2 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                      required
-                    />
-                  </div>
-                  <div className="flex justify-center">
-                    <button 
-                      type="submit"
-                      className="bg-black text-white px-10 py-2 rounded hover:bg-gray-800 transition-colors duration-200"
-                    >
-                      Add Event
-                    </button>
-                  </div>
-                </div>
-              </form>
+                Add Event
+              </button>
             </div>
           </div>
-        )}
+        </form>
+      </div>
+    </div>
+  )}
       </div>
     </div>
   );
