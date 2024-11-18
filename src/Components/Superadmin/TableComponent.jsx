@@ -4,40 +4,73 @@ import { IoInformationCircleOutline } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
 import { IoCashOutline } from "react-icons/io5";
 import { FaCheckCircle } from "react-icons/fa";
-import './TableComponent.css';
-import { fetchEvents, updatePaymentStatus } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
+import { fetchEvents, updatePaymentStatus,cancelEvent,fetchTotalAmount,addPayment } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
 
-const AddPaymentModal = ({ onClose }) => {
+// Add Payment Modal Component
+const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
+  const dispatch = useDispatch();
+  const { paymentLoading, paymentError } = useSelector((state) => state.events);
+  
+  // Log the props to verify we're receiving them
+  console.log('AddPaymentModal Props:', { eventId, eventGroupId });
+  
   const [formData, setFormData] = useState({
     date: '',
     amount: '',
-    status: 'pending'
+    status: 'Pending'
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log(formData);
-    onClose();
+    
+    // Log the full payment data before dispatch
+    const paymentData = {
+      eventId: eventId,
+      eventGroupId: eventGroupId,
+      date: formData.date,
+      amount: formData.amount,
+      status: formData.status
+    };
+    
+    console.log('Submitting payment with data:', paymentData);
+
+    try {
+      await dispatch(addPayment(paymentData)).unwrap();
+      console.log('Payment added successfully');
+      dispatch(fetchEvents());
+      dispatch(fetchTotalAmount(eventId));
+      onClose();
+    } catch (error) {
+      console.error('Error adding payment:', error);
+    }
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    console.log(`Updating ${name} to ${value}`);
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
   };
 
   return (
     <div className="fixed inset-0 z-[60] flex justify-center items-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-[1.5rem] w-[30vw] py-8 px-10 ml-[300px] border-[2px] border-black">
-        {/* Header */}
+      <div className="bg-white rounded-[1.5rem] w-[30vw] py-8 px-10 border-[2px] border-black">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-semibold">Add Payment</h1>
-          <IoClose className="text-3xl cursor-pointer" onClick={onClose} />
+          <IoClose 
+            className="text-3xl cursor-pointer hover:text-gray-700" 
+            onClick={onClose} 
+          />
         </div>
 
-        {/* Form */}
+        {paymentError && (
+          <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+            {paymentError}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div>
@@ -80,20 +113,23 @@ const AddPaymentModal = ({ onClose }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
-                <option value="pending">Pending</option>
-                <option value="advance">Advance Paid</option>
-                <option value="completed">Completed</option>
+                <option value="Pending">Pending</option>
+                <option value="Advance Paid">Advance Paid</option>
+                <option value="Completed">Completed</option>
               </select>
             </div>
           </div>
 
           <div className="btn-sec w-full flex justify-end">
-          <button
-            type="submit"
-            className="w-fit bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
-          >
-            Add Payment
-          </button>
+            <button
+              type="submit"
+              disabled={paymentLoading}
+              className={`w-fit bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors ${
+                paymentLoading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {paymentLoading ? 'Adding Payment...' : 'Add Payment'}
+            </button>
           </div>
         </form>
       </div>
@@ -101,30 +137,47 @@ const AddPaymentModal = ({ onClose }) => {
   );
 };
 
-const PaymentDetailsModal = ({ onClose }) => {
+// Payment Details Modal Component
+const PaymentDetailsModal = ({ onClose, eventData }) => {
+  const dispatch = useDispatch();
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
+  const { totalAmount, totalAmountLoading, totalAmountError } = useSelector(
+    (state) => state.events
+  );
 
-  // When modal mounts, disable body scroll
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    // Cleanup function to re-enable scroll when modal unmounts
+    
+    if (eventData?.id) {
+      dispatch(fetchTotalAmount(eventData.id));
+    }
+    
+    // Log the event data to verify we have the event_group
+    console.log('Event Data in PaymentDetailsModal:', eventData);
+
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [dispatch, eventData?.id]);
+
+  
 
   return (
     <>
       <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg w-[60vw] ml-[300px] py-10 px-10">
+        <div className="bg-white rounded-lg w-[60vw] py-10 px-10">
           {/* Top section */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Payment Details</h1>
-            <IoClose className="text-3xl cursor-pointer" onClick={onClose} />
+            <IoClose 
+              className="text-3xl cursor-pointer hover:text-gray-700" 
+              onClick={onClose} 
+            />
           </div>
 
-          {/* box-section */}
+          {/* Box section */}
           <div className="box-section w-full h-[22vh] flex gap-5">
+            {/* Total Amount Box */}
             <div className="box-main w-[25rem] border-[2px] border-black rounded-[1.2rem]">
               <div className="top w-full p-2 flex justify-end">
                 <div className="icon-bg p-2 bg-[#f0f3f5] w-fit rounded-[0.5rem]">
@@ -133,10 +186,19 @@ const PaymentDetailsModal = ({ onClose }) => {
               </div>
               <div className="btm-section w-full p-3 flex flex-col">
                 <h2 className="text-[1rem]">Total Amount</h2>
-                <h2 className="text-[2rem] font-bold">25000</h2>
+                {totalAmountLoading ? (
+                  <div className="text-[2rem] font-bold">Loading...</div>
+                ) : totalAmountError ? (
+                  <div className="text-red-500">Error loading amount</div>
+                ) : (
+                  <h2 className="text-[2rem] font-bold">
+                    {totalAmount?.total_amount || '0'}
+                  </h2>
+                )}
               </div>
             </div>
 
+            {/* Remaining Amount Box */}
             <div className="box-main w-[25rem] border-[2px] border-black rounded-[1.2rem]">
               <div className="top w-full p-2 flex justify-end">
                 <div className="icon-bg p-2 bg-[#f0f3f5] w-fit rounded-[0.5rem]">
@@ -144,67 +206,98 @@ const PaymentDetailsModal = ({ onClose }) => {
                 </div>
               </div>
               <div className="btm-section w-full p-3 flex flex-col">
-                <h2 className="text-[1rem]">Total Amount</h2>
-                <h2 className="text-[2rem] font-bold">25000</h2>
+                <h2 className="text-[1rem]">Remaining Amount</h2>
+                <h2 className="text-[2rem] font-bold">
+                  {totalAmount?.remaining_amount || '0'}
+                </h2>
               </div>
             </div>
           </div>
 
-          {/* Payment History */}
+          {/* Payment History section remains the same */}
           <div className="mt-8">
             <div className="top-section flex justify-between items-center w-full mb-5">
               <h2 className="font-medium text-[1.2rem]">Payment History</h2>
               <button 
-                className="bg-black text-white px-4 py-2 rounded-md text-[0.9rem]"
+                className="bg-black text-white px-4 py-2 rounded-md text-[0.9rem] hover:bg-gray-800 transition-colors"
                 onClick={() => setIsAddPaymentOpen(true)}
               >
                 Add Payment
               </button>
             </div>
             <div className="border-t border-gray-200">
-              <div className="flex justify-start gap-32 items-center p-5 border-b-[1px] border-gray-200">
-                <FaCheckCircle className="text-green-600" />
-                <div className="date-sec">
-                  <h1>Date</h1>
-                  <p className="text-gray-500">04-11-2024</p>
-                </div>
-                <div className="payment-section">
-                  <h1>Amount</h1>
-                  <p>1500</p>
-                </div>
-              </div>
-
-              <div className="flex justify-start gap-32 items-center p-5 border-b-[1px] border-gray-200">
-                <FaCheckCircle className="text-green-600" />
-                <div className="date-sec">
-                  <h1>Date</h1>
-                  <p className="text-gray-500">04-11-2024</p>
-                </div>
-                <div className="payment-section">
-                  <h1>Amount</h1>
-                  <p>1500</p>
-                </div>
-              </div>
+              {eventData?.paymentHistory ? (
+                eventData.paymentHistory.map((payment, index) => (
+                  <div 
+                    key={index} 
+                    className="flex justify-start gap-32 items-center p-5 border-b-[1px] border-gray-200"
+                  >
+                    <FaCheckCircle className="text-green-600" />
+                    <div className="date-sec">
+                      <h1>Date</h1>
+                      <p className="text-gray-500">{payment.date}</p>
+                    </div>
+                    <div className="payment-section">
+                      <h1>Amount</h1>
+                      <p>{payment.amount}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <>
+                  {/* Placeholder payment history items */}
+                  <div className="flex justify-start gap-32 items-center p-5 border-b-[1px] border-gray-200">
+                    <FaCheckCircle className="text-green-600" />
+                    <div className="date-sec">
+                      <h1>Date</h1>
+                      <p className="text-gray-500">04-11-2024</p>
+                    </div>
+                    <div className="payment-section">
+                      <h1>Amount</h1>
+                      <p>1500</p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
-      {isAddPaymentOpen && <AddPaymentModal onClose={() => setIsAddPaymentOpen(false)} />}
+
+      {isAddPaymentOpen && (
+        <AddPaymentModal 
+          onClose={() => setIsAddPaymentOpen(false)} 
+          eventId={eventData.id}
+          // Make sure to pass the correct event_group property name
+          eventGroupId={eventData.event_group} // This should match the property name from your API
+        />
+      )}
     </>
   );
 };
 
+// Main EventsTable Component
 const EventsTable = () => {
   const dispatch = useDispatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const { data: events, loading, error } = useSelector((state) => state.events);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchEvents());
+    console.log('Fetching events...');
+    dispatch(fetchEvents())
+      .unwrap()
+      .then((result) => {
+        console.log('Events fetched successfully:', result);
+      })
+      .catch((error) => {
+        console.error('Error fetching events:', error);
+      });
   }, [dispatch]);
 
   const getEventStatusStyle = (status) => {
-    const normalizedStatus = status.toLowerCase();
+    const normalizedStatus = status?.toLowerCase() || '';
 
     if (normalizedStatus === 'up coming' || normalizedStatus === 'upcoming') {
       return 'bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
@@ -218,28 +311,72 @@ const EventsTable = () => {
 
   const getPaymentStatusStyle = (status) => {
     const baseStyle = 'px-3 py-1 w-28 rounded-full text-xs font-medium flex items-center justify-center';
-    switch (status) {
-      case 'Pending':
+    switch (status?.toLowerCase()) {
+      case 'pending':
         return `${baseStyle} bg-red-50 text-red-700`;
-      case 'Advance Paid':
+      case 'advance paid':
         return `${baseStyle} bg-yellow-50 text-yellow-700`;
-      case 'Completed':
+      case 'completed':
         return `${baseStyle} bg-green-50 text-green-700`;
       default:
         return `${baseStyle} bg-gray-50 text-gray-700`;
     }
   };
 
-  const handlePaymentStatusChange = (id, status) => {
-    dispatch(updatePaymentStatus({ id, status }));
+  const handleCancelEvent = async (event) => {
+    if (!event.id || !event.event_group) {
+      console.error('Missing required event information for cancellation');
+      return;
+    }
+
+    if (window.confirm('Are you sure you want to cancel this event?')) {
+      setIsCanceling(true);
+      try {
+        await dispatch(cancelEvent({
+          eventId: event.id,
+          eventGroupId: event.event_group
+        })).unwrap();
+        console.log('Event cancelled successfully');
+        // Event will be automatically removed from the state due to the reducer logic
+      } catch (error) {
+        console.error('Error cancelling event:', error);
+        // You might want to show an error notification here
+      } finally {
+        setIsCanceling(false);
+      }
+    }
   };
 
-  if (!Array.isArray(events)) {
-    return <div>No events available</div>;
+  const handlePaymentDetailsClick = (event) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center">
+        <div className="text-xl font-semibold">Loading events...</div>
+      </div>
+    );
   }
 
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
+  if (error) {
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center">
+        <div className="text-xl text-red-500 font-semibold">
+          Error: {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (!Array.isArray(events) || events.length === 0) {
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center">
+        <div className="text-xl font-semibold">No events available</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -261,25 +398,27 @@ const EventsTable = () => {
               <tbody className="divide-y divide-gray-200">
                 {events.map((event) => (
                   <tr key={event.id} className="bg-white hover:bg-gray-50">
-                    <td className="px-6 py-6 text-black whitespace-nowrap">{event.event}</td>
+                    <td className="px-6 py-6 text-black whitespace-nowrap">
+                      {event.event_name}
+                    </td>
                     <td className="px-6 py-6 text-black whitespace-nowrap">{event.eventgroup}</td>
-                    <td className="px-6 py-6 text-black whitespace-nowrap">{event.eventdate}</td>
-                    <td className="px-6 py-6 text-black whitespace-nowrap">{event.eventenddate}</td>
+                    <td className="px-6 py-6 text-black whitespace-nowrap">{event.start_date}</td>
+                    <td className="px-6 py-6 text-black whitespace-nowrap">{event.end_date}</td>
                     <td className="px-6 py-6 whitespace-nowrap">
                       <div className="w-28">
                         <span className={getEventStatusStyle(event.eventstatus)}>
-                          {event.eventstatus}
+                          {event.event_status}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-6 whitespace-nowrap">
                       <div className="flex items-center w-36 justify-between">
                         <span className={getPaymentStatusStyle(event.paymentstatus)}>
-                          {event.paymentstatus}
+                          {event.payment_status}
                         </span>
                         <IoInformationCircleOutline 
                           className="text-gray-500 text-[1.5rem] cursor-pointer" 
-                          onClick={() => setIsModalOpen(true)}
+                          onClick={() => handlePaymentDetailsClick(event)}
                         />
                       </div>
                     </td>
@@ -287,10 +426,13 @@ const EventsTable = () => {
                       <div className="w-20">
                         {event.paymentstatus !== 'Completed' && (
                           <button
-                            className="w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors"
-                            onClick={() => handlePaymentStatusChange(event.id, 'Cancel')}
+                            className={`w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors ${
+                              isCanceling ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                            onClick={() => handleCancelEvent(event)}
+                            disabled={isCanceling}
                           >
-                            Cancel
+                            {isCanceling ? 'Canceling...' : 'Cancel'}
                           </button>
                         )}
                       </div>
@@ -302,7 +444,12 @@ const EventsTable = () => {
           </div>
         </div>
       </div>
-      {isModalOpen && <PaymentDetailsModal onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <PaymentDetailsModal 
+          onClose={() => setIsModalOpen(false)} 
+          eventData={selectedEvent}
+        />
+      )}
     </>
   );
 };

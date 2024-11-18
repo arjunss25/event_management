@@ -9,8 +9,10 @@ const EventgroupsSuperadmin = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(''); // Search term
+  const [searchResults, setSearchResults] = useState([]); // Search results
+  const [events, setEvents] = useState([]); // Events data
 
-  // State to store tokens and user role
   const [accessToken, setAccessToken] = useState('');
   const [firebaseToken, setFirebaseToken] = useState('');
   const [userRole, setUserRole] = useState('');
@@ -37,36 +39,33 @@ const EventgroupsSuperadmin = () => {
     try {
       setLoading(true);
       setError(null);
-  
-      // Format the request data according to API requirements
+
       const requestData = {
         company_name: eventGroupData.eventGroupName,
         owner_name: eventGroupData.ownerName,
         email: eventGroupData.email,
-        phone: eventGroupData.phone
+        phone: eventGroupData.phone,
       };
-  
+
       console.log('Sending request with data:', requestData);
-  
-      // Make the API request using the correct endpoint
-      const response = await axiosInstance.post('/register-eventgroup/', requestData); 
-  
+
+      const response = await axiosInstance.post('/register-eventgroup/', requestData);
+
       console.log('API Response:', response);
-  
+
       if (response.status === 200 || response.status === 201) {
         alert('Event group added successfully');
         toggleDrawer();
-        // Add any refresh logic here if needed
       }
     } catch (err) {
       console.error("Error details:", {
         message: err.message,
         response: err.response?.data,
-        status: err.response?.status
+        status: err.response?.status,
       });
-      
+
       let errorMessage = 'Failed to add event group';
-      
+
       if (err.response) {
         switch (err.response.status) {
           case 400:
@@ -92,14 +91,47 @@ const EventgroupsSuperadmin = () => {
       } else if (err.request) {
         errorMessage = 'Unable to reach the server. Please check your connection.';
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
- 
+  const handleSearch = async (name) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await axiosInstance.get(`/search-eventgroup/${name}`);
+      console.log('Search API Response:', response);
+
+      if (response.status === 200) {
+        setSearchResults(response.data?.data || []);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (err) {
+      console.error("Error details:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
+      setError('Failed to fetch search results');
+      setSearchResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (searchTerm.trim() !== '') {
+      handleSearch(searchTerm);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchTerm]);
+
   return (
     <div className="w-full min-h-screen bg-[#f7fafc] overflow-x-hidden">
       <div className="main-content-sec w-full p-4 md:p-6 lg:p-10">
@@ -108,7 +140,7 @@ const EventgroupsSuperadmin = () => {
           <h1 className="text-[1.5rem] sm:text-[2rem] font-semibold mb-2 md:mb-0">
             Event Groups
           </h1>
-          <button 
+          <button
             onClick={toggleDrawer}
             className="px-3 py-2 bg-black text-white flex items-center gap-2 rounded-md text-sm md:text-base"
           >
@@ -117,33 +149,35 @@ const EventgroupsSuperadmin = () => {
         </div>
 
         {/* Search Component */}
-        <div className="search-component w-full flex justify-center md:justify-start mt-6">
+        {/* <div className="search-component w-full flex justify-center md:justify-start mt-6">
           <input
             type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search..."
             className="w-full md:w-[60%] lg:w-[30%] px-4 py-2 text-gray-600 border-2 rounded-full focus:outline-none"
           />
-        </div>
+        </div> */}
 
         {/* Table Section */}
         <div className="table-section mt-6 overflow-x-auto">
-          <EventgroupsSuperadminTable />
+          <EventgroupsSuperadminTable data={searchResults.length > 0 ? searchResults : events} />
         </div>
       </div>
 
       {/* Add Event Group Drawer */}
       {isDrawerOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-50"
           onClick={toggleDrawer}
         >
-          <div 
+          <div
             className="absolute bottom-0 left-0 right-0 bg-[#F0F3F5] p-5 md:p-10 rounded-t-lg shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative flex justify-center items-center mb-8">
               <h2 className="text-xl font-semibold">Add Event Group</h2>
-              <button 
+              <button
                 onClick={toggleDrawer}
                 className="absolute right-0 text-gray-600 hover:text-gray-800 text-[1.5rem]"
               >
@@ -157,7 +191,7 @@ const EventgroupsSuperadmin = () => {
               </div>
             )}
 
-            <form 
+            <form
               onSubmit={(e) => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
@@ -165,7 +199,7 @@ const EventgroupsSuperadmin = () => {
                   eventGroupName: formData.get('eventGroupName'),
                   ownerName: formData.get('ownerName'),
                   email: formData.get('email'),
-                  phone: formData.get('phone')
+                  phone: formData.get('phone'),
                 });
               }}
               className="w-full flex flex-col items-center justify-center"

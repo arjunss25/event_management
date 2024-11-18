@@ -26,6 +26,8 @@ export const fetchEvents = createAsyncThunk(
 );
 
 
+
+
 export const deleteEvent = createAsyncThunk(
   'eventgroups/deleteEvent',
   async (id, { rejectWithValue }) => {
