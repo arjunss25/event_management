@@ -187,6 +187,19 @@ const EventgroupsSuperadminTable = () => {
     }
   };
 
+  // Status message effect
+useEffect(() => {
+  if (statusMessage.show) {
+    const timer = setTimeout(() => {
+      setStatusMessage({ show: false, message: '', isError: false });
+    }, 2000); // Set timeout to 2 seconds
+
+    // Clear timeout on cleanup
+    return () => clearTimeout(timer);
+  }
+}, [statusMessage]);
+
+
   const handleView = useCallback((event) => {
     navigate(`/superadmin/eventgroup-profile`, { state: { eventData: event } });
   }, [navigate]);

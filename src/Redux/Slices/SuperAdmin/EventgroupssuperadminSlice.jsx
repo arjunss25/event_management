@@ -40,7 +40,7 @@ export const deleteEvent = createAsyncThunk(
           'Content-Type': 'application/json',
         },
         data: {
-          ids: [id], 
+          id: id, 
         },
       });
 

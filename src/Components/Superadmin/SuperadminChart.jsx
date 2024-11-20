@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import {
   BarChart,
   Bar,
@@ -29,12 +28,7 @@ const SuperadminChart = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  // Generate array of years (current year and 4 years back)
-  const years = Array.from(
-    { length: 5 },
-    (_, i) => new Date().getFullYear() - i
-  );
+  const [availableYears, setAvailableYears] = useState([]);
 
   // Handle mobile responsiveness
   useEffect(() => {
@@ -46,6 +40,36 @@ const SuperadminChart = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Fetch available years
+  const fetchAvailableYears = async () => {
+    try {
+      const response = await axiosInstance.get('/year-list-database/');
+      console.log('Available years response:', response);
+      
+      if (response.data && response.data.data && response.data.data[0]) {
+        // Extract years from the object and convert to array
+        const yearsObj = response.data.data[0];
+        const years = Object.values(yearsObj)
+          .filter(year => !isNaN(year)) // Filter out any non-numeric values
+          .sort((a, b) => b - a); // Sort in descending order
+        
+        console.log('Processed years:', years);
+        setAvailableYears(years);
+        
+        // Set the most recent year as default
+        if (years.length > 0) {
+          setSelectedYear(years[0]);
+        }
+      } else {
+        console.error('Invalid years data format:', response.data);
+        setError('Failed to load available years');
+      }
+    } catch (error) {
+      console.error('Error fetching available years:', error);
+      setError('Failed to load available years');
+    }
+  };
 
   // Fetch data based on selected year
   const fetchEventsByYear = async (year) => {
@@ -92,25 +116,37 @@ const SuperadminChart = () => {
     }
   };
 
+  // Load available years when component mounts
+  useEffect(() => {
+    fetchAvailableYears();
+  }, []);
+
   // Load chart data when year changes
   useEffect(() => {
-    fetchEventsByYear(selectedYear);
+    if (selectedYear) {
+      fetchEventsByYear(selectedYear);
+    }
   }, [selectedYear]);
 
   return (
-    <div className="w-full h-[50vh] lg:h-[55vh] p-4 ">
+    <div className="w-full h-[50vh] lg:h-[50vh] p-4">
       <div className="flex flex-row items-center justify-between mb-6">
-        <h2 className="text-xl lg:text-2xl font-semibold text-gray-900">Event Statistics</h2>
+        <h2 className="text-xl font-bold">Event Statistics</h2>
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(parseInt(e.target.value))}
           className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={loading || availableYears.length === 0}
         >
-          {years.map((year) => (
-            <option key={year} value={year}>
-              {year}
-            </option>
-          ))}
+          {availableYears.length > 0 ? (
+            availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))
+          ) : (
+            <option value="">No years available</option>
+          )}
         </select>
       </div>
       

@@ -1,11 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { IoInformationCircleOutline } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
 import { IoCashOutline } from "react-icons/io5";
-import { FaCheckCircle } from "react-icons/fa";
-import { fetchEvents, updatePaymentStatus,cancelEvent,fetchTotalAmount,addPayment,fetchPaymentDetails } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
+import { FaCheckCircle, FaSearch } from "react-icons/fa";
+import { fetchEvents, updatePaymentStatus, cancelEvent, fetchTotalAmount, addPayment, fetchPaymentDetails } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
+import axiosInstance from '../../axiosConfig';
 
+// Memoized Search Component
+const SearchBar = memo(({ onSearch }) => {
+  const [searchValue, setSearchValue] = useState('');
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    onSearch(value);
+  };
+
+  return (
+    <div className="mb-6 relative w-full md:w-[60%] lg:w-[30%]">
+      <input
+        type="text"
+        value={searchValue}
+        onChange={handleSearch}
+        placeholder="Search events..."
+        className="w-full px-4 py-2 pl-10 text-gray-600 border-2 rounded-full focus:outline-none focus:border-gray-400"
+      />
+      <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+    </div>
+  );
+});
 // Add Payment Modal Component
 const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
   const dispatch = useDispatch();
@@ -181,7 +205,7 @@ const PaymentDetailsModal = ({ onClose, eventData }) => {
   return (
     <>
       <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg w-[60vw] py-10 px-10">
+        <div className="bg-white rounded-lg w-[60vw] h-[80vh] overflow-y-scroll py-10 px-10">
           {/* Top section */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold">Payment Details</h1>
@@ -322,18 +346,83 @@ const EventsTable = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const { data: events, loading, error } = useSelector((state) => state.events);
   const [isCanceling, setIsCanceling] = useState(false);
+  
+  // New states for search functionality
+  const [displayData, setDisplayData] = useState([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
+  // Initial data fetch
   useEffect(() => {
     console.log('Fetching events...');
     dispatch(fetchEvents())
       .unwrap()
       .then((result) => {
         console.log('Events fetched successfully:', result);
+        // Ensure we're setting an array from the response
+        const eventsArray = result?.data || [];
+        setDisplayData(Array.isArray(eventsArray) ? eventsArray : []);
       })
       .catch((error) => {
         console.error('Error fetching events:', error);
+        setDisplayData([]);
       });
   }, [dispatch]);
+
+  // Update display data when events changes
+  useEffect(() => {
+    if (events && Array.isArray(events)) {
+      setDisplayData(events);
+    } else if (events?.data && Array.isArray(events.data)) {
+      setDisplayData(events.data);
+    } else {
+      setDisplayData([]);
+    }
+  }, [events]);
+
+  // Debounced search handler
+  const handleSearch = useCallback(async (searchTerm) => {
+    // If search term is empty, reset to show all events
+    if (!searchTerm.trim()) {
+      setDisplayData(Array.isArray(events) ? events : events?.data || []);
+      setTableLoading(false);
+      setSearchError(null);
+      return;
+    }
+
+    try {
+      setTableLoading(true);
+      setSearchError(null);
+
+      const response = await axiosInstance.get(`/search-events/${searchTerm}`);
+      
+      if (response.status === 200) {
+        const searchResults = response.data?.data || [];
+        setDisplayData(Array.isArray(searchResults) ? searchResults : []);
+      }
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchError('Failed to fetch search results');
+      setDisplayData([]);
+    } finally {
+      setTableLoading(false);
+    }
+  }, [events]);
+
+  // Debounced search implementation
+  const debouncedSearch = useCallback((searchTerm) => {
+    setTableLoading(true);
+    const timeoutId = setTimeout(() => {
+      handleSearch(searchTerm);
+    }, 300);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (!searchTerm.trim()) {
+        setTableLoading(false);
+      }
+    };
+  }, [handleSearch]);
 
   const getEventStatusStyle = (status) => {
     const normalizedStatus = status?.toLowerCase() || '';
@@ -391,7 +480,7 @@ const EventsTable = () => {
     setIsModalOpen(true);
   };
 
-  if (loading) {
+  if (loading && !tableLoading) {
     return (
       <div className="w-full h-[400px] flex items-center justify-center">
         <div className="text-xl font-semibold">Loading events...</div>
@@ -409,80 +498,94 @@ const EventsTable = () => {
     );
   }
 
-  if (!Array.isArray(events) || events.length === 0) {
-    return (
-      <div className="w-full h-[400px] flex items-center justify-center">
-        <div className="text-xl font-semibold">No events available</div>
-      </div>
-    );
-  }
-
   return (
     <>
+      <SearchBar onSearch={debouncedSearch} />
+
+      {searchError && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {searchError}
+        </div>
+      )}
+
       <div className="w-full bg-white rounded-lg p-4 md:p-4 mt-10 events-table-main">
         <div className="relative overflow-x-auto">
           <div className="min-w-[1000px]">
-            <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-white uppercase bg-gray-800">
-                <tr>
-                  <th className="px-6 py-3 font-medium whitespace-nowrap">Event</th>
-                  <th className="px-6 py-3 font-medium whitespace-nowrap">Event Group</th>
-                  <th className="px-6 py-3 font-medium whitespace-nowrap">Start Date</th>
-                  <th className="px-6 py-3 font-medium whitespace-nowrap">End Date</th>
-                  <th className="px-6 py-3 font-medium whitespace-nowrap">Event Status</th>
-                  <th className="px-6 py-3 font-medium whitespace-nowrap">Payment Status</th>
-                  <th className="px-6 py-3 font-medium whitespace-nowrap">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {events.map((event) => (
-                  <tr key={event.id} className="bg-white hover:bg-gray-50">
-                    <td className="px-6 py-6 text-black whitespace-nowrap">
-                      {event.event_name}
-                    </td>
-                    <td className="px-6 py-6 text-black whitespace-nowrap">{event.eventgroup}</td>
-                    <td className="px-6 py-6 text-black whitespace-nowrap">{event.start_date}</td>
-                    <td className="px-6 py-6 text-black whitespace-nowrap">{event.end_date}</td>
-                    <td className="px-6 py-6 whitespace-nowrap">
-                      <div className="w-28">
-                        <span className={getEventStatusStyle(event.eventstatus)}>
-                          {event.event_status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-6 whitespace-nowrap">
-                      <div className="flex items-center w-36 justify-between">
-                        <span className={getPaymentStatusStyle(event.paymentstatus)}>
-                          {event.payment_status}
-                        </span>
-                        <IoInformationCircleOutline 
-                          className="text-gray-500 text-[1.5rem] cursor-pointer" 
-                          onClick={() => handlePaymentDetailsClick(event)}
-                        />
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="w-20">
-                        {event.paymentstatus !== 'Completed' && (
-                          <button
-                            className={`w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors ${
-                              isCanceling ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                            onClick={() => handleCancelEvent(event)}
-                            disabled={isCanceling}
-                          >
-                            {isCanceling ? 'Canceling...' : 'Cancel'}
-                          </button>
-                        )}
-                      </div>
-                    </td>
+            {tableLoading ? (
+              <div className="w-full p-4 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+              </div>
+            ) : !Array.isArray(displayData) || displayData.length === 0 ? (
+              <div className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <p className="text-gray-500 text-center">
+                  No events found.
+                </p>
+              </div>
+            ) : (
+              <table className="w-full text-sm text-left text-gray-500">
+                <thead className="text-xs text-white uppercase bg-gray-800">
+                  <tr>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">Event</th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">Event Group</th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">Start Date</th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">End Date</th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">Event Status</th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">Payment Status</th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {displayData.map((event) => (
+                    <tr key={event?.id || Math.random()} className="bg-white hover:bg-gray-50">
+                      <td className="px-6 py-6 text-black whitespace-nowrap">
+                        {event.event_name}
+                      </td>
+                      <td className="px-6 py-6 text-black whitespace-nowrap">{event.event_group_company_name}</td>
+                      <td className="px-6 py-6 text-black whitespace-nowrap">{event.start_date}</td>
+                      <td className="px-6 py-6 text-black whitespace-nowrap">{event.end_date}</td>
+                      <td className="px-6 py-6 whitespace-nowrap">
+                        <div className="w-28">
+                          <span className={getEventStatusStyle(event.eventstatus)}>
+                            {event.event_status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6 whitespace-nowrap">
+                        <div className="flex items-center w-36 justify-between">
+                          <span className={getPaymentStatusStyle(event.paymentstatus)}>
+                            {event.payment_status}
+                          </span>
+                          <IoInformationCircleOutline 
+                            className="text-gray-500 text-[1.5rem] cursor-pointer" 
+                            onClick={() => handlePaymentDetailsClick(event)}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="w-20">
+                          {event.paymentstatus !== 'Completed' && (
+                            <button
+                              className={`w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors ${
+                                isCanceling ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
+                              onClick={() => handleCancelEvent(event)}
+                              disabled={isCanceling}
+                            >
+                              {isCanceling ? 'Canceling...' : 'Cancel'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Modals */}
       {isModalOpen && (
         <PaymentDetailsModal 
           onClose={() => setIsModalOpen(false)} 

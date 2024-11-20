@@ -376,19 +376,19 @@ const EventgroupProfile = () => {
           </div>
         )}
 
-        {activeSection === 'notifications' && (
-          <div className="bg-white rounded-lg">
-            <div className="flex justify-end mb-4">
-              <button 
-                onClick={toggleDrawer} 
-                className='px-4 py-2 bg-[#2D3436] text-white rounded hover:bg-[#1a1f20] transition-colors duration-200'
-              >
-                + Add Events
-              </button>
-            </div>
-            <EventgroupEventsList/>
-          </div>
-        )}
+{activeSection === 'notifications' && (
+  <div className="bg-white rounded-lg">
+    <div className="flex justify-end mb-4">
+      <button 
+        onClick={toggleDrawer} 
+        className='px-4 py-2 bg-[#2D3436] text-white rounded hover:bg-[#1a1f20] transition-colors duration-200'
+      >
+        + Add Events
+      </button>
+    </div>
+    <EventgroupEventsList eventGroupId={basicInfo.id}/>
+  </div>
+)}
 
         {/* Edit Modal */}
         {isModalOpen && (

@@ -20,12 +20,40 @@ export const fetchEventsByGroupId = createAsyncThunk(
   async (eventGroupId, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/eventgroup-events/${eventGroupId}/`);
-      return response.data;
+      // Check if response.data.data exists, otherwise return empty array
+      return {
+        data: response.data.data || [],
+        message: response.data.message
+      };
     } catch (error) {
-      return rejectWithValue(error.response?.data || 'Failed to fetch events for this group');
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Failed to fetch events for this group',
+        status: error.response?.status
+      });
     }
   }
 );
+
+
+export const updateEvent = createAsyncThunk(
+  'events/updateEvent',
+  async ({ eventGroupId, eventData }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.put(`/eventgroup-events/${eventGroupId}/`, eventData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Failed to update event');
+    }
+  }
+);
+
+
+
+
+
+
+
+
 
 export const updatePaymentStatus = createAsyncThunk(
   'events/updatePaymentStatus',
@@ -171,14 +199,17 @@ const eventssuperadminSlice = createSlice({
       .addCase(fetchEventsByGroupId.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.message = null;
       })
       .addCase(fetchEventsByGroupId.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = Array.isArray(action.payload?.data) ? action.payload.data : [];
+        state.data = Array.isArray(action.payload.data) ? action.payload.data : [];
+        state.message = action.payload.message;
       })
       .addCase(fetchEventsByGroupId.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'An error occurred while fetching events for this group';
+        state.error = action.payload?.message || 'An error occurred';
+        state.data = [];
       })
       // Update payment status cases
       .addCase(updatePaymentStatus.pending, (state) => {
@@ -258,6 +289,24 @@ const eventssuperadminSlice = createSlice({
       .addCase(fetchPaymentDetails.rejected, (state, action) => {
         state.paymentDetailsLoading = false;
         state.paymentDetailsError = action.payload;
+      })
+
+
+
+
+      .addCase(updateEvent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateEvent.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = state.data.map(event =>
+          event.id === action.payload.id ? action.payload : event
+        );
+      })
+      .addCase(updateEvent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update event';
       });
   },
 });
