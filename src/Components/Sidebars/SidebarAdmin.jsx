@@ -6,8 +6,10 @@ import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
 import { Link, useLocation } from 'react-router-dom';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { useDispatch } from 'react-redux';
 
 const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
+  const dispatch = useDispatch();
   const location = useLocation();
   const [isEmployeesOpen, setIsEmployeesOpen] = useState(false);
 
@@ -21,6 +23,10 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
 
   const toggleEmployees = () => {
     setIsEmployeesOpen(!isEmployeesOpen);
+  };
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
   };
 
   return (
@@ -100,7 +106,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                 </Link>
               </li>
               <li>
-                <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]">
+                <a href="#"  onClick={handleLogout} className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]">
                   <AiOutlineLogout className="icon-size" />
                   <span>Logout</span>
                 </a>

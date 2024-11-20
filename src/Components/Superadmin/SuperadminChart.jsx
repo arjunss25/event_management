@@ -1,5 +1,5 @@
-import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import {
   BarChart,
   Bar,
@@ -9,20 +9,8 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import axiosInstance from '../../axiosConfig';
 
-// Fetch events data from the JSON file
-const fetchEvents = async () => {
-  try {
-    const response = await axios.get('src/utils/chartData.json');
-    console.log('Fetched data:', response.data); // Log to check the structure of the data
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    throw error;
-  }
-};
-
-// Custom tooltip for chart display
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
@@ -38,6 +26,15 @@ const CustomTooltip = ({ active, payload }) => {
 const SuperadminChart = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [chartData, setChartData] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Generate array of years (current year and 4 years back)
+  const years = Array.from(
+    { length: 5 },
+    (_, i) => new Date().getFullYear() - i
+  );
 
   // Handle mobile responsiveness
   useEffect(() => {
@@ -50,76 +47,134 @@ const SuperadminChart = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Load chart data from JSON file
-  useEffect(() => {
-    const loadChartData = async () => {
-      try {
-        const data = await fetchEvents();
+  // Fetch data based on selected year
+  const fetchEventsByYear = async (year) => {
+    setLoading(true);
+    setError(null);
+    try {
+      console.log('Fetching data for year:', year);
+      const response = await axiosInstance.get(`/filter-events-by-year/${year}/`);
+      console.log('API Response:', response);
 
-        // If data is an array, format it for the chart, otherwise set it as an empty array
-        const formattedData = Array.isArray(data)
-          ? data.map(item => ({
-              name: item.month,
-              events: item.events,
-            }))
-          : [];
-          
-        setChartData(formattedData);
-      } catch (error) {
-        console.error('Error loading chart data:', error);
+      if (!response.data) {
+        throw new Error('No data received from API');
       }
-    };
 
-    loadChartData();
-  }, []);
+      if (!response.data.data) {
+        console.error('Invalid response structure:', response.data);
+        throw new Error('Invalid response structure - missing data property');
+      }
+
+      const monthlyData = response.data.data.monthly_event_counts;
+      console.log('Monthly data:', monthlyData);
+
+      if (!monthlyData) {
+        throw new Error('No monthly_event_counts in response');
+      }
+
+      const formattedData = Object.entries(monthlyData).map(([month, count]) => ({
+        name: month,
+        events: count
+      }));
+
+      console.log('Formatted chart data:', formattedData);
+      setChartData(formattedData);
+    } catch (error) {
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response,
+        stack: error.stack
+      });
+      setError(error.message);
+      setChartData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load chart data when year changes
+  useEffect(() => {
+    fetchEventsByYear(selectedYear);
+  }, [selectedYear]);
 
   return (
-    <div className="w-full h-[50vh] lg:h-[50vh] p-4">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={chartData}
-          margin={{
-            top: 16,
-            right: isMobile ? 5 : 16,
-            left: isMobile ? 5 : 30,
-            bottom: 0,
-          }}
+    <div className="w-full h-[50vh] lg:h-[55vh] p-4 ">
+      <div className="flex flex-row items-center justify-between mb-6">
+        <h2 className="text-xl lg:text-2xl font-semibold text-gray-900">Event Statistics</h2>
+        <select
+          value={selectedYear}
+          onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+          className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <XAxis
-            dataKey="name"
-            tick={!isMobile}
-            tickLine={false}
-            axisLine={false}
-            stroke="#666"
-            fontSize={12}
-          />
-          <YAxis
-            width={40}
-            tickLine={false}
-            axisLine={false}
-            stroke="#666"
-            fontSize={12}
-            tickFormatter={(value) => value.toLocaleString()}
-          />
-          <CartesianGrid
-            strokeDasharray=""
-            vertical={false}
-            horizontal={true}
-            stroke="#b2bec3"
-          />
-          <Tooltip
-            content={<CustomTooltip />}
-            cursor={{ fill: 'transparent' }}
-          />
-          <Bar
-            dataKey="events"
-            fill="#2D3436"
-            radius={[4, 4, 0, 0]}
-            cursor={{ fill: 'rgba(45, 52, 54, 0.05)' }}
-            background={{ fill: '#eaeef1' }}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+      </div>
+      
+      {error && (
+        <div className="mb-4 p-4 text-red-600">
+          Error: {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="h-80 flex items-center justify-center">
+          <p>Loading data...</p>
+        </div>
+      ) : chartData.length > 0 ? (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{
+              top: 16,
+              right: isMobile ? 5 : 16,
+              left: isMobile ? 5 : 30,
+              bottom: 0,
+            }}
+          >
+            <XAxis
+              dataKey="name"
+              tick={!isMobile}
+              tickLine={false}
+              axisLine={false}
+              stroke="#666"
+              fontSize={12}
+            />
+            <YAxis
+              width={40}
+              tickLine={false}
+              axisLine={false}
+              stroke="#666"
+              fontSize={12}
+              tickFormatter={(value) => value.toLocaleString()}
+            />
+            <CartesianGrid
+              strokeDasharray=""
+              vertical={false}
+              horizontal={true}
+              stroke="#b2bec3"
+            />
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ fill: 'transparent' }}
+            />
+            <Bar
+              dataKey="events"
+              fill="#2D3436"
+              radius={[4, 4, 0, 0]}
+              cursor={{ fill: 'rgba(45, 52, 54, 0.05)' }}
+              background={{ fill: '#eaeef1' }}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="h-80 flex items-center justify-center">
+          <p>No data available for selected year</p>
+        </div>
+      )}
     </div>
   );
 };

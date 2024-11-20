@@ -4,7 +4,7 @@ import { IoInformationCircleOutline } from "react-icons/io5";
 import { IoClose } from "react-icons/io5";
 import { IoCashOutline } from "react-icons/io5";
 import { FaCheckCircle } from "react-icons/fa";
-import { fetchEvents, updatePaymentStatus,cancelEvent,fetchTotalAmount,addPayment } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
+import { fetchEvents, updatePaymentStatus,cancelEvent,fetchTotalAmount,addPayment,fetchPaymentDetails } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
 
 // Add Payment Modal Component
 const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
@@ -141,23 +141,39 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
 const PaymentDetailsModal = ({ onClose, eventData }) => {
   const dispatch = useDispatch();
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
-  const { totalAmount, totalAmountLoading, totalAmountError } = useSelector(
-    (state) => state.events
-  );
+  const { 
+    totalAmount, 
+    totalAmountLoading, 
+    totalAmountError,
+    paymentDetails,
+    paymentDetailsLoading,
+    paymentDetailsError
+  } = useSelector((state) => state.events);
 
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    
-    if (eventData?.id) {
-      dispatch(fetchTotalAmount(eventData.id));
-    }
-    
-    // Log the event data to verify we have the event_group
-    console.log('Event Data in PaymentDetailsModal:', eventData);
+    console.log('PaymentDetailsModal Mounted with Event Data:', eventData);
 
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    if (eventData?.id) {
+      console.log(`Dispatching Total Amount and Payment Details for Event ID: ${eventData.id}`);
+      
+      dispatch(fetchTotalAmount(eventData.id))
+        .unwrap()
+        .then(result => {
+          console.log('Total Amount Fetch Success:', result);
+        })
+        .catch(error => {
+          console.error('Total Amount Fetch Error:', error);
+        });
+
+      dispatch(fetchPaymentDetails(eventData.id))
+        .unwrap()
+        .then(result => {
+          console.log('Payment Details Fetch Success:', result);
+        })
+        .catch(error => {
+          console.error('Payment Details Fetch Error:', error);
+        });
+    }
   }, [dispatch, eventData?.id]);
 
   
@@ -208,59 +224,82 @@ const PaymentDetailsModal = ({ onClose, eventData }) => {
               <div className="btm-section w-full p-3 flex flex-col">
                 <h2 className="text-[1rem]">Remaining Amount</h2>
                 <h2 className="text-[2rem] font-bold">
-                  {totalAmount?.remaining_amount || '0'}
+                  {totalAmount?.remaining_payment_amount || '0'}
                 </h2>
               </div>
             </div>
+
+
+
+
+            {/* Remaining Amount Box */}
+            <div className="box-main w-[25rem] border-[2px] border-black rounded-[1.2rem]">
+              <div className="top w-full p-2 flex justify-end">
+                <div className="icon-bg p-2 bg-[#f0f3f5] w-fit rounded-[0.5rem]">
+                  <IoCashOutline className="text-[1.5rem]" />
+                </div>
+              </div>
+              <div className="btm-section w-full p-3 flex flex-col">
+                <h2 className="text-[1rem]">Amount Paid</h2>
+                <h2 className="text-[2rem] font-bold">
+                  {totalAmount?.total_paid_amount || '0'}
+                </h2>
+              </div>
+            </div>
+
+
+
+
           </div>
 
           {/* Payment History section remains the same */}
           <div className="mt-8">
-            <div className="top-section flex justify-between items-center w-full mb-5">
-              <h2 className="font-medium text-[1.2rem]">Payment History</h2>
-              <button 
-                className="bg-black text-white px-4 py-2 rounded-md text-[0.9rem] hover:bg-gray-800 transition-colors"
-                onClick={() => setIsAddPaymentOpen(true)}
-              >
-                Add Payment
-              </button>
-            </div>
-            <div className="border-t border-gray-200">
-              {eventData?.paymentHistory ? (
-                eventData.paymentHistory.map((payment, index) => (
-                  <div 
-                    key={index} 
-                    className="flex justify-start gap-32 items-center p-5 border-b-[1px] border-gray-200"
-                  >
-                    <FaCheckCircle className="text-green-600" />
-                    <div className="date-sec">
-                      <h1>Date</h1>
-                      <p className="text-gray-500">{payment.date}</p>
-                    </div>
-                    <div className="payment-section">
-                      <h1>Amount</h1>
-                      <p>{payment.amount}</p>
-                    </div>
+        <div className="top-section flex justify-between items-center w-full mb-5">
+          <h2 className="font-medium text-[1.2rem]">Payment History</h2>
+          <button 
+            className="bg-black text-white px-4 py-2 rounded-md text-[0.9rem] hover:bg-gray-800 transition-colors"
+            onClick={() => {
+              console.log('Add Payment Button Clicked');
+              setIsAddPaymentOpen(true);
+            }}
+          >
+            Add Payment
+          </button>
+        </div>
+        <div className="border-t border-gray-200">
+          {paymentDetailsLoading ? (
+            <div className="text-center py-4">Loading payment history...</div>
+          ) : paymentDetailsError ? (
+            <div className="text-red-500 text-center py-4">{paymentDetailsError}</div>
+          ) : paymentDetails?.payment_details?.length > 0 ? (
+            (() => {
+              console.log('Rendering Payment Details:', paymentDetails.payment_details);
+              return paymentDetails.payment_details.map((payment, index) => (
+                <div 
+                  key={index} 
+                  className="flex justify-start gap-32 items-center p-5 border-b-[1px] border-gray-200"
+                >
+                  <FaCheckCircle className="text-green-600" />
+                  <div className="date-sec">
+                    <h1>Date</h1>
+                    <p className="text-gray-500">{payment.payment_date}</p>
                   </div>
-                ))
-              ) : (
-                <>
-                  {/* Placeholder payment history items */}
-                  <div className="flex justify-start gap-32 items-center p-5 border-b-[1px] border-gray-200">
-                    <FaCheckCircle className="text-green-600" />
-                    <div className="date-sec">
-                      <h1>Date</h1>
-                      <p className="text-gray-500">04-11-2024</p>
-                    </div>
-                    <div className="payment-section">
-                      <h1>Amount</h1>
-                      <p>1500</p>
-                    </div>
+                  <div className="payment-section">
+                    <h1>Amount</h1>
+                    <p>{payment.paid_amount}</p>
                   </div>
-                </>
-              )}
-            </div>
-          </div>
+                  <div className="payment-status">
+                    <h1>Status</h1>
+                    <p>{payment.payment_status}</p>
+                  </div>
+                </div>
+              ));
+            })()
+          ) : (
+            <div className="text-center py-4">No payment history available</div>
+          )}
+        </div>
+      </div>
         </div>
       </div>
 

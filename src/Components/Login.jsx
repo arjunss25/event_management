@@ -45,7 +45,7 @@ const Login = () => {
     try {
       // 1. First authenticate with your backend
       const response = await axios.post(
-        'https://event.neurocode.in/webapi/superadmin-login/',
+        'https://event.neurocode.in/webapi/unified-login/',
         { email, password }
       );
   

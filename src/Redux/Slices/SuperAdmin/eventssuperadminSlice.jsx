@@ -45,7 +45,7 @@ export const fetchTotalAmount = createAsyncThunk(
   'eventgroups/fetchTotalAmount',
   async (eventId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/get-total-amount/${eventId}/`);
+      const response = await axiosInstance.get(`/get-remaining-amount/${eventId}/`);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -78,6 +78,38 @@ export const addPayment = createAsyncThunk(
     } catch (error) {
       console.error('Payment API error:', error.response?.data || error.message);
       return rejectWithValue(error.response?.data || 'Failed to add payment');
+    }
+  }
+);
+
+
+
+
+
+
+
+
+export const fetchPaymentDetails = createAsyncThunk(
+  'events/fetchPaymentDetails',
+  async (eventId, { rejectWithValue }) => {
+    try {
+      console.log(`Fetching payment details for event ID: ${eventId}`);
+      
+      const response = await axiosInstance.get(`/payment-details/${eventId}/`);
+      
+      console.log('Payment Details API Response:', {
+        status: response.status,
+        data: response.data
+      });
+      
+      return response.data.data;
+    } catch (error) {
+      console.error('Payment Details Fetch Error:', {
+        error: error.response?.data || error.message,
+        eventId: eventId
+      });
+      
+      return rejectWithValue(error.response?.data || 'Failed to fetch payment details');
     }
   }
 );
@@ -207,6 +239,25 @@ const eventssuperadminSlice = createSlice({
       .addCase(addPayment.rejected, (state, action) => {
         state.paymentLoading = false;
         state.paymentError = action.payload || 'Failed to add payment';
+      })
+
+
+
+
+
+
+
+      .addCase(fetchPaymentDetails.pending, (state) => {
+        state.paymentDetailsLoading = true;
+        state.paymentDetailsError = null;
+      })
+      .addCase(fetchPaymentDetails.fulfilled, (state, action) => {
+        state.paymentDetailsLoading = false;
+        state.paymentDetails = action.payload;
+      })
+      .addCase(fetchPaymentDetails.rejected, (state, action) => {
+        state.paymentDetailsLoading = false;
+        state.paymentDetailsError = action.payload;
       });
   },
 });
