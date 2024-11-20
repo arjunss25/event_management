@@ -33,7 +33,7 @@ const SuperadminLayout = () => {
         <Navcomponent toggleSidebar={toggleSidebar} />
 
         {/* Page content with proper padding and scrolling */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           <Outlet />
         </main>
       </div>
