@@ -1,15 +1,53 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '../../../axiosConfig';
 
 // Thunk to fetch event details (single event)
 export const fetchEventDetails = createAsyncThunk(
   'adminEvents/fetchEventDetails',
-  async () => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/src/utils/adminEventData.json');
-      return response.data;
+      const response = await axiosInstance.get(`/event-details`);
+      
+      // Map API response to the expected format in the component
+      return {
+        id: response.data.data.id,
+        eventName: response.data.data.event_name,
+        startDate: response.data.data.start_date,
+        endDate: response.data.data.end_date,
+        venue: response.data.data.venue || '',
+        paymentStatus: response.data.data.total_amount ? 'Completed' : 'Pending',
+        seatsBooked: response.data.data.seats_booked || 0,
+        eventStatus: response.data.data.event_status
+      };
     } catch (error) {
-      throw error;
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch event details');
+    }
+  }
+);
+
+// Thunk to update event details
+export const updateEventDetails = createAsyncThunk(
+  'adminEvents/updateEventDetails',
+  async (eventData, { getState, dispatch, rejectWithValue }) => {
+    try {
+      const { selectedEvent } = getState().adminEvents;
+
+      if (!selectedEvent) {
+        throw new Error('No event selected');
+      }
+
+      const response = await axiosInstance.put(`/event-details/`, {
+        venue: eventData.venue,
+        seats_booked: eventData.seatsBooked
+      });
+
+      // Dispatch the update to the local state
+      return {
+        venue: eventData.venue,
+        seatsBooked: eventData.seatsBooked
+      };
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update event details');
     }
   }
 );
@@ -17,14 +55,23 @@ export const fetchEventDetails = createAsyncThunk(
 // Thunk to fetch all admin events
 export const fetchAdminEvents = createAsyncThunk(
   'adminEvents/fetchEvents',
-  async () => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/src/utils/adminEventsData.json');
-      // Wrap the single event in an array if it's not already an array
-      const events = Array.isArray(response.data) ? response.data : [response.data];
-      return events;
+      const response = await axiosInstance.get('/events');
+      
+      // Map API response to expected format
+      return response.data.data.map(event => ({
+        id: event.id,
+        eventName: event.event_name,
+        startDate: event.start_date,
+        endDate: event.end_date,
+        venue: event.venue || '',
+        paymentStatus: event.total_amount ? 'Completed' : 'Pending',
+        seatsBooked: event.seats_booked || 0,
+        eventStatus: event.event_status
+      }));
     } catch (error) {
-      throw error;
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch events');
     }
   }
 );
@@ -42,16 +89,6 @@ const AdminEventsSlice = createSlice({
     clearEventDetails: (state) => {
       state.selectedEvent = null;
     },
-    updateEventDetails: (state, action) => {
-      state.selectedEvent = { ...state.selectedEvent, ...action.payload };
-      // Also update the event in the events array if it exists
-      if (state.events.length > 0) {
-        const index = state.events.findIndex(event => event.id === state.selectedEvent.id);
-        if (index !== -1) {
-          state.events[index] = { ...state.events[index], ...action.payload };
-        }
-      }
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -67,7 +104,26 @@ const AdminEventsSlice = createSlice({
       })
       .addCase(fetchEventDetails.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload || 'Failed to fetch event details';
+      })
+      // Handle updateEventDetails
+      .addCase(updateEventDetails.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateEventDetails.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.selectedEvent) {
+          state.selectedEvent = {
+            ...state.selectedEvent,
+            ...action.payload
+          };
+        }
+        state.error = null;
+      })
+      .addCase(updateEventDetails.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'Failed to update event details';
       })
       // Handle fetchAdminEvents
       .addCase(fetchAdminEvents.pending, (state) => {
@@ -81,10 +137,10 @@ const AdminEventsSlice = createSlice({
       })
       .addCase(fetchAdminEvents.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload || 'Failed to fetch events';
       });
   },
 });
 
-export const { clearEventDetails, updateEventDetails } = AdminEventsSlice.actions;
+export const { clearEventDetails } = AdminEventsSlice.actions;
 export default AdminEventsSlice.reducer;

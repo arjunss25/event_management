@@ -1,48 +1,49 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-// Import all components
+// Import Superadmin Components
 import SuperadminLayout from './layouts/SuperadminLayout';
 import EventgroupsSuperadmin from './pages/Superadmin/EventgroupsSuperadmin';
 import SuperadminDashboard from './Dashboards/SuperadminDashboard';
 import EventsSuperadmin from './pages/Superadmin/EventsSuperadmin';
 import ExpiredeventsSuperadmin from './pages/Superadmin/ExpiredeventsSuperadmin';
 import PaymenthistorySuperadmin from './pages/Superadmin/PaymenthistorySuperadmin';
-import AdminDashboard from './Dashboards/AdminDashboard';
+import EventgroupProfile from './pages/Superadmin/EventgroupProfile';
+
+// Import Admin Components
 import AdminLayout from './layouts/AdminLayout';
 import AdminEvents from './pages/Admin/AdminEvents';
 import AdminEventDetails from './pages/Admin/AdminEventDetails';
-import Login from './Components/Login';
-import MealScanner from './pages/Employee/MealScanner';
-import EmployeeLayout from './layouts/EmployeeLayout';
+import AdminWelcomePage from './pages/Admin/AdminWelcomepage';
+import ProfilePhotoPage from './pages/Admin/AdminPhotoPage';
+import AdminDashboardPage from './Dashboards/AdminDashboard';
 import EmployeeDetails from './pages/Admin/EmployeeDetails';
 import AddCategory from './pages/Admin/AddCategory';
 import Userprofile from './pages/User/Userprofile';
 import RegisteredUserTable from './Components/Admin/RegisteredUserTable';
-import EventgroupProfile from './pages/Superadmin/EventgroupProfile';
+
+// Import Other Components
+import Login from './Components/Login';
+import MealScanner from './pages/Employee/MealScanner';
+import EmployeeLayout from './layouts/EmployeeLayout';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const auth = useSelector((state) => state.auth);
   
-  // Normalize roles to lowercase
   const userRole = auth.user?.role?.trim().toLowerCase();
   const expectedRole = requiredRole?.trim().toLowerCase();
 
-  // Check if the token exists
   if (!auth.token) {
-    console.log('No token found, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
-  // Role mismatch handling
   if (expectedRole && userRole !== expectedRole) {
-    console.log('Role mismatch, redirecting to appropriate dashboard');
     switch (userRole) {
       case 'superadmin':
         return <Navigate to="/superadmin/dashboard" replace />;
       case 'admin':
-        return <Navigate to="/admin/dashboard" replace />;
+        return <Navigate to="/admin/welcomepage" replace />;
       case 'employee':
         return <Navigate to="/employee/scanner" replace />;
       default:
@@ -50,21 +51,44 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     }
   }
 
-  console.log('Access granted to protected route');
   return children;
 };
 
 const AppRoutes = () => {
   const auth = useSelector((state) => state.auth);
-  
+  const location = useLocation();
+
+  const initialRoutes = [
+    '/login', 
+    '/admin/welcomepage', 
+    '/admin/profile-photo', 
+    '/admin/dashboard',
+    '/superadmin/dashboard'
+  ];
+
+  const getInitialRoute = () => {
+    if (!auth.token) return '/login';
+    
+    switch (auth.user?.role?.toLowerCase()) {
+      case 'admin':
+        return '/admin/welcomepage';
+      case 'superadmin':
+        return '/superadmin/dashboard';
+      case 'employee':
+        return '/employee/scanner';
+      default:
+        return '/login';
+    }
+  };
+
   return (
     <Routes>
       {/* Public Route */}
       <Route 
         path="/login" 
         element={
-          auth.token ? (
-            <Navigate to={`/${auth.user?.role?.toLowerCase()}/dashboard`} replace />
+          auth.token && !initialRoutes.includes(location.pathname) ? (
+            <Navigate to={getInitialRoute()} replace />
           ) : (
             <Login />
           )
@@ -75,11 +99,9 @@ const AppRoutes = () => {
       <Route
         path="/superadmin"
         element={
-          auth.token && auth.user?.role.toLowerCase() === 'superadmin' ? (
+          <ProtectedRoute requiredRole="superadmin">
             <SuperadminLayout />
-          ) : (
-            <Navigate to="/login" replace />
-          )
+          </ProtectedRoute>
         }
       >
         <Route index element={<Navigate to="dashboard" replace />} />
@@ -100,8 +122,10 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route index element={<Navigate to="welcomepage" replace />} />
+        <Route path="welcomepage" element={<AdminWelcomePage />} />
+        <Route path="profile-photo" element={<ProfilePhotoPage />} />
+        <Route path="dashboard" element={<AdminDashboardPage />} />
         <Route path="events" element={<AdminEvents />} />
         <Route path="event-details" element={<AdminEventDetails />} />
         <Route path="employee-details" element={<EmployeeDetails />} />
@@ -128,7 +152,7 @@ const AppRoutes = () => {
         path="/"
         element={
           auth.token ? (
-            <Navigate to={`/${auth.user?.role?.toLowerCase()}/dashboard`} replace />
+            <Navigate to={getInitialRoute()} replace />
           ) : (
             <Navigate to="/login" replace />
           )

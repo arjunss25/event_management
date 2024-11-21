@@ -2,18 +2,19 @@ import React, { useState } from 'react';
 import { LuLayoutDashboard } from "react-icons/lu";
 import { MdGroups3, MdOutlineFestival } from "react-icons/md";
 import { IoTimerOutline } from "react-icons/io5";
-import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
+import { logout } from '../../Redux/authSlice';
 
 const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isEmployeesOpen, setIsEmployeesOpen] = useState(false);
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === `/admin${path}`;
 
   const getLinkClass = (path) => (
     `sidebar-link flex items-center gap-4 hover:text-black ${
@@ -24,6 +25,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   const toggleEmployees = () => {
     setIsEmployeesOpen(!isEmployeesOpen);
   };
+
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
@@ -50,13 +52,13 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
           <div className="sidebar-links flex justify-center lg:justify-start lg:ml-10 text-[1.2rem]">
             <ul className="flex flex-col gap-6">
               <li>
-                <Link to="/admin" className={getLinkClass('/admin')} onClick={toggleSidebar}>
+                <Link to="/admin/dashboard" className={getLinkClass('/dashboard')} onClick={toggleSidebar}>
                   <LuLayoutDashboard className="icon-size" />
                   <span>Dashboard</span>
                 </Link>
               </li>
               <li>
-                <Link to="/admin/admin-events" className={getLinkClass('/admin/admin-events')} onClick={toggleSidebar}>
+                <Link to="/admin/events" className={getLinkClass('/events')} onClick={toggleSidebar}>
                   <MdGroups3 className="icon-size" />
                   <span>Events</span>
                 </Link>
@@ -81,35 +83,38 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                     <li>
                       <Link 
                         to="/admin/employee-details" 
-                        className={`${getLinkClass('/admin/employee-details')} text-base`}
+                        className={getLinkClass('/employee-details')}
                         onClick={toggleSidebar}
                       >
-                        Employee Details
+                        <span className="text-base">Employee Details</span>
                       </Link>
                     </li>
                     <li>
                       <Link 
                         to="/admin/add-category" 
-                        className={`${getLinkClass('/admin/add-category')} text-base`}
+                        className={getLinkClass('/add-category')}
                         onClick={toggleSidebar}
                       >
-                        Add Category
+                        <span className="text-base">Add Category</span>
                       </Link>
                     </li>
                   </ul>
                 )}
               </li>
               <li>
-                <Link to="/admin/admin-idcard" className={getLinkClass('/admin/admin-idcard')} onClick={toggleSidebar}>
+                <Link to="/admin/idcard" className={getLinkClass('/idcard')} onClick={toggleSidebar}>
                   <IoTimerOutline className="icon-size" />
                   <span>Id Card</span>
                 </Link>
               </li>
               <li>
-                <a href="#"  onClick={handleLogout} className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]">
+                <button 
+                  onClick={handleLogout}
+                  className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]"
+                >
                   <AiOutlineLogout className="icon-size" />
                   <span>Logout</span>
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -120,7 +125,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
       {isSidebarOpen && (
         <div
           onClick={toggleSidebar}
-          className="fixed inset-0 bg-black opacity-50 z-10 lg:hidden"
+          className="fixed inset-0 bg-black opacity-50 z-[9] lg:hidden"
         ></div>
       )}
     </>

@@ -34,7 +34,13 @@ const Login = () => {
         token: accessToken,
         user: userData,
       }));
-      navigate(`/${userData.role.toLowerCase()}/dashboard`);
+
+      // Updated navigation logic to match the role-based routing
+      if (userData.role.toLowerCase() === 'admin') {
+        navigate('/admin/welcomepage');
+      } else {
+        navigate(`/${userData.role.toLowerCase()}/dashboard`);
+      }
     }
   }, [dispatch, navigate]);
 
@@ -88,7 +94,7 @@ const Login = () => {
             navigate('/superadmin/dashboard');
             break;
           case 'admin':
-            navigate('/admin/dashboard');
+            navigate('/admin/welcomepage'); // Changed from '/admin/dashboard'
             break;
           case 'employee':
             navigate('/employee/scanner');

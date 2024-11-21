@@ -12,6 +12,7 @@ const AdminEventDetails = () => {
   const [activeTab, setActiveTab] = useState('eventDetails');
   const [currentStep, setCurrentStep] = useState(0);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     venue: '',
     seatsAllocated: ''
@@ -31,6 +32,9 @@ const AdminEventDetails = () => {
   }, [selectedEvent]);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
+  const toggleEditModal = () => {
+    setIsEditModalOpen(!isEditModalOpen);
+  };
 
   const handleNext = () => {
     if (activeTab === 'eventDetails') {
@@ -58,6 +62,7 @@ const AdminEventDetails = () => {
       seatsBooked: parseInt(formData.seatsAllocated)
     }));
     console.log('Saving event details...', formData);
+    toggleEditModal();
   };
 
   const renderEventDetailsContent = () => {
@@ -74,11 +79,11 @@ const AdminEventDetails = () => {
               </div>
               <div className="flex flex-col xl:flex-row">
                 <p className="text-gray-500 w-52">Start Date:</p>
-                <p>{selectedEvent?.startDate ? new Date(selectedEvent.startDate).toLocaleString() : 'N/A'}</p>
+                <p>{selectedEvent?.startDate ? new Date(selectedEvent.startDate).toLocaleDateString() : 'N/A'}</p>
               </div>
               <div className="flex flex-col xl:flex-row">
                 <p className="text-gray-500 w-52">End Date:</p>
-                <p>{selectedEvent?.endDate ? new Date(selectedEvent.endDate).toLocaleString() : 'N/A'}</p>
+                <p>{selectedEvent?.endDate ? new Date(selectedEvent.endDate).toLocaleDateString() : 'N/A'}</p>
               </div>
               <div className="flex flex-col xl:flex-row">
                 <p className="text-gray-500 w-52">Payment Status:</p>
@@ -103,21 +108,81 @@ const AdminEventDetails = () => {
                     placeholder="Venue"
                     className="w-[50%] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
                     rows="4"
+                    readOnly={isEditModalOpen}
                   ></textarea>
                 </div>
               </div>
               <div>
                 <label className="block text-black mb-2">Seats Allocated</label>
-                <input 
+                <input
                   type="text"
                   name="seatsAllocated"
                   value={formData.seatsAllocated}
                   onChange={handleInputChange}
-                  placeholder="Number of Seats Allocated" 
+                  placeholder="Number of Seats Allocated"
                   className="w-[50%] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                  readOnly={isEditModalOpen}
                 />
               </div>
             </div>
+
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={toggleEditModal}
+                className="px-4 py-2 text-white bg-blue-600 rounded-lg"
+              >
+                Edit
+              </button>
+            </div>
+
+            {isEditModalOpen && (
+              <div className="fixed inset-0 flex items-center justify-center z-10 bg-black bg-opacity-50">
+                <div className="bg-white p-6 rounded-lg w-full max-w-md">
+                  <h2 className="text-2xl font-semibold mb-4">Edit Event Details</h2>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-black mb-2">Venue</label>
+                      <textarea
+                        name="venue"
+                        value={formData.venue}
+                        onChange={handleInputChange}
+                        placeholder="Venue"
+                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                        rows="4"
+                      ></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-black mb-2">Seats Allocated</label>
+                      <input
+                        type="text"
+                        name="seatsAllocated"
+                        value={formData.seatsAllocated}
+                        onChange={handleInputChange}
+                        placeholder="Number of Seats Allocated"
+                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-4 space-x-4">
+                    <button
+                      onClick={toggleEditModal}
+                      className="px-4 py-2 text-white bg-gray-500 rounded-lg"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleSave();
+                        toggleEditModal();
+                      }}
+                      className="px-4 py-2 text-white bg-green-600 rounded-lg"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
       case 1:
