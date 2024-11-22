@@ -5,6 +5,17 @@ import { MdOutlineDeleteOutline } from 'react-icons/md';
 import axiosInstance from '../../axiosConfig';
 import { debounce } from 'lodash';
 
+const EmptyState = () => (
+  <tr>
+    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+      <div className="flex flex-col items-center justify-center">
+        <p className="text-lg">No employees found</p>
+        <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+      </div>
+    </td>
+  </tr>
+);
+
 const TableContent = ({ employees, handleView, setSelectedEmployee, setShowModal }) => {
   return (
     <table className="w-full text-sm text-left text-gray-500">
@@ -20,37 +31,41 @@ const TableContent = ({ employees, handleView, setSelectedEmployee, setShowModal
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-200">
-        {employees.map((employee) => (
-          <tr key={employee.id} className="hover:bg-gray-50">
-            <td className="px-6 py-4">{employee.id}</td>
-            <td className="px-6 py-4">{employee.name}</td>
-            <td className="px-6 py-4">{employee.position}</td>
-            <td className="px-6 py-4">{employee.email}</td>
-            <td className="px-6 py-4">{employee.phone}</td>
-            <td className="px-6 py-4">
-              <span
-                className={`px-3 py-1 rounded-full text-xs ${
-                  employee.currentlyAssigned ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                }`}
-              >
-                {employee.currentlyAssigned ? 'No' : 'Yes'}
-              </span>
-            </td>
-            <td className="px-6 py-4 flex space-x-2">
-              <button onClick={() => handleView(employee.id)}>
-                <FaRegEye className="text-gray-500 hover:text-blue-500 text-[1.2rem]" />
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedEmployee(employee.id);
-                  setShowModal(true);
-                }}
-              >
-                <MdOutlineDeleteOutline className="text-gray-500 hover:text-red-500 text-[1.2rem]" />
-              </button>
-            </td>
-          </tr>
-        ))}
+        {employees.length > 0 ? (
+          employees.map((employee) => (
+            <tr key={employee.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4">{employee.id}</td>
+              <td className="px-6 py-4">{employee.name}</td>
+              <td className="px-6 py-4">{employee.position}</td>
+              <td className="px-6 py-4">{employee.email}</td>
+              <td className="px-6 py-4">{employee.phone}</td>
+              <td className="px-6 py-4">
+                <span
+                  className={`px-3 py-1 rounded-full text-xs ${
+                    employee.currentlyAssigned ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                  }`}
+                >
+                  {employee.currentlyAssigned ? 'No' : 'Yes'}
+                </span>
+              </td>
+              <td className="px-6 py-4 flex space-x-2">
+                <button onClick={() => handleView(employee.id)}>
+                  <FaRegEye className="text-gray-500 hover:text-blue-500 text-[1.2rem]" />
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedEmployee(employee.id);
+                    setShowModal(true);
+                  }}
+                >
+                  <MdOutlineDeleteOutline className="text-gray-500 hover:text-red-500 text-[1.2rem]" />
+                </button>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <EmptyState />
+        )}
       </tbody>
     </table>
   );
@@ -67,8 +82,8 @@ const LoadingSpinner = () => (
 
 const EmployeeTable = () => {
   const [employees, setEmployees] = useState([]);
+  const [allPositions, setAllPositions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [positionFilter, setPositionFilter] = useState('');
   const [assignmentFilter, setAssignmentFilter] = useState('all');
@@ -79,8 +94,9 @@ const EmployeeTable = () => {
   const searchEmployees = async (searchTerm) => {
     try {
       const response = await axiosInstance.get(`/search-employee-start/${searchTerm}/`);
-      if (response.data?.status_code !== 200 || !response.data.data) {
-        throw new Error(response.data?.message || 'Failed to fetch employees');
+      if (response.data?.status_code !== 200) {
+        setEmployees([]);
+        return;
       }
       setEmployees(
         response.data.data.map((emp) => ({
@@ -88,9 +104,9 @@ const EmployeeTable = () => {
           currentlyAssigned: emp.is_available,
         }))
       );
-      setLoading(false);
     } catch (err) {
-      setError(err.message || 'An error occurred while searching employees');
+      setEmployees([]);
+    } finally {
       setLoading(false);
     }
   };
@@ -125,8 +141,9 @@ const EmployeeTable = () => {
     try {
       if (position) {
         const response = await axiosInstance.get(`/filter-employee-position/${position}/`);
-        if (response.data?.status_code !== 200 || !response.data.data) {
-          throw new Error(response.data?.message || 'Failed to filter employees');
+        if (response.data?.status_code !== 200) {
+          setEmployees([]);
+          return;
         }
         setEmployees(
           response.data.data.map((emp) => ({
@@ -138,7 +155,7 @@ const EmployeeTable = () => {
         fetchEmployees();
       }
     } catch (err) {
-      setError(err.message || 'An error occurred while filtering employees');
+      setEmployees([]);
     } finally {
       setLoading(false);
     }
@@ -147,19 +164,21 @@ const EmployeeTable = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      setError(null);
       const response = await axiosInstance.get('/list-all-employees/');
-      if (response.data?.status_code !== 200 || !response.data.data) {
-        throw new Error(response.data?.message || 'Failed to fetch employees');
+      if (response.data?.status_code !== 200) {
+        setEmployees([]);
+        return;
       }
-      setEmployees(
-        response.data.data.map((emp) => ({
-          ...emp,
-          currentlyAssigned: emp.is_available,
-        }))
-      );
+      const employeeData = response.data.data.map((emp) => ({
+        ...emp,
+        currentlyAssigned: emp.is_available,
+      }));
+      setEmployees(employeeData);
+      
+      // Extract and store all unique positions
+      const positions = [...new Set(employeeData.map((emp) => emp.position))];
+      setAllPositions(positions);
     } catch (err) {
-      setError(err.message || 'An error occurred while fetching employees');
       setEmployees([]);
     } finally {
       setLoading(false);
@@ -169,11 +188,6 @@ const EmployeeTable = () => {
   useEffect(() => {
     fetchEmployees();
   }, []);
-
-  const positions = useMemo(() => {
-    if (!employees || employees.length === 0) return [];
-    return [...new Set(employees.map((emp) => emp.position))];
-  }, [employees]);
 
   const filteredEmployees = useMemo(() => {
     if (!employees) return [];
@@ -187,7 +201,7 @@ const EmployeeTable = () => {
   }, [employees, assignmentFilter]);
 
   const handleView = (employeeId) => {
-    navigate(`/admin/employee-profile/`);
+    navigate(`/admin/employee-profile/${employeeId}`);
   };
 
   const handleDelete = async () => {
@@ -199,20 +213,6 @@ const EmployeeTable = () => {
       console.error('Error deleting employee:', err);
     }
   };
-
-  if (error) {
-    return (
-      <div className="w-full h-48 flex items-center justify-center flex-col">
-        <div className="text-red-600">Error: {error}</div>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full">
@@ -231,7 +231,7 @@ const EmployeeTable = () => {
             onChange={handlePositionChange}
           >
             <option value="">All Positions</option>
-            {positions.map((position) => (
+            {allPositions.map((position) => (
               <option key={position} value={position}>
                 {position}
               </option>

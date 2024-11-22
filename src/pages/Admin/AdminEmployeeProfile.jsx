@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { RxPerson } from 'react-icons/rx';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import AdminEventsAssignedTable from '../../Components/Admin/AdminEventsAssignedTable';
+import axiosInstance from '../../axiosConfig';
 
 const AdminEmployeeProfile = () => {
   const navigate = useNavigate();
@@ -11,29 +12,56 @@ const AdminEmployeeProfile = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setModalOpen] = useState(false);
   const [editSection, setEditSection] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [basicInfo, setBasicInfo] = useState({
-    Name: 'Royal Events',
-    EmployeeId: '1123',
-    email: 'royalevents@gmail.com',
-    phone: '7456322265',
-  });
-  
-  const [jobInfo, setJobInfo] = useState({
-    Position: 'Event Manager',
-    Department: 'Event Manager',
-    EmploymentType: 'Full Time',
-    DOB: '2024-11-24',
-    address: 'xyz, Tvm, Kerala',
-  });
-
+  // State for employee data
+  const [employeeData, setEmployeeData] = useState(null);
   const [tempData, setTempData] = useState({});
+
+  // Get employee ID from URL params
+  const { id } = useParams();
+
+  // Fetch employee data
+  const fetchEmployeeData = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(`/employee-details/${id}/`);
+      if (response.data?.status_code === 200) {
+        setEmployeeData(response.data.data[0]);
+      } else {
+        setError('Failed to fetch employee data');
+      }
+    } catch (err) {
+      setError('Error fetching employee data');
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchEmployeeData();
+    }
+  }, [id]);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
   const openEditModal = (section) => {
     setEditSection(section);
-    setTempData(section === 'basic-info' ? { ...basicInfo } : { ...jobInfo });
+    const editableFields = {
+      id: employeeData.id,
+      event_group: employeeData.event_group,
+      name: employeeData.name,
+      email: employeeData.email,
+      phone: employeeData.phone,
+      position: employeeData.position,
+      address: employeeData.address,
+      is_available: employeeData.is_available,
+      role: employeeData.role
+    };
+    setTempData(editableFields);
     setModalOpen(true);
   };
 
@@ -42,19 +70,47 @@ const AdminEmployeeProfile = () => {
     setTempData(prevData => ({ ...prevData, [name]: value }));
   };
 
-  const saveChanges = () => {
-    if (editSection === 'basic-info') {
-      setBasicInfo(tempData);
-    } else {
-      setJobInfo(tempData);
+  const saveChanges = async () => {
+    try {
+      // Create a payload with only the required fields
+      const payload = {
+        id: tempData.id,
+        event_group: tempData.event_group,
+        name: tempData.name,
+        email: tempData.email,
+        phone: tempData.phone,
+        position: tempData.position,
+        address: tempData.address,
+        is_available: tempData.is_available,
+        role: tempData.role
+      };
+  
+      const response = await axiosInstance.put(`/employee-details/${id}/`, payload);
+      if (response.data?.status_code === 200) {
+        setEmployeeData(tempData);
+        setModalOpen(false);
+      } else {
+        setError('Failed to update employee data');
+      }
+    } catch (err) {
+      setError('Error updating employee data');
+      console.error('Error:', err);
     }
-    setModalOpen(false);
   };
+  
 
   const handleNavigation = (section) => {
     setActiveSection(section);
     setSidebarOpen(false);
   };
+
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
+  }
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -72,8 +128,8 @@ const AdminEmployeeProfile = () => {
             src="/profile_pic.svg"
             alt="Profile"
           />
-          <h2 className="mt-4 text-lg font-semibold">{basicInfo.Name}</h2>
-          <p className="text-sm text-gray-500">{basicInfo.email}</p>
+          <h2 className="mt-4 text-lg font-semibold">{employeeData?.name}</h2>
+          <p className="text-sm text-gray-500">{employeeData?.email}</p>
         </div>
 
         <nav className="mt-6">
@@ -127,45 +183,46 @@ const AdminEmployeeProfile = () => {
         {/* Content sections */}
         {activeSection === 'personal-info' && (
           <div className="bg-white p-6 rounded-lg">
-            <h1 className="text-2xl font-semibold mb-4">Basic Info</h1>
+            <h1 className="text-2xl font-semibold mb-4">Employee Information</h1>
             <hr className="w-full border mb-5" />
             <div className="flex flex-col xl:flex-row items-start justify-between">
               <div className="grid grid-cols-1 gap-4 mt-2">
-                {Object.entries(basicInfo).map(([key, value]) => (
-                  <div key={key} className="flex flex-col xl:flex-row">
-                    <p className="text-gray-500 w-52 capitalize">{key}</p>
-                    <p>{value}</p>
-                  </div>
-                ))}
+                <div className="flex flex-col xl:flex-row">
+                  <p className="text-gray-500 w-52">Name</p>
+                  <p>{employeeData?.name}</p>
+                </div>
+                <div className="flex flex-col xl:flex-row">
+                  <p className="text-gray-500 w-52">Email</p>
+                  <p>{employeeData?.email}</p>
+                </div>
+                <div className="flex flex-col xl:flex-row">
+                  <p className="text-gray-500 w-52">Phone</p>
+                  <p>{employeeData?.phone}</p>
+                </div>
+                <div className="flex flex-col xl:flex-row">
+                  <p className="text-gray-500 w-52">Position</p>
+                  <p>{employeeData?.position}</p>
+                </div>
+                <div className="flex flex-col xl:flex-row">
+                  <p className="text-gray-500 w-52">Address</p>
+                  <p>{employeeData?.address}</p>
+                </div>
+                <div className="flex flex-col xl:flex-row">
+                  <p className="text-gray-500 w-52">Status</p>
+                  <p>{employeeData?.is_available ? 'Available' : 'Not Available'}</p>
+                </div>
+                <div className="flex flex-col xl:flex-row">
+                  <p className="text-gray-500 w-52">Role</p>
+                  <p>{employeeData?.role}</p>
+                </div>
               </div>
               <button
                 className="mt-4 px-4 py-2 text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"
-                onClick={() => openEditModal('basic-info')}
+                onClick={() => openEditModal('employee-info')}
               >
                 Edit
               </button>
             </div>
-
-            <section className="mt-6">
-              <h2 className="text-lg font-semibold mb-4">Job Details</h2>
-              <hr className="w-full border mb-5" />
-              <div className="edit-fields flex flex-col xl:flex-row items-start justify-between">
-                <div className="grid grid-cols-1 gap-4 mt-2">
-                  {Object.entries(jobInfo).map(([key, value]) => (
-                    <div key={key} className="flex flex-col xl:flex-row">
-                      <p className="text-gray-500 w-52 capitalize">{key}</p>
-                      <p>{value}</p>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  className="mt-4 px-4 py-2 text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"
-                  onClick={() => openEditModal('job-info')}
-                >
-                  Edit
-                </button>
-              </div>
-            </section>
           </div>
         )}
 
@@ -173,7 +230,7 @@ const AdminEmployeeProfile = () => {
           <div className="bg-white p-6 rounded-lg">
             <h1 className="text-2xl font-semibold mb-4">Events Assigned</h1>
             <hr className="w-full border mb-5" />
-            <AdminEventsAssignedTable />
+            <AdminEventsAssignedTable employeeId={id} />
           </div>
         )}
 
@@ -188,11 +245,9 @@ const AdminEmployeeProfile = () => {
         {/* Edit Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+            <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md h-[80vh] overflow-y-scroll">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">
-                  Edit {editSection === 'basic-info' ? 'Basic Info' : 'Job Details'}
-                </h2>
+                <h2 className="text-xl font-semibold">Edit Employee Information</h2>
                 <button 
                   onClick={() => setModalOpen(false)}
                   className="text-gray-500 hover:text-gray-700"
@@ -202,18 +257,35 @@ const AdminEmployeeProfile = () => {
               </div>
               
               <form onSubmit={(e) => e.preventDefault()}>
-                {Object.entries(tempData).map(([key, value]) => (
-                  <label key={key} className="block mb-4">
-                    <span className="text-gray-700 capitalize">{key}</span>
-                    <input
-                      type="text"
-                      name={key}
-                      value={value}
-                      onChange={handleInputChange}
-                      className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </label>
-                ))}
+                {Object.entries(tempData || {}).map(([key, value]) => {
+                  if (key !== 'id' && key !== 'event_group') {
+                    return (
+                      <label key={key} className="block mb-4">
+                        <span className="text-gray-700 capitalize">{key.replace(/_/g, ' ')}</span>
+                        {key === 'is_available' ? (
+                          <select
+                            name={key}
+                            value={value}
+                            onChange={handleInputChange}
+                            className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value={true}>Available</option>
+                            <option value={false}>Not Available</option>
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            name={key}
+                            value={value}
+                            onChange={handleInputChange}
+                            className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        )}
+                      </label>
+                    );
+                  }
+                  return null;
+                })}
               </form>
               
               <div className="flex justify-end gap-2 mt-6">

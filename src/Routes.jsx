@@ -136,7 +136,8 @@ const AppRoutes = () => {
         <Route path="registered-users" element={<RegisteredUserTable />} />
         <Route path="user-profile" element={<Userprofile />} />
         <Route path="add-employee" element={<AddEmpolyee />} />
-        <Route path="employee-profile" element={<AdminEmployeeProfile />} />
+        {/* <Route path="employee-profile" element={<AdminEmployeeProfile />} /> */}
+        <Route path="employee-profile/:id" element={<AdminEmployeeProfile />} />
         <Route path="events-assigned-table" element={<AdminEventsAssignedTable />} />
       </Route>
 
