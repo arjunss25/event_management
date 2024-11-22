@@ -8,6 +8,7 @@ const AdminWelcomePage = () => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth); 
   const [eventGroupName, setEventGroupName] = useState('');
+  const [eventName, setEventName] = useState('');
 
   // Fetch event group name on component mount
   useEffect(() => {
@@ -22,6 +23,18 @@ const AdminWelcomePage = () => {
   
     fetchEventGroupName();
   }, []);
+  useEffect(() => {
+    const fetchEventName = async () => {
+      try {
+        const response = await axiosInstance.get('/welcome-eventgroup-name/');
+        setEventName(response.data?.data?.event_name || 'Event');
+      } catch (error) {
+        console.error('Error fetching event group name:', error);
+      }
+    };
+  
+    fetchEventName();
+  }, []);
   
 
   const handleNext = () => {
@@ -34,7 +47,8 @@ const AdminWelcomePage = () => {
       <p className="text-xl mb-6">
         Hello, <span className="text-blue-600 font-semibold">{auth.user?.email || 'Admin'}</span>! 
         We're glad to have you here as part of 
-        <span className="text-blue-600 font-semibold"> {eventGroupName}</span>.
+        <span className="text-blue-600 font-semibold"> {eventGroupName}</span>,for
+        <span className="text-blue-600 font-semibold"> {eventName}</span>
       </p>
       <button
         onClick={handleNext}

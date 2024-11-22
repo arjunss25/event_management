@@ -27,6 +27,9 @@ import RegisteredUserTable from './Components/Admin/RegisteredUserTable';
 import Login from './Components/Login';
 import MealScanner from './pages/Employee/MealScanner';
 import EmployeeLayout from './layouts/EmployeeLayout';
+import AddEmpolyee from './pages/Admin/Addemployee';
+import AdminEmployeeProfile from './pages/Admin/AdminEmployeeProfile';
+import AdminEventsAssignedTable from './Components/Admin/AdminEventsAssignedTable';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const auth = useSelector((state) => state.auth);
@@ -132,6 +135,9 @@ const AppRoutes = () => {
         <Route path="add-category" element={<AddCategory />} />
         <Route path="registered-users" element={<RegisteredUserTable />} />
         <Route path="user-profile" element={<Userprofile />} />
+        <Route path="add-employee" element={<AddEmpolyee />} />
+        <Route path="employee-profile" element={<AdminEmployeeProfile />} />
+        <Route path="events-assigned-table" element={<AdminEventsAssignedTable />} />
       </Route>
 
       {/* Employee Routes */}
