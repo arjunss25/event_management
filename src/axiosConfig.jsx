@@ -69,11 +69,11 @@ axiosInstance.interceptors.response.use(
 
     // Log errors in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('Response Error:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        config: originalRequest
-      });
+      // console.error('Response Error:', {
+      //   status: error.response?.status,
+      //   data: error.response?.data,
+      //   config: originalRequest
+      // });
     }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
