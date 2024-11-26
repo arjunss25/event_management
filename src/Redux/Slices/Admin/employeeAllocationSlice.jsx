@@ -1,6 +1,37 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../../axiosConfig';
 
+// Fetch events thunk
+export const fetchEventsByEventGroup = createAsyncThunk(
+  'employeeAllocation/fetchEventsByEventGroup',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get('/list-events-by-eventgroup/');
+      return response.data?.data || [];
+    } catch (error) {
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Failed to fetch events'
+      });
+    }
+  }
+);
+
+// Import allocations thunk
+export const importAllocationsFromEvent = createAsyncThunk(
+  'employeeAllocation/importAllocationsFromEvent',
+  async (eventId, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await axiosInstance.post(`/import-allocations/${eventId}/`);
+      await dispatch(fetchAllocatedEmployees());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Failed to import allocations'
+      });
+    }
+  }
+);
+
 // Add new thunk for fetching allocated employees with empty list handling
 export const fetchAllocatedEmployees = createAsyncThunk(
   'employeeAllocation/fetchAllocatedEmployees',
@@ -47,9 +78,17 @@ export const fetchAllocatedEmployees = createAsyncThunk(
 // Existing thunks
 export const removeEmployeePosition = createAsyncThunk(
   'employeeAllocation/removeEmployeePosition',
-  async (positionName, { rejectWithValue }) => {
+  async ({ positionName, employees }, { rejectWithValue }) => {
     try {
-      await axiosInstance.delete(`/remove-employee-position/${positionName}/`);
+      const payload = {
+        employees: employees.map(emp => ({
+          id: emp.id,
+          name: emp.name,
+          position: emp.position
+        }))
+      };
+      
+      await axiosInstance.delete(`/deallocate-position/`, { data: payload });
       return positionName;
     } catch (error) {
       return rejectWithValue({
@@ -151,6 +190,7 @@ const employeeAllocationSlice = createSlice({
     employees: [],
     allocatedSections: [],
     selectedPosition: '',
+    events: [],
     status: 'idle',
     error: null,
     searchTerm: '',
@@ -158,6 +198,9 @@ const employeeAllocationSlice = createSlice({
     removingEmployee: false,
     removingPosition: false,
     loadingAllocated: false,
+    loadingEvents: false,
+    importingAllocations: false,
+    showImportModal: false,
   },
   reducers: {
     setSelectedPosition: (state, action) => {
@@ -175,10 +218,42 @@ const employeeAllocationSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+    },
+    setShowImportModal: (state, action) => {
+      state.showImportModal = action.payload;
     }
   },
   extraReducers: (builder) => {
     builder
+      // Fetch Events cases
+      .addCase(fetchEventsByEventGroup.pending, (state) => {
+        state.loadingEvents = true;
+      })
+      .addCase(fetchEventsByEventGroup.fulfilled, (state, action) => {
+        state.loadingEvents = false;
+        state.events = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchEventsByEventGroup.rejected, (state, action) => {
+        state.loadingEvents = false;
+        state.error = action.payload?.message;
+        state.events = [];
+      })
+
+      // Import Allocations cases
+      .addCase(importAllocationsFromEvent.pending, (state) => {
+        state.importingAllocations = true;
+      })
+      .addCase(importAllocationsFromEvent.fulfilled, (state) => {
+        state.importingAllocations = false;
+        state.showImportModal = false;
+        state.error = null;
+      })
+      .addCase(importAllocationsFromEvent.rejected, (state, action) => {
+        state.importingAllocations = false;
+        state.error = action.payload?.message;
+      })
+
       // Fetch Positions cases
       .addCase(fetchPositions.pending, (state) => {
         state.status = 'loading';
@@ -189,8 +264,7 @@ const employeeAllocationSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchPositions.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload?.message || 'Failed to fetch positions';
+        state.status = 'succeeded';
         state.positions = [];
       })
 
@@ -287,8 +361,10 @@ const employeeAllocationSlice = createSlice({
       })
       .addCase(fetchAllocatedEmployees.rejected, (state, action) => {
         state.loadingAllocated = false;
-        state.error = action.payload?.message || 'Failed to fetch allocated employees';
         state.allocatedSections = [];
+        if (!action.payload?.message?.includes('No positions available')) {
+          state.error = action.payload?.message;
+        }
       });
   }
 });
@@ -296,7 +372,8 @@ const employeeAllocationSlice = createSlice({
 export const {
   setSelectedPosition,
   setSearchTerm,
-  clearError
+  clearError,
+  setShowImportModal
 } = employeeAllocationSlice.actions;
 
 // Selectors
@@ -311,5 +388,9 @@ export const selectAddingEmployee = (state) => state.adminEmployeeAllocation.add
 export const selectRemovingEmployee = (state) => state.adminEmployeeAllocation.removingEmployee;
 export const selectRemovingPosition = (state) => state.adminEmployeeAllocation.removingPosition;
 export const selectLoadingAllocated = (state) => state.adminEmployeeAllocation.loadingAllocated;
+export const selectEvents = (state) => state.adminEmployeeAllocation.events;
+export const selectLoadingEvents = (state) => state.adminEmployeeAllocation.loadingEvents;
+export const selectImportingAllocations = (state) => state.adminEmployeeAllocation.importingAllocations;
+export const selectShowImportModal = (state) => state.adminEmployeeAllocation.showImportModal;
 
 export default employeeAllocationSlice.reducer;

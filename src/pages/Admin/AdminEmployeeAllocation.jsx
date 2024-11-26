@@ -12,6 +12,9 @@ import {
   removeEmployeeFromAllocation,
   removeEmployeePosition,
   setSearchTerm,
+  fetchEventsByEventGroup,
+  importAllocationsFromEvent,
+  setShowImportModal,
   selectPositions,
   selectEmployees,
   selectAllocatedSections,
@@ -23,6 +26,10 @@ import {
   selectRemovingEmployee,
   selectRemovingPosition,
   selectLoadingAllocated,
+  selectEvents,
+  selectLoadingEvents,
+  selectImportingAllocations,
+  selectShowImportModal,
 } from '../../Redux/Slices/Admin/employeeAllocationSlice';
 
 // Loading component
@@ -47,6 +54,63 @@ const ErrorState = ({ error, onRetry }) => (
     </div>
   </div>
 );
+
+// Import Modal Component
+const ImportModal = ({ isOpen, onClose, events, onImport, loading }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Import from Previous Events</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <IoMdClose size={24} />
+          </button>
+        </div>
+
+        {loading ? (
+          <LoadingState />
+        ) : events.length === 0 ? (
+          <div className="text-center text-gray-500 py-4">
+            No previous events found
+          </div>
+        ) : (
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {events.map((event) => (
+              <div
+                key={event.id}
+                className="border rounded-lg p-4 flex justify-between items-center hover:bg-gray-50"
+              >
+                <div>
+                  <h3 className="font-medium">{event.event_name}</h3>
+                  <p className="text-sm text-gray-500">
+                    {event.start_date} to {event.end_date}
+                  </p>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    event.event_status === 'upcoming' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {event.event_status}
+                  </span>
+                </div>
+                <button
+                  onClick={() => onImport(event.id)}
+                  className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors"
+                  disabled={loading}
+                >
+                  Import
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // Employee List component
 const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }) => {
@@ -160,6 +224,10 @@ const AdminEmployeeAllocation = () => {
   const error = useSelector(selectError);
   const searchTerm = useSelector(selectSearchTerm);
   const loadingAllocated = useSelector(selectLoadingAllocated);
+  const events = useSelector(selectEvents);
+  const loadingEvents = useSelector(selectLoadingEvents);
+  const importingAllocations = useSelector(selectImportingAllocations);
+  const showImportModal = useSelector(selectShowImportModal);
 
   useEffect(() => {
     dispatch(fetchPositions());
@@ -211,6 +279,26 @@ const AdminEmployeeAllocation = () => {
     dispatch(setSearchTerm(e.target.value));
   };
 
+  const handleOpenImportModal = () => {
+    dispatch(setShowImportModal(true));
+    dispatch(fetchEventsByEventGroup());
+  };
+
+  const handleCloseImportModal = () => {
+    dispatch(setShowImportModal(false));
+  };
+
+  const handleImport = (eventId) => {
+    dispatch(importAllocationsFromEvent(eventId))
+      .unwrap()
+      .then(() => {
+        handleCloseImportModal();
+      })
+      .catch((error) => {
+        console.error('Failed to import allocations:', error);
+      });
+  };
+
   const handleRetry = () => {
     dispatch(fetchPositions());
     dispatch(fetchAllocatedEmployees());
@@ -233,14 +321,24 @@ const AdminEmployeeAllocation = () => {
     return matchesSearch && isNotAllocated;
   });
 
-  if (status === 'failed' && error) {
+  if (status === 'failed' && error && 
+      !error.includes('No positions available') && 
+      !error.includes('Failed to fetch allocated employees')) {
     return <ErrorState error={error} onRetry={handleRetry} />;
   }
 
   return (
     <div className="flex w-full min-h-screen lg:flex-row flex-col gap-4 p-4">
       <div className="w-full lg:w-1/2 bg-white rounded-lg p-6 shadow-sm">
-        <h2 className="text-xl font-semibold mb-6 text-gray-800">Employee Allocation</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold text-gray-800">Employee Allocation</h2>
+          <button
+            onClick={handleOpenImportModal}
+            className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors"
+          >
+            Import from Previous Events
+          </button>
+        </div>
         {loadingAllocated ? (
           <LoadingState />
         ) : (
@@ -269,24 +367,44 @@ const AdminEmployeeAllocation = () => {
           </select>
           <IoIosArrowDown size={20} className="absolute right-4 top-3 text-gray-400" />
         </div>
-        <div className="mb-6">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={handleSearchChange}
-              placeholder="Search employees"
-              className="w-full p-3 pl-10 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-            />
-            <FiSearch size={20} className="absolute left-4 top-3 text-gray-400" />
+        
+        {positions.length === 0 && (
+          <div className="text-white text-center p-4">
+            No positions available. Please add positions first.
           </div>
-        </div>
-        <EmployeeList
-          selectedPosition={selectedPosition}
-          filteredEmployees={filteredEmployees}
-          handleAddEmployee={handleAddEmployee}
-        />
+        )}
+
+        {positions.length > 0 && (
+          <>
+            <div className="mb-6">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  placeholder="Search employees"
+                  className="w-full p-3 pl-10 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                />
+                <FiSearch size={20} className="absolute left-4 top-3 text-gray-400" />
+              </div>
+            </div>
+            
+            <EmployeeList
+              selectedPosition={selectedPosition}
+              filteredEmployees={filteredEmployees}
+              handleAddEmployee={handleAddEmployee}
+            />
+          </>
+        )}
       </div>
+
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={handleCloseImportModal}
+        events={events}
+        onImport={handleImport}
+        loading={loadingEvents || importingAllocations}
+      />
     </div>
   );
 };

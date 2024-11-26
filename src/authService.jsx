@@ -6,6 +6,8 @@ import {
 import { auth } from './firebase/firebaseConfig';
 import { API_CONFIG } from './config/config';
 import { tokenService } from './tokenService';
+import axiosInstance from './axiosConfig';
+
 
 export const checkServerConnection = async () => {
   try {
@@ -37,13 +39,12 @@ export const refreshAccessToken = async () => {
       throw new Error('Missing tokens for refresh');
     }
 
-    const response = await fetch('https://event.neurocode.in/webapi/refresh-token/', {
-      method: 'POST',
+    const response = await axiosInstance.post('/refresh-token/', {
+      refresh: refreshToken,
+    }, {
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${firebaseToken}`,
       },
-      body: JSON.stringify({ refresh: refreshToken }),
     });
 
     if (!response.ok) {
@@ -131,19 +132,11 @@ export const loginWithGoogle = async () => {
 
 export const authenticateWithBackend = async (credentials) => {
   try {
-    const response = await fetch('https://event.neurocode.in/webapi/superadmin-login/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${credentials.firebaseToken}`,
-      },
-      body: JSON.stringify({
-        email: credentials.email,
-        token: credentials.firebaseToken,
-        uid: credentials.uid,
-        displayName: credentials.displayName || '',
-      }),
+    const response = await axiosInstance.post('/superadmin-login/', {
+      email: credentials.email,
+      firebase_token: credentials.firebaseToken,
+      uid: credentials.uid,
+      displayName: credentials.displayName || '',
     });
 
     if (!response.ok) {

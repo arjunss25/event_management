@@ -129,7 +129,7 @@ const SuperadminChart = () => {
   }, [selectedYear]);
 
   return (
-    <div className="w-full h-[50vh] lg:h-[50vh] p-4">
+    <div className="w-full h-[50vh] lg:h-[50vh] p-4 mt-6 md:mt-4 lg:mt-2">
       <div className="flex flex-row items-center justify-between mb-6">
         <h2 className="text-xl font-bold">Event Statistics</h2>
         <select
@@ -158,7 +158,7 @@ const SuperadminChart = () => {
 
       {loading ? (
         <div className="h-80 flex items-center justify-center">
-          <p>Loading data...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
         </div>
       ) : chartData.length > 0 ? (
         <ResponsiveContainer width="100%" height="100%">

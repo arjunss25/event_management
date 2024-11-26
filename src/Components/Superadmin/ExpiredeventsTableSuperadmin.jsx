@@ -48,7 +48,12 @@ const ExpiredeventsTableSuperadmin = () => {
     return 'bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap'; // For other statuses
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
+  if (loading) return (
+    <div className="w-full h-[400px] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+    </div>
+  );
+  
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
   if (!Array.isArray(events) || events.length === 0) {

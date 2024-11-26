@@ -425,29 +425,41 @@ const EventsTable = () => {
   }, [handleSearch]);
 
   const getEventStatusStyle = (status) => {
-    const normalizedStatus = status?.toLowerCase() || '';
+    // Convert to lowercase and trim for consistent comparison
+    const normalizedStatus = (status || '').toLowerCase().trim();
 
-    if (normalizedStatus === 'up coming' || normalizedStatus === 'upcoming') {
-      return 'bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
-    } else if (normalizedStatus === 'cancel') {
-      return 'bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
-    } else if (normalizedStatus === 'completed') {
-      return 'bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+    switch (normalizedStatus) {
+      case 'upcoming':
+        return 'bg-[#E6F3FF] text-[#0066CC] px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+      case 'cancelled':  // Added both spellings
+      case 'canceled':
+        return 'bg-[#FFE6E6] text-[#CC0000] px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+      case 'completed':
+        return 'bg-[#E6FFE6] text-[#008000] px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+      case 'ongoing':
+        return 'bg-[#FFF3E6] text-[#CC7700] px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+      default:
+        return 'bg-[#F0F0F0] text-[#666666] px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
     }
-    return 'bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
   };
 
   const getPaymentStatusStyle = (status) => {
+    // Convert to lowercase and trim for consistent comparison
+    const normalizedStatus = (status || '').toLowerCase().trim();
     const baseStyle = 'px-3 py-1 w-28 rounded-full text-xs font-medium flex items-center justify-center';
-    switch (status?.toLowerCase()) {
+    
+    switch (normalizedStatus) {
       case 'pending':
-        return `${baseStyle} bg-red-50 text-red-700`;
+        return `${baseStyle} bg-[#FFE6E6] text-[#CC0000]`;
       case 'advance paid':
-        return `${baseStyle} bg-yellow-50 text-yellow-700`;
+      case 'advance':  // Added alternative
+        return `${baseStyle} bg-[#FFF3E6] text-[#CC7700]`;
       case 'completed':
-        return `${baseStyle} bg-green-50 text-green-700`;
+        return `${baseStyle} bg-[#E6FFE6] text-[#008000]`;
+      case 'ongoing':
+        return `${baseStyle} bg-[#E6F3FF] text-[#0066CC]`;
       default:
-        return `${baseStyle} bg-gray-50 text-gray-700`;
+        return `${baseStyle} bg-[#F0F0F0] text-[#666666]`;
     }
   };
 
@@ -483,7 +495,7 @@ const EventsTable = () => {
   if (loading && !tableLoading) {
     return (
       <div className="w-full h-[400px] flex items-center justify-center">
-        <div className="text-xl font-semibold">Loading events...</div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
       </div>
     );
   }
@@ -545,14 +557,14 @@ const EventsTable = () => {
                       <td className="px-6 py-6 text-black whitespace-nowrap">{event.end_date}</td>
                       <td className="px-6 py-6 whitespace-nowrap">
                         <div className="w-28">
-                          <span className={getEventStatusStyle(event.eventstatus)}>
+                          <span className={getEventStatusStyle(event.event_status)}>
                             {event.event_status}
                           </span>
                         </div>
                       </td>
                       <td className="px-6 py-6 whitespace-nowrap">
                         <div className="flex items-center w-36 justify-between">
-                          <span className={getPaymentStatusStyle(event.paymentstatus)}>
+                          <span className={getPaymentStatusStyle(event.payment_status)}>
                             {event.payment_status}
                           </span>
                           <IoInformationCircleOutline 
@@ -563,7 +575,7 @@ const EventsTable = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="w-20">
-                          {event.paymentstatus !== 'Completed' && (
+                          {event.payment_status !== 'Completed' && (
                             <button
                               className={`w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors ${
                                 isCanceling ? 'opacity-50 cursor-not-allowed' : ''

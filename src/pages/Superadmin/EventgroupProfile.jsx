@@ -259,12 +259,12 @@ const EventgroupProfile = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen px-10 pb-10">
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-screen w-64 bg-white z-10 transform border-r-2 border-grey-200 ${
+        className={`fixed top-0 left-0 h-screen w-64 bg-white z-10 transform border-r-2 border-grey-200 pt-20 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex flex-col lg:w-64 p-4`}
+        } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex flex-col lg:w-64 p-4 overflow-hidden`}
       >
         <button onClick={toggleSidebar} className="lg:hidden absolute top-4 right-4 text-gray-600">
           <FaTimes size={24} />
@@ -276,8 +276,12 @@ const EventgroupProfile = () => {
             src="/profile_pic.svg"
             alt="Profile"
           />
-          <h2 className="mt-4 text-lg font-semibold">{basicInfo.eventGroupName}</h2>
-          <p className="text-sm text-gray-500">{contactInfo.email}</p>
+          <h2 className="mt-4 text-lg font-semibold text-center break-words w-full px-2">
+            {basicInfo.eventGroupName}
+          </h2>
+          <p className="text-sm text-gray-500 break-words w-full text-center px-2">
+            {contactInfo.email}
+          </p>
         </div>
 
         <nav className="mt-6">
@@ -309,7 +313,7 @@ const EventgroupProfile = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-x-hidden w-[900px]">
+      <div className="flex-1 p-8 overflow-x-hidden w-[900px] bg-white">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={toggleSidebar}
@@ -354,7 +358,7 @@ const EventgroupProfile = () => {
                 <div className="grid grid-cols-1 gap-4 mt-2">
                   <div className='flex flex-col xl:flex-row'>
                     <p className="text-gray-500 w-52">E-mail</p>
-                    <p>{contactInfo.email}</p>
+                    <p className='break-words'>{contactInfo.email}</p>
                   </div>
                   <div className='flex flex-col xl:flex-row'>
                     <p className="text-gray-500 w-52">Phone</p>
@@ -495,7 +499,9 @@ const EventgroupProfile = () => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Add Event</h2>
+         <div className="title-sec w-full mt-10">
+         <h2 className="text-3xl font-semibold text-center">Add Event</h2>
+         </div>
           <button 
             onClick={toggleDrawer}
             className="text-gray-600 hover:text-gray-800 text-[1.5rem]"
@@ -523,7 +529,7 @@ const EventgroupProfile = () => {
               <input 
                 type="text" 
                 name="eventName"
-                className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                className="w-full border p-2 rounded-3xl pl-6 pr-6 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 placeholder="Enter event name"
                 required 
               />
@@ -533,7 +539,7 @@ const EventgroupProfile = () => {
               <input 
                 type="date" 
                 name="startDate"
-                className="w-full border p-2 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                className="w-full border p-2 rounded-3xl pl-6 pr-6 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 required
               />
             </div>
@@ -542,7 +548,7 @@ const EventgroupProfile = () => {
               <input 
                 type="date" 
                 name="endDate"
-                className="w-full border p-2 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                className="w-full border p-2 rounded-3xl pl-6 pr-6 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 required
               />
             </div>
@@ -551,7 +557,7 @@ const EventgroupProfile = () => {
               <input 
                 type="number" 
                 name="amount"
-                className="w-full border p-2 rounded-3xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                className="w-full border p-2 rounded-3xl pl-6 pr-6 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                 required
               />
             </div>

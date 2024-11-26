@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { IoAddOutline, IoAddCircleOutline, IoRemoveCircleOutline } from 'react-icons/io5';
 import axiosInstance from '../../axiosConfig';
+import { useSelector } from 'react-redux';
+import { selectEventGroupId } from '../../Redux/authSlice';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AddCategory = () => {
   const [categories, setCategories] = useState([
@@ -14,148 +17,169 @@ const AddCategory = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [tempRoles, setTempRoles] = useState([]);
   const [existingPositions, setExistingPositions] = useState([]);
+  const event_group_id = useSelector(selectEventGroupId);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
 
   // Fetch initial categories and position choices
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // Fetch existing employee fields
-        const fieldsResponse = await axiosInstance.get('/add-employee-extrafields/');
+        // Fetch existing employee fields with event_group_id
+        const fieldsResponse = await axiosInstance.get(`/add-employee-extrafields/?event_group=${event_group_id}`);
         const additionalFields = fieldsResponse.data.data.extra_fields.map(field => ({
           id: field.field_name,
           label: field.field_name,
           fieldType: field.field_type.toLowerCase() === 'option' ? 'select' :
-                     field.field_type.toLowerCase() === 'radio' ? 'radio' :
-                     field.field_type.toLowerCase() === 'checkbox' ? 'checkbox' : 
-                     field.field_type.toLowerCase(),
+                    field.field_type.toLowerCase() === 'radio' ? 'radio' :
+                    field.field_type.toLowerCase() === 'checkbox' ? 'checkbox' : 
+                    field.field_type.toLowerCase(),
           options: field.field_option && typeof field.field_option === 'object' 
             ? Object.values(field.field_option).filter(Boolean)
             : []
         }));
     
-        // Fetch position choices
-        const positionResponse = await axiosInstance.get('/position-choices/');
+        // Fetch position choices with event_group_id
+        const positionResponse = await axiosInstance.get(`/position-choices/?event_group=${event_group_id}`);
         const positionOptions = positionResponse.data.data.map(pos => pos.name);
         
-        // Store existing positions with their IDs
         setExistingPositions(positionResponse.data.data);
-    
         setCategories([
           { id: 'role', label: 'Role/Position', fieldType: 'select', options: positionOptions },
           ...additionalFields
         ]);
       } catch (error) {
         console.error('Error fetching initial data:', error);
+        setErrorMessage('Failed to fetch categories');
+        setShowError(true);
       }
     };
-    fetchInitialData();
-  }, []);
+
+    if (event_group_id) {
+      fetchInitialData();
+    }
+  }, [event_group_id]);
+
+
+
 
   const handleSavePositionChoices = async () => {
     try {
-      // Validate roles before processing
       const validRoles = tempRoles
         .map(role => role.trim())
         .filter(role => role !== '');
   
       if (validRoles.length === 0) {
-        alert('Please enter at least one role');
+        setErrorMessage('Please enter at least one role');
+        setShowError(true);
         return;
       }
   
-      const updatePromises = validRoles.map(role => {
-        // Find if the role already exists
-        const existingPosition = existingPositions.find(pos => pos.name === role);
+      // If you want to send multiple roles, you might need to make multiple requests
+      // or check with your backend how they want to receive multiple roles
+      for (const role of validRoles) {
+        const payload = {
+          event_group: event_group_id,
+          name: role
+        };
   
-        if (existingPosition) {
-          // If role exists, update the existing position
-          return axiosInstance.put(`/position-choices/${existingPosition.id}/`, { name: role });
-        } else {
-          // If role is new, create a new position
-          return axiosInstance.post('/position-choices/', { 
-            name: role 
-          });
-        }
-      });
+        console.log('Payload being sent:', payload);
   
-      // Execute all updates/creates
-      const responses = await Promise.all(updatePromises);
+        const response = await axiosInstance.post('/position-choices/', payload);
+        console.log('Server response:', response);
+      }
   
-      // Prepare updated positions list
-      const updatedPositions = responses.map((response, index) => ({
-        id: response.data.id || existingPositions.find(pos => pos.name === validRoles[index])?.id,
-        name: validRoles[index]
-      }));
-  
-      // Update existing positions state
-      setExistingPositions([
-        ...existingPositions.filter(pos => 
-          !validRoles.includes(pos.name)
-        ),
-        ...updatedPositions
-      ]);
-  
-      // Update categories with new roles
-      setCategories(categories.map(cat => 
-        cat.id === 'role' ? { ...cat, options: [...validRoles] } : cat
-      ));
-      setIsEditModalOpen(false);
-    } catch (error) {
-      console.error('Error saving position choices:', error);
+      // Refresh the positions after saving
+      const positionResponse = await axiosInstance.get(`/position-choices/?event_group=${event_group_id}`);
+      const positionOptions = positionResponse.data.data.map(pos => pos.name);
       
-      // More detailed error logging
+      setCategories(categories.map(cat => 
+        cat.id === 'role' ? { ...cat, options: positionOptions } : cat
+      ));
+      
+      setIsEditModalOpen(false);
+  
+    } catch (error) {
+      console.error('Complete error object:', error);
+      
       if (error.response) {
-        // The request was made and the server responded with a status code
-        console.error('Error response:', error.response.data);
-        console.error('Error status:', error.response.status);
-        console.error('Error headers:', error.response.headers);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error('Error request:', error.request);
+        console.error('Detailed error response:', JSON.stringify(error.response.data, null, 2));
+        setErrorMessage(error.response.data.non_field_errors?.[0] || 'Failed to save position choices');
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error message:', error.message);
+        setErrorMessage('Network error or unexpected issue');
       }
       
-      alert('Failed to save position choices. Please check the console for more details.');
+      setShowError(true);
     }
   };
+
+
+
+
   const handleAddCategory = async () => {
     if (newCategoryLabel && newFieldType) {
       try {
-        // Prepare payload for API
-        const payload = {
-          field_name: newCategoryLabel,
-          field_type: newFieldType === 'select' ? 'Option' : 
-                      newFieldType === 'radio' ? 'Radio' : 
-                      newFieldType === 'checkbox' ? 'Checkbox' : 
-                      newFieldType.charAt(0).toUpperCase() + newFieldType.slice(1)
-        };
-  
-        // Add options for dropdown, radio, and checkbox
-        if (['select', 'radio', 'checkbox'].includes(newFieldType)) {
-          payload.field_option = newOptions.reduce((acc, option, index) => {
-            acc[`option${index + 1}`] = option;
-            return acc;
-          }, {});
+        // Check for duplicate category
+        const isDuplicate = categories.some(
+          cat => cat.label.toLowerCase() === newCategoryLabel.toLowerCase()
+        );
+
+        if (isDuplicate) {
+          setErrorMessage('This category already exists');
+          setShowError(true);
+          return;
         }
-  
-        // API call to add new field
-        await axiosInstance.post('/add-employee-extrafields/', payload);
-  
+
+        let payload;
+        
+        // Special handling for Role/Position
+        if (newCategoryLabel.toLowerCase() === 'role' || 
+            newCategoryLabel.toLowerCase() === 'position') {
+          payload = {
+            name: newCategoryLabel,
+            event_group: event_group_id
+          };
+          await axiosInstance.post('/position-choices/', payload);
+        } else {
+          // Regular category payload
+          payload = {
+            field_name: newCategoryLabel,
+            field_type: newFieldType === 'select' ? 'Option' : 
+                       newFieldType === 'radio' ? 'Radio' : 
+                       newFieldType === 'checkbox' ? 'Checkbox' : 
+                       newFieldType.charAt(0).toUpperCase() + newFieldType.slice(1)
+          };
+
+          // Add options for dropdown, radio, and checkbox
+          if (['select', 'radio', 'checkbox'].includes(newFieldType)) {
+            payload.field_option = newOptions.reduce((acc, option, index) => {
+              acc[`option${index + 1}`] = option;
+              return acc;
+            }, {});
+          }
+
+          // Add event_group_id to the payload
+          payload.event_group = event_group_id;
+
+          // API call to add new field
+          await axiosInstance.post('/add-employee-extrafields/', payload);
+        }
+
         const newCategory = {
           id: newCategoryLabel,
           label: newCategoryLabel,
           fieldType: newFieldType,
           options: ['radio', 'checkbox', 'select'].includes(newFieldType) ? newOptions : []
         };
-  
+
         setCategories([...categories, newCategory]);
         setNewCategoryLabel('');
         setNewFieldType('');
         setNewOptions(['']);
       } catch (error) {
         console.error('Error adding category:', error);
+        setErrorMessage(error.response?.data?.message || 'Failed to add category');
+        setShowError(true);
       }
     }
   };
@@ -208,15 +232,69 @@ const AddCategory = () => {
     setTempRoles([...tempRoles, '']);
   };
 
-  const handleRemoveRoleOption = (index) => {
-    setTempRoles(tempRoles.filter((_, i) => i !== index));
-  };
+  const handleRemoveRoleOption = async (index) => {
+    try {
+        const roleToRemove = tempRoles[index];
+        const existingPosition = existingPositions.find(pos => pos.name === roleToRemove);
+
+        if (existingPosition) {
+            // Use the position ID from the existingPositions array
+            await axiosInstance.delete(`/position-choices-details/${existingPosition.id}/`);
+        }
+
+        // Update the local state
+        setTempRoles(tempRoles.filter((_, i) => i !== index));
+    } catch (error) {
+        console.error('Error removing position:', error);
+        setErrorMessage('Failed to remove position. Please try again.');
+        setShowError(true);
+    }
+};
 
   const handleRoleOptionChange = (index, value) => {
     const updatedRoles = [...tempRoles];
     updatedRoles[index] = value;
     setTempRoles(updatedRoles);
   };
+
+  const ErrorPopup = () => (
+    <AnimatePresence>
+      {showError && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="fixed bottom-5 right-5 bg-white rounded-lg shadow-2xl p-6 max-w-md"
+          style={{
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            border: '1px solid rgba(0,0,0,0.05)'
+          }}
+        >
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-gray-900">Error</h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">{errorMessage}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowError(false)}
+              className="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   return (
     <div className="bg-[#e6eed]">
@@ -396,6 +474,7 @@ const AddCategory = () => {
           </div>
         </div>
       )}
+      <ErrorPopup />
     </div>
   );
 };

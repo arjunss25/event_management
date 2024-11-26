@@ -61,14 +61,6 @@ const AppRoutes = () => {
   const auth = useSelector((state) => state.auth);
   const location = useLocation();
 
-  const initialRoutes = [
-    '/login', 
-    '/admin/welcomepage', 
-    '/admin/profile-photo', 
-    '/admin/dashboard',
-    '/superadmin/dashboard'
-  ];
-
   const getInitialRoute = () => {
     if (!auth.token) return '/login';
     
@@ -90,7 +82,7 @@ const AppRoutes = () => {
       <Route 
         path="/login" 
         element={
-          auth.token && !initialRoutes.includes(location.pathname) ? (
+          auth.token ? (
             <Navigate to={getInitialRoute()} replace />
           ) : (
             <Login />
