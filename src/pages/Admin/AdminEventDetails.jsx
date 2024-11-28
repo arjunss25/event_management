@@ -15,7 +15,9 @@ const AdminEventDetails = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     venue: '',
-    seatsAllocated: ''
+    seatsAllocated: '',
+    paymentStatus: '',
+    totalAmount: ''
   });
 
   useEffect(() => {
@@ -26,7 +28,9 @@ const AdminEventDetails = () => {
     if (selectedEvent) {
       setFormData({
         venue: selectedEvent.venue || '',
-        seatsAllocated: selectedEvent.seatsBooked?.toString() || ''
+        seatsAllocated: selectedEvent.seatsBooked?.toString() || '',
+        paymentStatus: selectedEvent.paymentStatus || '',
+        totalAmount: selectedEvent.totalAmount || ''
       });
     }
   }, [selectedEvent]);
@@ -61,7 +65,6 @@ const AdminEventDetails = () => {
       venue: formData.venue,
       seatsBooked: parseInt(formData.seatsAllocated)
     }));
-    console.log('Saving event details...', formData);
     toggleEditModal();
   };
 
@@ -69,104 +72,149 @@ const AdminEventDetails = () => {
     switch (currentStep) {
       case 0:
         return (
-          <div className="bg-white p-6 rounded-lg">
-            <h2 className="text-2xl font-semibold mb-4">General Details</h2>
-            <hr className="w-full border mb-5" />
-            <div className="grid grid-cols-1 gap-4 mt-2">
-              <div className="flex flex-col xl:flex-row">
-                <p className="text-gray-500 w-52">Event:</p>
-                <p>{selectedEvent?.eventName || 'N/A'}</p>
+          <div className="bg-white p-8">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800">General Details</h2>
+            <hr className="w-full border-gray-200 mb-6" />
+            <div className="grid grid-cols-1 gap-6 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex flex-col">
+                    <p className="text-gray-500 text-sm mb-1">Event</p>
+                    <p className="text-lg font-semibold">{selectedEvent?.eventName || 'N/A'}</p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex flex-col">
+                    <p className="text-gray-500 text-sm mb-1">Start Date</p>
+                    <p className="text-lg font-semibold">
+                      {selectedEvent?.startDate ? new Date(selectedEvent.startDate).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex flex-col">
+                    <p className="text-gray-500 text-sm mb-1">End Date</p>
+                    <p className="text-lg font-semibold">
+                      {selectedEvent?.endDate ? new Date(selectedEvent.endDate).toLocaleDateString() : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex flex-col">
+                    <p className="text-gray-500 text-sm mb-1">Payment Status</p>
+                    <p className={`text-lg font-semibold ${
+                      selectedEvent?.paymentStatus === 'Completed' 
+                        ? 'text-emerald-500' 
+                        : selectedEvent?.paymentStatus === 'Pending'
+                        ? 'text-amber-500'
+                        : 'text-red-500'
+                    }`}>
+                      {selectedEvent?.paymentStatus || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex flex-col">
+                    <p className="text-gray-500 text-sm mb-1">Total Amount</p>
+                    <p className="text-lg font-semibold">
+                      ₹{selectedEvent?.totalAmount?.toLocaleString() || 'N/A'}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-col xl:flex-row">
-                <p className="text-gray-500 w-52">Start Date:</p>
-                <p>{selectedEvent?.startDate ? new Date(selectedEvent.startDate).toLocaleDateString() : 'N/A'}</p>
-              </div>
-              <div className="flex flex-col xl:flex-row">
-                <p className="text-gray-500 w-52">End Date:</p>
-                <p>{selectedEvent?.endDate ? new Date(selectedEvent.endDate).toLocaleDateString() : 'N/A'}</p>
-              </div>
-              <div className="flex flex-col xl:flex-row">
-                <p className="text-gray-500 w-52">Payment Status:</p>
-                <p className={`${
-                  selectedEvent?.paymentStatus === 'Completed' ? 'text-emerald-500' : 'text-red-500'
-                }`}>
-                  {selectedEvent?.paymentStatus || 'N/A'}
-                </p>
-              </div>
-            </div>
 
-            <h2 className="text-2xl font-semibold mt-20 mb-4">Additional Info</h2>
-            <hr className="w-full border mb-5" />
-            <div className="grid grid-cols-1 gap-4 mt-2">
-              <div>
-                <div>
-                  <label className="block text-black mb-2">Venue</label>
+              <h2 className="text-3xl font-bold mt-12 mb-6 text-gray-800">Additional Info</h2>
+              <hr className="w-full border-gray-200 mb-6" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-gray-700 font-medium mb-2">Venue</label>
                   <textarea
                     name="venue"
                     value={formData.venue}
                     onChange={handleInputChange}
-                    placeholder="Venue"
-                    className="w-[50%] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                    placeholder="Enter venue details"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                     rows="4"
-                    readOnly={isEditModalOpen}
+                    readOnly={!isEditModalOpen}
                   ></textarea>
                 </div>
-              </div>
-              <div>
-                <label className="block text-black mb-2">Seats Allocated</label>
-                <input
-                  type="text"
-                  name="seatsAllocated"
-                  value={formData.seatsAllocated}
-                  onChange={handleInputChange}
-                  placeholder="Number of Seats Allocated"
-                  className="w-[50%] p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-                  readOnly={isEditModalOpen}
-                />
+                <div className="space-y-2">
+                  <label className="block text-gray-700 font-medium mb-2">Seats Allocated</label>
+                  <input
+                    type="text"
+                    name="seatsAllocated"
+                    value={formData.seatsAllocated}
+                    onChange={handleInputChange}
+                    placeholder="Enter number of seats"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    readOnly={!isEditModalOpen}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-8">
               <button
                 onClick={toggleEditModal}
-                className="px-4 py-2 text-white bg-blue-600 rounded-lg"
+                className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
               >
-                Edit
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Details
               </button>
             </div>
 
             {isEditModalOpen && (
-              <div className="fixed inset-0 flex items-center justify-center z-10 bg-black bg-opacity-50">
-                <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                  <h2 className="text-2xl font-semibold mb-4">Edit Event Details</h2>
-                  <div className="grid grid-cols-1 gap-4">
+              <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl transform transition-all">
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b">
+                    <h2 className="text-2xl font-bold text-gray-800">Edit Event Details</h2>
+                    <button 
+                      onClick={toggleEditModal}
+                      className="text-gray-500 hover:text-gray-700 transition-colors"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
                     <div>
-                      <label className="block text-black mb-2">Venue</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Venue Location
+                      </label>
                       <textarea
                         name="venue"
                         value={formData.venue}
                         onChange={handleInputChange}
-                        placeholder="Venue"
-                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                        placeholder="Enter detailed venue location"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[120px] text-gray-800"
                         rows="4"
                       ></textarea>
                     </div>
+
                     <div>
-                      <label className="block text-black mb-2">Seats Allocated</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Seats Allocated
+                      </label>
                       <input
-                        type="text"
+                        type="number"
                         name="seatsAllocated"
                         value={formData.seatsAllocated}
                         onChange={handleInputChange}
-                        placeholder="Number of Seats Allocated"
-                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                        placeholder="Enter number of seats"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-800"
                       />
                     </div>
                   </div>
-                  <div className="flex justify-end mt-4 space-x-4">
+
+                  <div className="flex justify-end mt-8 pt-4 border-t gap-4">
                     <button
                       onClick={toggleEditModal}
-                      className="px-4 py-2 text-white bg-gray-500 rounded-lg"
+                      className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
                     >
                       Cancel
                     </button>
@@ -175,9 +223,12 @@ const AdminEventDetails = () => {
                         handleSave();
                         toggleEditModal();
                       }}
-                      className="px-4 py-2 text-white bg-green-600 rounded-lg"
+                      className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center gap-2"
                     >
-                      Save
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Save Changes
                     </button>
                   </div>
                 </div>
@@ -216,7 +267,7 @@ const AdminEventDetails = () => {
               <span className="text-purple-600 font-semibold">Grip</span>
             </div>
             <h2 className="mt-4 text-lg font-semibold">Royal Events</h2>
-            <p className="text-sm text-gray-500">royalevents@gmail.com</p>
+            <p className="text-sm text-gray-500">{selectedEvent?.email || 'No email available'}</p>
           </div>
 
           <nav className="mt-6">
@@ -254,7 +305,7 @@ const AdminEventDetails = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 lg:p-8 overflow-x-hidden w-[900px]">
+        <div className="flex-1 p-4 lg:p-8 overflow-x-hidden w-[900px] rounded-[1rem]">
           <button
             onClick={toggleSidebar}
             className="lg:hidden p-2 text-gray-600 focus:outline-none mb-4"

@@ -5,11 +5,11 @@ import AdminEventDetails from './AdminEventDetails';
 
 const AdminEvents = () => {
     return (
-        <div className="w-full min-h-screen bg-[#f7fafc] overflow-x-hidden">
+        <div className="w-full  bg-[#f7fafc] overflow-x-hidden">
           
     
     
-          <div className="main-content-sec w-full p-4 ">
+          <div className="main-content-sec w-full ">
            <AdminEventDetails/>
           </div>
         </div>

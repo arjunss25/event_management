@@ -78,30 +78,20 @@ export const fetchAllocatedEmployees = createAsyncThunk(
 // Existing thunks
 export const removeEmployeePosition = createAsyncThunk(
   'employeeAllocation/removeEmployeePosition',
-  async (positionName, { rejectWithValue, dispatch, getState }) => {
+  async ({ positionName, employees }, { rejectWithValue, dispatch }) => {
     try {
-      // Get the current allocated sections
-      const state = getState();
-      const section = state.employeeAllocation.allocatedSections.find(
-        s => s.position === positionName
-      );
-      
-      // Prepare payload with empty employees array if no section found
       const payload = {
-        position: positionName,
-        employees: section ? section.employees.map(emp => ({
+        employees: employees.map(emp => ({
           id: emp.id,
-          name: emp.name
-        })) : []
+          name: emp.name,
+          position: positionName
+        }))
       };
 
       await axiosInstance.delete('/deallocate-position/', { data: payload });
       
-      // After successful deletion, refresh the data
-      await Promise.all([
-        dispatch(fetchPositions()),
-        dispatch(fetchAllocatedEmployees())
-      ]);
+      // Only refresh allocated employees, not positions
+      await dispatch(fetchAllocatedEmployees());
       
       return positionName;
     } catch (error) {
@@ -387,13 +377,9 @@ const employeeAllocationSlice = createSlice({
       })
       .addCase(removeEmployeePosition.fulfilled, (state, action) => {
         state.removingPosition = false;
-        // Remove the position from allocatedSections
+        // Remove the position from allocatedSections only
         state.allocatedSections = state.allocatedSections.filter(
           section => section.position !== action.payload
-        );
-        // Remove from positions array
-        state.positions = state.positions.filter(
-          position => position.name !== action.payload
         );
         // Reset selected position if it was the one removed
         if (state.selectedPosition === action.payload) {

@@ -8,16 +8,17 @@ export const fetchEventDetails = createAsyncThunk(
     try {
       const response = await axiosInstance.get(`/event-details`);
       
-      // Map API response to the expected format in the component
       return {
         id: response.data.data.id,
         eventName: response.data.data.event_name,
         startDate: response.data.data.start_date,
         endDate: response.data.data.end_date,
         venue: response.data.data.venue || '',
-        paymentStatus: response.data.data.total_amount ? 'Completed' : 'Pending',
-        seatsBooked: response.data.data.seats_booked || 0,
-        eventStatus: response.data.data.event_status
+        paymentStatus: response.data.data.payment_status,
+        totalAmount: response.data.data.total_amount,
+        seatsBooked: response.data.data.seats_booked,
+        eventStatus: response.data.data.event_status,
+        image: response.data.data.image
       };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch event details');
@@ -38,13 +39,17 @@ export const updateEventDetails = createAsyncThunk(
 
       const response = await axiosInstance.put(`/event-details/`, {
         venue: eventData.venue,
-        seats_booked: eventData.seatsBooked
+        seats_booked: eventData.seatsBooked,
+        total_amount: eventData.totalAmount,
+        payment_status: eventData.paymentStatus
       });
 
-      // Dispatch the update to the local state
+      // Return the complete updated data
       return {
         venue: eventData.venue,
-        seatsBooked: eventData.seatsBooked
+        seatsBooked: eventData.seatsBooked,
+        totalAmount: eventData.totalAmount,
+        paymentStatus: eventData.paymentStatus
       };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update event details');
