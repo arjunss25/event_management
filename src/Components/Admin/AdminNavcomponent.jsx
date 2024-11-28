@@ -1,16 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HiMenuAlt1 } from "react-icons/hi";
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUser, logout } from '../../Redux/authSlice';
 import { IoLogOutOutline, IoCloseOutline } from "react-icons/io5";
 import { BsQrCodeScan } from "react-icons/bs";
 import QrScanner from 'react-qr-scanner';
+import axiosInstance from '../../axiosConfig';
+
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (args[0]?.includes('defaultProps')) return;
+  if (args[0]?.includes('willReadFrequently')) return;
+  originalConsoleError(...args);
+};
 
 const AdminNavcomponent = ({ toggleSidebar }) => {
   const [showProfile, setShowProfile] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [logoImage, setLogoImage] = useState('/Neurocode.png');
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    const fetchEventLogo = async () => {
+      try {
+        const response = await axiosInstance.get('/update-event-dp/');
+        if (response.data.data && response.data.data.image) {
+          const imageUrl = response.data.data.image.startsWith('http')
+            ? response.data.data.image
+            : `https://event.neurocode.in${response.data.data.image}`;
+          setLogoImage(imageUrl);
+        }
+      } catch (error) {
+        console.error('Failed to fetch event logo', error);
+        // Keep default logo on error
+      }
+    };
+
+    fetchEventLogo();
+  }, []);
 
   const handleScan = (data) => {
     if (data) {
@@ -21,6 +49,12 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
 
   const handleError = (err) => {
     console.error(err);
+  };
+
+  const previewStyle = {
+    width: '100%',
+    height: '100%',
+    willReadFrequently: true
   };
 
   return (
@@ -67,7 +101,10 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                       delay={300}
                       onError={handleError}
                       onScan={handleScan}
-                      style={{ width: '100%', height: '100%' }}
+                      style={previewStyle}
+                      constraints={{
+                        video: { facingMode: "environment" }
+                      }}
                     />
                     {/* Scanner Overlay */}
                     <div className="absolute inset-0 border-2 border-white/30">
@@ -98,10 +135,17 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
         {/* profile-icon */}
         <div className="profile-icon relative">
           <div 
-            className="w-8 h-8 rounded-full border-[1px] border-[#636e72] flex items-center justify-center cursor-pointer"
+            className="w-10 h-10 rounded-full border-[1px] border-[#636e72] flex items-center justify-center cursor-pointer"
             onClick={() => setShowProfile(!showProfile)}
           >
-            <img className='w-[1rem]' src="/Neurocode.png" alt="" />
+            <img 
+              className='w-[1.5rem] object-contain' 
+              src={logoImage}  
+              alt="Profile"
+              onError={(e) => {
+                e.target.src = '/Neurocode.png';
+              }}
+            />
           </div>
 
           {/* Profile Dropdown */}

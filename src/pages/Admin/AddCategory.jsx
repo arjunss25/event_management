@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { IoAddOutline, IoAddCircleOutline, IoRemoveCircleOutline } from 'react-icons/io5';
+import { IoAddOutline, IoAddCircleOutline, IoRemoveCircleOutline, IoPencil, IoTrash, IoCheckmark, IoClose } from 'react-icons/io5';
 import axiosInstance from '../../axiosConfig';
 import { useSelector } from 'react-redux';
 import { selectEventGroupId } from '../../Redux/authSlice';
@@ -20,6 +20,9 @@ const AddCategory = () => {
   const event_group_id = useSelector(selectEventGroupId);
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [newRoleName, setNewRoleName] = useState('');
+  const [editedRoleName, setEditedRoleName] = useState('');
 
   // Fetch initial categories and position choices
   useEffect(() => {
@@ -90,7 +93,7 @@ const AddCategory = () => {
       }
   
       // Refresh the positions after saving
-      const positionResponse = await axiosInstance.get(`/position-choices/?event_group=${event_group_id}`);
+      const positionResponse = await axiosInstance.get(`/position-choices/`);
       const positionOptions = positionResponse.data.data.map(pos => pos.name);
       
       setCategories(categories.map(cat => 
@@ -238,11 +241,31 @@ const AddCategory = () => {
         const existingPosition = existingPositions.find(pos => pos.name === roleToRemove);
 
         if (existingPosition) {
-            // Use the position ID from the existingPositions array
-            await axiosInstance.delete(`/position-choices-details/${existingPosition.id}/`);
+            const payload = {
+                event_group: event_group_id,
+                name: roleToRemove
+            };
+            
+            await axiosInstance.delete(`/position-choices-details/${existingPosition.id}/`, {
+                data: payload
+            });
+
+            // Update existingPositions state
+            setExistingPositions(prevPositions => 
+                prevPositions.filter(pos => pos.id !== existingPosition.id)
+            );
+
+            // Update categories state
+            setCategories(prevCategories => 
+                prevCategories.map(cat => 
+                    cat.id === 'role' 
+                        ? { ...cat, options: cat.options.filter((_, i) => i !== index) }
+                        : cat
+                )
+            );
         }
 
-        // Update the local state
+        // Update tempRoles state
         setTempRoles(tempRoles.filter((_, i) => i !== index));
     } catch (error) {
         console.error('Error removing position:', error);
@@ -295,6 +318,68 @@ const AddCategory = () => {
       )}
     </AnimatePresence>
   );
+
+  const handleAddRole = async () => {
+    if (!newRoleName.trim()) return;
+
+    try {
+      const payload = {
+        event_group: event_group_id,
+        name: newRoleName.trim()
+      };
+
+      await axiosInstance.post('/position-choices/', payload);
+      
+      // Update local state
+      const updatedCategories = categories.map(cat => 
+        cat.id === 'role' 
+          ? { ...cat, options: [...cat.options, newRoleName.trim()] }
+          : cat
+      );
+
+      setCategories(updatedCategories);
+      setNewRoleName('');
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || 'Failed to add role');
+      setShowError(true);
+    }
+  };
+
+  const handleStartEdit = (index, role) => {
+    setEditingId(index);
+    setEditedRoleName(role);
+  };
+
+  const handleSaveEdit = async (index) => {
+    try {
+        const oldRole = categories.find(cat => cat.id === 'role').options[index];
+        const position = existingPositions.find(pos => pos.name === oldRole);
+
+        if (position) {
+            const payload = {
+                event_group: event_group_id,
+                name: editedRoleName.trim()
+            };
+
+            await axiosInstance.put(`/position-choices-details/${position.id}/`, payload);
+
+            const updatedCategories = categories.map(cat => {
+                if (cat.id === 'role') {
+                    const newOptions = [...cat.options];
+                    newOptions[index] = editedRoleName.trim();
+                    return { ...cat, options: newOptions };
+                }
+                return cat;
+            });
+
+            setCategories(updatedCategories);
+        }
+    } catch (error) {
+        setErrorMessage(error.response?.data?.message || 'Failed to update role');
+        setShowError(true);
+    }
+    setEditingId(null);
+  };
 
   return (
     <div className="bg-[#e6eed]">
@@ -448,32 +533,105 @@ const AddCategory = () => {
 
     
 {isEditModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-5 rounded-lg w-80">
-            <h3 className="text-lg font-semibold">Edit Role/Position Options</h3>
-            {tempRoles.map((role, index) => (
-              <div key={index} className="flex items-center my-2">
-                <input
-                  type="text"
-                  value={role}
-                  onChange={(e) => handleRoleOptionChange(index, e.target.value)}
-                  className="w-full border p-2 rounded"
-                />
-                <button onClick={() => handleRemoveRoleOption(index)} className="ml-2 text-red-500">
-                  <IoRemoveCircleOutline />
-                </button>
-              </div>
-            ))}
-            <button onClick={handleAddRoleOption} className="mt-4 text-blue-500 flex items-center gap-1 mt-3">
-              <IoAddCircleOutline /> Add Option
-            </button>
-            <div className="flex justify-end mt-4 gap-3">
-              <button onClick={handleSavePositionChoices} className="px-7 py-2 bg-black text-white rounded">Save</button>
-              <button onClick={handleCancelEdit} className="px-4 py-2 border border-black text-black rounded">Cancel</button>
-            </div>
-          </div>
+  <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="bg-white rounded-2xl w-[90%] max-w-2xl p-8 shadow-2xl"
+    >
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="text-2xl font-bold text-black">
+          Manage Roles & Positions
+        </h3>
+        <button 
+          onClick={() => setIsEditModalOpen(false)}
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+        >
+          <IoClose className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Add new role section */}
+      <div className="mb-8">
+        <div className="flex gap-3">
+          <input
+            type="text"
+            value={newRoleName}
+            onChange={(e) => setNewRoleName(e.target.value)}
+            placeholder="Enter new role name"
+            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+          />
+          <button
+            onClick={handleAddRole}
+            className="px-6 py-3 bg-black hover:bg-grey-600 text-white rounded-xl flex items-center gap-2 transition-colors"
+          >
+            <IoAddOutline className="w-5 h-5" />
+            Add
+          </button>
         </div>
-      )}
+      </div>
+
+      {/* Roles list */}
+      <div className="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+        {categories.find(cat => cat.id === 'role').options.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p className="text-lg">No roles added yet</p>
+            <p className="text-sm">Start by adding a new role above</p>
+          </div>
+        ) : (
+          categories.find(cat => cat.id === 'role').options.map((role, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+            >
+              {editingId === index ? (
+                <>
+                  <input
+                    type="text"
+                    value={editedRoleName}
+                    onChange={(e) => setEditedRoleName(e.target.value)}
+                    className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  />
+                  <button
+                    onClick={() => handleSaveEdit(index)}
+                    className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                  >
+                    <IoCheckmark className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <IoClose className="w-5 h-5" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 font-medium">{role}</span>
+                  <button
+                    onClick={() => handleStartEdit(index, role)}
+                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                  >
+                    <IoPencil className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => handleRemoveRoleOption(index)}
+                    className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <IoTrash className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+            </motion.div>
+          ))
+        )}
+      </div>
+    </motion.div>
+  </div>
+)}
       <ErrorPopup />
     </div>
   );

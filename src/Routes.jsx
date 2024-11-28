@@ -30,6 +30,8 @@ import EmployeeLayout from './layouts/EmployeeLayout';
 import AddEmpolyee from './pages/Admin/Addemployee';
 import AdminEmployeeProfile from './pages/Admin/AdminEmployeeProfile';
 import AdminEventsAssignedTable from './Components/Admin/AdminEventsAssignedTable';
+import EmployeeScanner from './Components/Employee/EmployeeScanner';
+import EmployeeProfile from './pages/Employee/EmployeeProfile';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const auth = useSelector((state) => state.auth);
@@ -144,6 +146,7 @@ const AppRoutes = () => {
       >
         <Route index element={<Navigate to="scanner" replace />} />
         <Route path="scanner" element={<MealScanner />} />
+        <Route path="profile" element={<EmployeeProfile />} />
       </Route>
 
       {/* Root redirect */}

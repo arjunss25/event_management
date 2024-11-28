@@ -2,15 +2,35 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
+// Add mock data
+const mockDays = [
+  {
+    id: 1,
+    day: "Day 1",
+    mealCategories: ["Breakfast", "Lunch", "Dinner"]
+  },
+  {
+    id: 2,
+    day: "Day 2",
+    mealCategories: ["Breakfast", "Lunch", "Dinner"]
+  },
+  {
+    id: 3,
+    day: "Day 3",
+    mealCategories: ["Breakfast", "Lunch", "Dinner"]
+  }
+];
+
 export const getDays = createAsyncThunk(
   'mealScanner/getDays',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('src/utils/mealcategory.json');
-      if (!response.data || !response.data.days) {
-        throw new Error('Invalid data structure received');
-      }
-      return response.data.days;
+      // For now, return mock data instead of making an API call
+      return mockDays;
+      
+      // Later, when your API is ready, you can uncomment this:
+      // const response = await axios.get('your-api-endpoint/meals');
+      // return response.data;
     } catch (error) {
       return rejectWithValue(error.message);
     }

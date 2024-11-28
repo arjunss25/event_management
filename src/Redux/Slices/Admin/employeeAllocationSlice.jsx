@@ -78,17 +78,31 @@ export const fetchAllocatedEmployees = createAsyncThunk(
 // Existing thunks
 export const removeEmployeePosition = createAsyncThunk(
   'employeeAllocation/removeEmployeePosition',
-  async ({ positionName, employees }, { rejectWithValue }) => {
+  async (positionName, { rejectWithValue, dispatch, getState }) => {
     try {
-      const payload = {
-        employees: employees.map(emp => ({
-          id: emp.id,
-          name: emp.name,
-          position: emp.position
-        }))
-      };
+      // Get the current allocated sections
+      const state = getState();
+      const section = state.employeeAllocation.allocatedSections.find(
+        s => s.position === positionName
+      );
       
-      await axiosInstance.delete(`/deallocate-position/`, { data: payload });
+      // Prepare payload with empty employees array if no section found
+      const payload = {
+        position: positionName,
+        employees: section ? section.employees.map(emp => ({
+          id: emp.id,
+          name: emp.name
+        })) : []
+      };
+
+      await axiosInstance.delete('/deallocate-position/', { data: payload });
+      
+      // After successful deletion, refresh the data
+      await Promise.all([
+        dispatch(fetchPositions()),
+        dispatch(fetchAllocatedEmployees())
+      ]);
+      
       return positionName;
     } catch (error) {
       return rejectWithValue({
@@ -183,6 +197,36 @@ export const removeEmployeeFromAllocation = createAsyncThunk(
   }
 );
 
+export const fetchEmployeesByEvent = createAsyncThunk(
+  'employeeAllocation/fetchEmployeesByEvent',
+  async (eventId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/list-employees-by-event/${eventId}/`);
+      // If data is null or empty array, return empty array explicitly
+      return response.data?.data || [];
+    } catch (error) {
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Failed to fetch event employees'
+      });
+    }
+  }
+);
+
+export const addEmployeesToEvent = createAsyncThunk(
+  'employeeAllocation/addEmployeesToEvent',
+  async (employees, { rejectWithValue }) => {
+    try {
+      const payload = { employees };
+      const response = await axiosInstance.post('/employee-allocation/', payload);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Failed to add employees to event'
+      });
+    }
+  }
+);
+
 const employeeAllocationSlice = createSlice({
   name: 'employeeAllocation',
   initialState: {
@@ -201,6 +245,9 @@ const employeeAllocationSlice = createSlice({
     loadingEvents: false,
     importingAllocations: false,
     showImportModal: false,
+    eventEmployees: [],
+    loadingEventEmployees: false,
+    selectedEventId: null,
   },
   reducers: {
     setSelectedPosition: (state, action) => {
@@ -221,7 +268,11 @@ const employeeAllocationSlice = createSlice({
     },
     setShowImportModal: (state, action) => {
       state.showImportModal = action.payload;
-    }
+    },
+    resetEventEmployees: (state) => {
+      state.eventEmployees = [];
+      state.loadingEventEmployees = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -336,9 +387,15 @@ const employeeAllocationSlice = createSlice({
       })
       .addCase(removeEmployeePosition.fulfilled, (state, action) => {
         state.removingPosition = false;
+        // Remove the position from allocatedSections
         state.allocatedSections = state.allocatedSections.filter(
           section => section.position !== action.payload
         );
+        // Remove from positions array
+        state.positions = state.positions.filter(
+          position => position.name !== action.payload
+        );
+        // Reset selected position if it was the one removed
         if (state.selectedPosition === action.payload) {
           state.selectedPosition = '';
           state.employees = [];
@@ -347,7 +404,8 @@ const employeeAllocationSlice = createSlice({
       })
       .addCase(removeEmployeePosition.rejected, (state, action) => {
         state.removingPosition = false;
-        state.error = action.payload.message;
+        state.error = action.payload?.message;
+        console.error('Failed to remove position:', action.payload);
       })
 
       // Fetch Allocated Employees cases
@@ -365,6 +423,21 @@ const employeeAllocationSlice = createSlice({
         if (!action.payload?.message?.includes('No positions available')) {
           state.error = action.payload?.message;
         }
+      })
+
+      // Fetch Employees by Event cases
+      .addCase(fetchEmployeesByEvent.pending, (state) => {
+        state.loadingEventEmployees = true;
+        state.eventEmployees = []; // Clear previous employees
+      })
+      .addCase(fetchEmployeesByEvent.fulfilled, (state, action) => {
+        state.loadingEventEmployees = false;
+        state.eventEmployees = action.payload;
+      })
+      .addCase(fetchEmployeesByEvent.rejected, (state, action) => {
+        state.loadingEventEmployees = false;
+        state.eventEmployees = []; // Ensure empty array on error
+        state.error = action.payload?.message;
       });
   }
 });
@@ -373,7 +446,8 @@ export const {
   setSelectedPosition,
   setSearchTerm,
   clearError,
-  setShowImportModal
+  setShowImportModal,
+  resetEventEmployees,
 } = employeeAllocationSlice.actions;
 
 // Selectors
@@ -392,5 +466,7 @@ export const selectEvents = (state) => state.adminEmployeeAllocation.events;
 export const selectLoadingEvents = (state) => state.adminEmployeeAllocation.loadingEvents;
 export const selectImportingAllocations = (state) => state.adminEmployeeAllocation.importingAllocations;
 export const selectShowImportModal = (state) => state.adminEmployeeAllocation.showImportModal;
+export const selectEventEmployees = (state) => state.adminEmployeeAllocation.eventEmployees;
+export const selectLoadingEventEmployees = (state) => state.adminEmployeeAllocation.loadingEventEmployees;
 
 export default employeeAllocationSlice.reducer;

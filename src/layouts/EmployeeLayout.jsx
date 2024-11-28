@@ -20,9 +20,9 @@ const EmployeeLayout = () => {
         <div className="w-full transition-all duration-300 lg:ml-[300px] overflow-x-hidden bg-[#f7fafc]">
           {/* Navbar */}
           <Navcomponent toggleSidebar={toggleSidebar} />
-  
-          {/* Page content */}
-          <Outlet />
+          <div className="page-content pb-10 px-10">
+            <Outlet />
+          </div>
         </div>
       </div>
   )

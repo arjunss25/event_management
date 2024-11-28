@@ -13,6 +13,12 @@ import {
   selectDays,
   selectApplyToAllDays,
   selectSelectedDayId,
+  fetchMeals,
+  selectMealsLoading,
+  selectMealsError,
+  postMealCategory,
+  postMealCategoryForDate,
+  postRemoveMealCategory,
 } from '../../Redux/Slices/Admin/eventFoodSlice';
 
 const AdminEventFood = () => {
@@ -21,6 +27,8 @@ const AdminEventFood = () => {
   const applyToAllDays = useSelector(selectApplyToAllDays);
   const selectedDayId = useSelector(selectSelectedDayId);
   const selectedEvent = useSelector((state) => state.adminEvents.selectedEvent);
+  const loading = useSelector(selectMealsLoading);
+  const error = useSelector(selectMealsError);
   
   useEffect(() => {
     if (selectedEvent?.startDate && selectedEvent?.endDate) {
@@ -32,17 +40,32 @@ const AdminEventFood = () => {
     }
   }, [selectedEvent, dispatch]);
 
+  useEffect(() => {
+    dispatch(fetchMeals());
+  }, [dispatch]);
+
   const handleAddMealCategory = (categoryName) => {
-    if (categoryName.trim()) {
-      dispatch(addMealCategory({
-        dayId: selectedDayId,
-        categoryName: categoryName.trim()
-      }));
+    if (!categoryName.trim()) return;
+
+    const selectedDay = days.find(day => day.id === selectedDayId);
+    if (!selectedDay?.date) {
+      console.error('No date available for selected day');
+      return;
+    }
+
+    if (applyToAllDays) {
+      dispatch(postMealCategory(categoryName.trim()));
+    } else {
+      dispatch(postMealCategoryForDate(categoryName.trim(), selectedDay.date));
     }
   };
 
-  const handleRemoveMealCategory = (dayId, mealId) => {
-    dispatch(removeMealCategory({ dayId, mealId }));
+  const handleRemoveMealCategory = (dayId, mealId, date) => {
+    if (!date) {
+      console.error('No date available for selected day');
+      return;
+    }
+    dispatch(postRemoveMealCategory(mealId, date));
   };
 
   const handleRemoveDay = (dayId) => {
@@ -56,6 +79,14 @@ const AdminEventFood = () => {
   const handleAddNextDay = () => {
     dispatch(addDay());
   };
+
+  if (loading) {
+    return <div className="p-4">Loading meals...</div>;
+  }
+
+  if (error) {
+    return <div className="p-4 text-red-500">Error: {error}</div>;
+  }
 
   return (
     <div className="flex flex-col lg:flex-row w-full gap-4 p-4">
@@ -76,14 +107,17 @@ const AdminEventFood = () => {
         </div>
 
         <div className="space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-          {days.map((day) => (
+          {Array.isArray(days) && days.map((day) => (
             <div 
-              key={day.id} 
+              key={`day-${day.id}`} 
               className={`border rounded-lg p-4 relative ${selectedDayId === day.id ? 'border-blue-500 ring-2 ring-blue-200' : ''}`}
               onClick={() => handleDaySelection(day.id)}
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Day {day.id}</h3>
+                <div>
+                  <h3 className="text-lg font-medium">Day {day.id}</h3>
+                  <span className="text-sm text-gray-500">{day.date}</span>
+                </div>
                 {days.length > 1 && (
                   <button
                     onClick={(e) => {
@@ -99,7 +133,8 @@ const AdminEventFood = () => {
               
               <div className="space-y-4">
                 {day.meals.map((meal) => (
-                  <div key={meal.id} className="relative">
+                  <div key={`meal-${day.id}-${meal.id}`} 
+                    className="relative">
                     <div className="w-full text-left p-3 border rounded-lg hover:bg-gray-50 transition-colors flex justify-between items-center">
                       <span className="font-medium">{meal.name}</span>
                       <div className="flex items-center gap-2">
@@ -109,7 +144,7 @@ const AdminEventFood = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleRemoveMealCategory(day.id, meal.id);
+                            handleRemoveMealCategory(day.id, meal.id, day.date);
                           }}
                           className="text-gray-400 hover:text-gray-600"
                         >
@@ -138,6 +173,11 @@ const AdminEventFood = () => {
       <div className="w-full lg:w-1/2 bg-black rounded-lg p-4 lg:p-6 shadow-md">
         <h2 className="text-xl font-semibold mb-4 lg:mb-6 text-white">
           Add Meal Category {selectedDayId ? `for Day ${selectedDayId}` : ''}
+          {!applyToAllDays && selectedDayId && days.find(d => d.id === selectedDayId)?.date && (
+            <span className="block text-sm text-gray-400">
+              Date: {days.find(d => d.id === selectedDayId).date}
+            </span>
+          )}
         </h2>
         
         <div className="flex gap-2 mb-6">

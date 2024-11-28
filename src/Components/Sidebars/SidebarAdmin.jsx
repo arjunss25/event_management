@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LuLayoutDashboard } from "react-icons/lu";
 import { MdGroups3, MdOutlineFestival } from "react-icons/md";
 import { IoTimerOutline } from "react-icons/io5";
@@ -7,12 +7,33 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../Redux/authSlice';
+import axiosInstance from '../../axiosConfig';
 
 const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const [isEmployeesOpen, setIsEmployeesOpen] = useState(false);
+  const [logoImage, setLogoImage] = useState('/Neurocode2.png');
+
+  useEffect(() => {
+    const fetchEventLogo = async () => {
+      try {
+        const response = await axiosInstance.get('/update-event-dp/');
+        if (response.data.data && response.data.data.image) {
+          const imageUrl = response.data.data.image.startsWith('http')
+            ? response.data.data.image
+            : `https://event.neurocode.in${response.data.data.image}`;
+          setLogoImage(imageUrl);
+        }
+      } catch (error) {
+        console.error('Failed to fetch event logo', error);
+        // Keep default logo on error
+      }
+    };
+
+    fetchEventLogo();
+  }, []);
 
   const isActive = (path) => location.pathname === `/admin${path}`;
 
@@ -43,9 +64,16 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
             <AiOutlineClose className="text-2xl text-gray-600 hover:text-black" />
           </div>
 
-          {/* Logo section */}
-          <div className="logo-section w-full h-[30vh] flex items-center justify-center lg:justify-start lg:ml-10">
-            <img className="w-[10rem] lg:w-[12rem]" src="/Neurocode2.png" alt="Logo" />
+          {/* Updated Logo section with specific dimensions */}
+          <div className="logo-section w-full mt-20 h-[150px] flex items-center justify-center">
+            <img 
+              className="h-[80px] w-auto max-w-[160px] object-contain" 
+              src={logoImage} 
+              alt="Logo"
+              onError={(e) => {
+                e.target.src = '/Neurocode2.png';
+              }}
+            />
           </div>
 
           {/* Sidebar links */}

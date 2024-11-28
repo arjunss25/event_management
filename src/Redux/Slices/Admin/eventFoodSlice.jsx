@@ -1,23 +1,31 @@
 import { createSlice, createSelector } from '@reduxjs/toolkit';
+import axiosInstance from '../../../axiosConfig';
 
 const initialState = {
-  days: [{
-    id: 1,
-    meals: [
-      { id: 'breakfast', name: 'Breakfast', items: [], order: 1 },
-      { id: 'lunch', name: 'Lunch', items: [], order: 2 },
-      { id: 'dinner', name: 'Dinner', items: [], order: 3 }
-    ]
-  }],
+  days: [],
   selectedDayId: 1,
   applyToAllDays: false,
-  totalDays: 1
+  totalDays: 1,
+  loading: false,
+  error: null
 };
 
 const eventFoodSlice = createSlice({
   name: 'eventFood',
   initialState,
   reducers: {
+    fetchMealsStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    fetchMealsSuccess: (state, action) => {
+      state.loading = false;
+      state.days = action.payload;
+    },
+    fetchMealsFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
     addDay: (state) => {
       const newDayId = state.days.length + 1;
       if (newDayId <= state.totalDays) {
@@ -81,24 +89,49 @@ const eventFoodSlice = createSlice({
       }
     },
     
-    setApplyToAllDays: (state, action) => {
+    updateApplyToAllDays: (state, action) => {
       state.applyToAllDays = action.payload;
-      if (action.payload && state.days.length === 1) {
-        const firstDayMeals = [...state.days[0].meals];
-        while (state.days.length < state.totalDays) {
-          const newDayId = state.days.length + 1;
-          state.days.push({
-            id: newDayId,
-            meals: firstDayMeals.map(meal => ({
-              ...meal,
-              id: `${meal.id.split('-')[0]}-${newDayId}`
-            }))
-          });
-        }
-      }
     },
     
-    resetEventFood: () => initialState
+    resetEventFood: () => initialState,
+    
+    addMealCategoryStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    addMealCategorySuccess: (state, action) => {
+      state.loading = false;
+      // You might want to update the state with the new meal if needed
+    },
+    addMealCategoryFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    
+    applyToAllDaysStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    applyToAllDaysSuccess: (state) => {
+      state.loading = false;
+      state.applyToAllDays = true;
+    },
+    applyToAllDaysFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    
+    removeMealCategoryStart: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    removeMealCategorySuccess: (state) => {
+      state.loading = false;
+    },
+    removeMealCategoryFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
   }
 });
 
@@ -119,15 +152,128 @@ export const selectSelectedDayId = createSelector(
   eventFood => eventFood.selectedDayId
 );
 
+export const selectMealsLoading = createSelector(
+  [selectEventFoodState],
+  eventFood => eventFood.loading
+);
+
+export const selectMealsError = createSelector(
+  [selectEventFoodState],
+  eventFood => eventFood.error
+);
+
 export const {
+  fetchMealsStart,
+  fetchMealsSuccess,
+  fetchMealsFailure,
   addDay,
   removeDay,
   setSelectedDay,
   setTotalDays,
   addMealCategory,
   removeMealCategory,
-  setApplyToAllDays,
-  resetEventFood
+  updateApplyToAllDays,
+  resetEventFood,
+  addMealCategoryStart,
+  addMealCategorySuccess,
+  addMealCategoryFailure,
+  applyToAllDaysStart,
+  applyToAllDaysSuccess,
+  applyToAllDaysFailure,
+  removeMealCategoryStart,
+  removeMealCategorySuccess,
+  removeMealCategoryFailure,
 } = eventFoodSlice.actions;
+
+export const fetchMeals = () => async (dispatch) => {
+  try {
+    dispatch(fetchMealsStart());
+    const response = await axiosInstance.get('/allocated-meals-list/');
+    
+    console.log('API Response:', response.data.data); // Debug log
+    
+    const transformedData = response.data.data.map((day, index) => ({
+      id: index + 1,
+      date: day.date,
+      meals: day.meal_types.map(meal => ({
+        id: meal.id || `meal-${Math.random()}`,
+        name: meal.name,
+        items: []
+      }))
+    }));
+    
+    console.log('Transformed Data:', transformedData); // Debug log
+    
+    dispatch(fetchMealsSuccess(transformedData));
+  } catch (error) {
+    dispatch(fetchMealsFailure(error.message));
+  }
+};
+
+export const postMealCategory = (mealName) => async (dispatch) => {
+  try {
+    dispatch(addMealCategoryStart());
+    await axiosInstance.post('/meal-allocation/', {
+      name: mealName
+    });
+    dispatch(addMealCategorySuccess());
+    // Optionally refresh the meals list
+    dispatch(fetchMeals());
+  } catch (error) {
+    dispatch(addMealCategoryFailure(error.message));
+  }
+};
+
+export const applyMealPlanToAllDays = () => async (dispatch) => {
+  try {
+    dispatch(applyToAllDaysStart());
+    await axiosInstance.post('/apply-mealplan-to-all-dates/');
+    dispatch(applyToAllDaysSuccess());
+    // Refresh the meals list after applying to all days
+    dispatch(fetchMeals());
+  } catch (error) {
+    dispatch(applyToAllDaysFailure(error.message));
+  }
+};
+
+export const setApplyToAllDays = (value) => async (dispatch) => {
+  if (value) {
+    // If turning on "Apply to All Days", call the API
+    dispatch(applyMealPlanToAllDays());
+  } else {
+    // If turning off, just update the local state
+    dispatch(updateApplyToAllDays(false));
+  }
+};
+
+export const postMealCategoryForDate = (mealName, date) => async (dispatch) => {
+  try {
+    dispatch(addMealCategoryStart());
+    await axiosInstance.post('/meal-allocated-for-date/', {
+      name: mealName,
+      date: date
+    });
+    dispatch(addMealCategorySuccess());
+    // Refresh the meals list
+    dispatch(fetchMeals());
+  } catch (error) {
+    dispatch(addMealCategoryFailure(error.message));
+  }
+};
+
+export const postRemoveMealCategory = (mealTypeId, date) => async (dispatch) => {
+  try {
+    dispatch(removeMealCategoryStart());
+    await axiosInstance.post('/remove-meal-type/', {
+      meal_type_id: mealTypeId,
+      date: date
+    });
+    dispatch(removeMealCategorySuccess());
+    // Refresh the meals list after removal
+    dispatch(fetchMeals());
+  } catch (error) {
+    dispatch(removeMealCategoryFailure(error.message));
+  }
+};
 
 export default eventFoodSlice.reducer;

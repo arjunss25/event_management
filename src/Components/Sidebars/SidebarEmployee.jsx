@@ -3,11 +3,16 @@ import { MdQrCodeScanner } from "react-icons/md";
 import { IoPersonCircleOutline } from "react-icons/io5";
 import { AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
 import { Link, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../Redux/authSlice';
+import { useNavigate } from 'react-router-dom';
 
 const SidebarEmployee = ({ isSidebarOpen, toggleSidebar }) => {
+  const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === `/employee${path}`;
 
   const getLinkClass = (path) => (
     `sidebar-link flex items-center gap-4 hover:text-black ${
@@ -15,11 +20,16 @@ const SidebarEmployee = ({ isSidebarOpen, toggleSidebar }) => {
     }`
   );
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
   return (
     <>
     
       <div 
-        className={`fixed left-0 top-0 z-[10] w-full sm:w-[300px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-transform duration-300 
+        className={`fixed left-0 top-0 z-[100] w-full sm:w-[300px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-transform duration-300 
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
       >
         <div className="w-full relative">
@@ -37,22 +47,25 @@ const SidebarEmployee = ({ isSidebarOpen, toggleSidebar }) => {
           <div className="sidebar-links flex justify-center lg:justify-start lg:ml-10 text-[1.2rem]">
             <ul className="flex flex-col gap-6">
               <li>
-                <Link to="/employee" className={getLinkClass('/employee')} onClick={toggleSidebar}>
-                    <MdQrCodeScanner />
-                  <span>Meal scanner</span>
+                <Link to="/employee/scanner" className={getLinkClass('/scanner')} onClick={toggleSidebar}>
+                  <MdQrCodeScanner className="icon-size" />
+                  <span>Meal Scanner</span>
                 </Link>
               </li>
               <li>
-                <Link to="/event-groups" className={getLinkClass('/event-groups')} onClick={toggleSidebar}>
-                <IoPersonCircleOutline />
-                  <span>profile</span>
+                <Link to="/employee/profile" className={getLinkClass('/profile')} onClick={toggleSidebar}>
+                  <IoPersonCircleOutline className="icon-size" />
+                  <span>Profile</span>
                 </Link>
               </li>
               <li>
-                <a href="#" className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]">
+                <button 
+                  onClick={handleLogout}
+                  className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]"
+                >
                   <AiOutlineLogout className="icon-size" />
                   <span>Logout</span>
-                </a>
+                </button>
               </li>
             </ul>
           </div>
