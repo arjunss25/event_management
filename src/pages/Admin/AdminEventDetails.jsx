@@ -305,7 +305,7 @@ const AdminEventDetails = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 lg:p-8 overflow-x-hidden w-[900px] rounded-[1rem]">
+        <div className="flex-1 p-4 lg:py-8 overflow-x-hidden w-[900px] rounded-[1rem]">
           <button
             onClick={toggleSidebar}
             className="lg:hidden p-2 text-gray-600 focus:outline-none mb-4"

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { IoMdClose } from 'react-icons/io';
 import { FiSearch } from 'react-icons/fi';
+import { IoIosRemoveCircleOutline } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import {
   fetchPositions,
@@ -248,7 +249,7 @@ const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }
   return (
     <>
       {filteredEmployees.map((employee) => (
-        <div key={employee.id} className="grid grid-cols-3 gap-4 items-center py-2 bg-white">
+        <div key={employee.id} className="grid grid-cols-3 gap-4 items-center p-5 bg-white">
           <div className="text-gray-600">#{employee.id}</div>
           <div className="text-gray-800">{employee.name}</div>
           <button
@@ -301,7 +302,7 @@ const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => 
             section.employees.map((employee) => (
               <div 
                 key={employee.id} 
-                className="flex items-center justify-between bg-gray-50 p-3 rounded-lg mb-2 shadow-sm hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-between  p-3 rounded-full border-[1px] border-black mb-2 shadow-sm hover:bg-gray-100 transition-colors"
               >
                 <div>
                   <span className="font-medium">{employee.name}</span>
@@ -315,7 +316,8 @@ const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => 
                   }`}
                   title="Remove employee"
                 >
-                  <IoMdClose size={20} />
+                  {/* <IoMdClose size={20} /> */}
+                  <IoIosRemoveCircleOutline size={20} />
                 </button>
               </div>
             ))
@@ -505,15 +507,19 @@ const AdminEmployeeAllocation = () => {
 
   return (
     <div className="flex w-full min-h-screen lg:flex-row flex-col gap-4 p-4">
-      <div className="w-full lg:w-1/2 bg-white rounded-lg p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Employee Allocation</h2>
-          <button
+      <div className="w-full lg:w-1/2 bg-white rounded-lg p-6 ">
+        <div className="flex justify-start items-center mb-6 w-full pb-5 border-b-[2px] border-black">
+          <h2 className="text-[1.5rem]  text-gray-800">Employee Allocation</h2>
+          
+        </div>
+        <div className="flex justify-end items-center mb-6">
+        <button
             onClick={handleOpenImportModal}
-            className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors"
+            className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
           >
             Import from Previous Events
           </button>
+          
         </div>
         {loadingAllocated ? (
           <LoadingState />
@@ -526,7 +532,7 @@ const AdminEmployeeAllocation = () => {
         )}
       </div>
 
-      <div className="w-full lg:w-1/2 bg-black rounded-lg p-6 shadow-sm">
+      <div className="w-full lg:w-1/2 bg-black rounded-lg p-6 ">
         <h2 className="text-xl font-semibold mb-6 text-white">Add Employees to Position</h2>
         <div className="mb-6 relative">
           <select

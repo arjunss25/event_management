@@ -287,7 +287,7 @@ const AddCategory = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-5 right-5 bg-white rounded-lg shadow-2xl p-6 max-w-md"
+          className="fixed bottom-5 right-5 bg-white rounded-lg  p-6 max-w-md"
           style={{
             boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
             border: '1px solid rgba(0,0,0,0.05)'
@@ -382,256 +382,313 @@ const AddCategory = () => {
   };
 
   return (
-    <div className="bg-[#e6eed]">
-      <div className="top-sec w-full flex flex-col md:flex-row items-start md:items-center justify-start px-10">
-        <h1 className="text-[1.5rem] sm:text-[2rem] font-semibold mb-2 md:mb-0">Employee</h1>
+    <div className="min-h-screen ">
+      <div className="w-full px-6 md:px-10 py-8 md:py-12">
+        <h1 className="text-3xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600">
+          Employee Categories
+        </h1>
       </div>
 
-      <div className="w-[93.3%] h-auto bg-white mx-10 mt-7 rounded-lg flex flex-col-reverse lg:flex-row">
-  <div className="main-cat w-full lg:w-[70%] h-full pl-0 lg:pl-7 mt-10 flex flex-col items-center lg:items-start justify-center">
-    <h2 className="text-[1.3rem] font-medium mb-5">Categories</h2>
-    <form className="w-full flex flex-col items-center lg:items-start justify-center gap-3">
-      {categories.map((category) => (
-        <div key={category.id} className="w-full lg:w-auto flex flex-col items-center lg:items-start justify-between gap-3 mt-4">
-          <label>{category.label}</label>
-          <div className="w-full flex flex-col lg:flex-row items-center lg:items-start justify-between gap-5 lg:gap-7">
-            {category.fieldType === 'select' && (
-              <select className="w-[80%] sm:w-[60%] lg:w-[18vw] h-8 rounded-2xl text-[0.7rem] pl-3 border border-black">
-                <option value="">- Select</option>
-                {category.options?.map((option, index) => (
-                  <option key={index} value={option}>{option}</option>
-                ))}
-              </select>
-            )}
-
-            {['radio', 'checkbox'].includes(category.fieldType) && (
-              <div className="flex flex-col gap-2">
-                {category.options?.map((option, index) => (
-                  <label key={index} className="flex items-center">
-                    <input
-                      type={category.fieldType}
-                      name={category.label}
-                      value={option}
-                      className="mr-2"
-                    />
-                    {option}
+      <div className="w-[93.3%] mx-auto bg-white rounded-2xl overflow-hidden">
+        <div className="flex flex-col-reverse lg:flex-row">
+          <div className="w-full lg:w-[50%] p-8 md:p-12">
+            <h2 className="text-2xl font-bold mb-10 text-gray-800">Active Categories</h2>
+            <form className="space-y-8">
+              {categories.map((category) => (
+                <div key={category.id} 
+                     className="group p-6 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all duration-300 ease-in-out">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    {category.label}
                   </label>
-                ))}
-              </div>
-            )}
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    {category.fieldType === 'select' && (
+                      <div className="relative w-full md:w-[18rem]">
+                        <select 
+                          className="w-full h-12 pl-4 pr-10 rounded-xl border-2 border-gray-200 
+                                   focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
+                                   appearance-none bg-white text-gray-700 transition-all
+                                   hover:border-gray-300"
+                        >
+                          <option value="">Select {category.label}</option>
+                          {category.options?.map((option, index) => (
+                            <option key={index} value={option}>{option}</option>
+                          ))}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
 
-            {/* Conditional Rendering for text, date, and number inputs */}
-            {category.fieldType === 'text' && (
-              <input
-                type="text"
-                className="w-[18vw] h-8 rounded-2xl text-[0.7rem] pl-3 border border-black"
-                placeholder="Enter text"
-              />
-            )}
+                    {['text', 'date', 'number'].includes(category.fieldType) && (
+                      <input
+                        type={category.fieldType}
+                        className="w-full md:w-[18rem] h-12 px-4 rounded-xl border-2 border-gray-200 
+                                 focus:border-blue-500 focus:ring-2 focus:ring-blue-200
+                                 hover:border-gray-300 transition-all"
+                        placeholder={`Enter ${category.label.toLowerCase()}`}
+                      />
+                    )}
 
-            {category.fieldType === 'date' && (
-              <input
-                type="date"
-                className="w-[18vw] h-8 rounded-2xl text-[0.7rem] pl-3 border border-black"
-              />
-            )}
-
-            {category.fieldType === 'number' && (
-              <input
-                type="number"
-                className="w-[18vw] h-8 rounded-2xl text-[0.7rem] pl-3 border border-black"
-                placeholder="Enter number"
-              />
-            )}
-
-            {category.id === 'role' ? (
-              <button type="button" onClick={handleEditRoles} className="px-5 py-2 rounded bg-blue-500 text-white">
-                Edit
-              </button>
-            ) : (
-              <button type="button" onClick={() => handleDeleteCategory(category.id)} className="px-3 py-2 rounded bg-[#FF5F5F] text-white">
-                Delete
-              </button>
-            )}
+                    {category.id === 'role' ? (
+                      <button 
+                        type="button" 
+                        onClick={handleEditRoles}
+                        className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl
+                                 transition-all duration-300 ease-in-out transform hover:scale-105
+                                 focus:ring-4 focus:ring-blue-200"
+                      >
+                        Edit Roles
+                      </button>
+                    ) : (
+                      <button 
+                        type="button"
+                        onClick={() => handleDeleteCategory(category.id)}
+                        className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl
+                                 transition-all duration-300 ease-in-out transform hover:scale-105
+                                 focus:ring-4 focus:ring-red-200"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </form>
           </div>
-        </div>
-      ))}
-    </form>
-    <div className="flex justify-start mt-16">
-      <button onClick={closeEditModal} className="px-7 py-2 bg-black text-white rounded">Save</button>
-      </div>
-  </div>
 
-  <div className="cat w-full lg:w-[30%]  bg-[#2D3436] text-white flex flex-col items-center justify-start pt-10">
-    <h3 className="mb-5">Add New Category</h3>
-    <form className="w-full flex flex-col items-center justify-center gap-3">
-      <label htmlFor="categoryLabel">Category Label</label>
-      <input
-        type="text"
-        id="categoryLabel"
-        className="w-[80%] sm:w-[50%] lg:w-[18vw] h-8 rounded-2xl text-[0.7rem] pl-3 text-black"
-        placeholder="Name"
-        value={newCategoryLabel}
-        onChange={(e) => setNewCategoryLabel(e.target.value)}
-      />
 
-      <label htmlFor="fieldType">Field Type</label>
-      <select
-        id="fieldType"
-        className="w-[80%] sm:w-[50%] lg:w-[18vw] h-8 rounded-2xl text-[0.7rem] pl-3 text-black"
-        value={newFieldType}
-        onChange={(e) => {
-          setNewFieldType(e.target.value);
-          if (['radio', 'checkbox', 'select'].includes(e.target.value)) {
-            setNewOptions(['']);
-          }
-        }}
-      >
-        <option value="">- Select</option>
-        <option value="text">Text</option>
-        <option value="date">Date</option>
-        <option value="number">Number</option>
-        <option value="select">Dropdown</option>
-        <option value="radio">Radio Button</option>
-        <option value="checkbox">Checkbox</option>
-      </select>
 
-      {(newFieldType === 'radio' || newFieldType === 'checkbox' || newFieldType === 'select') && (
-        <div>
-          <h4 className="text-sm mb-4">Options:</h4>
-          {newOptions.map((option, index) => (
-            <div key={index} className="flex items-center mb-2">
-              <input
-                type="text"
-                value={option}
-                onChange={(e) => {
-                  const updatedOptions = [...newOptions];
-                  updatedOptions[index] = e.target.value;
-                  setNewOptions(updatedOptions);
-                }}
-                className="w-full h-8 rounded-2xl text-[0.7rem] pl-3 border border-black text-black"
-              />
-              <button type="button" onClick={() => setNewOptions(newOptions.filter((_, i) => i !== index))} className="ml-2 text-red-500">
-                Remove
-              </button>
+
+
+          <div className="w-full lg:w-[50%] bg-[#2D3436] p-8 md:p-12 relative overflow-hidden">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0 bg-black"></div>
             </div>
-          ))}
-          <button type="button" onClick={() => setNewOptions([...newOptions, ''])} className="flex items-center gap-1 text-blue-500">
-            <IoAddCircleOutline /> Add Option
-          </button>
-        </div>
-      )}
 
-      <div className="w-full flex items-center justify-center mt-4 mb-10">
-        <button type="button" onClick={handleAddCategory} className="w-[80%] sm:w-[50%] lg:w-auto px-5 py-2 border border-white rounded-3xl">
-          Add Category
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-    
-{isEditModalOpen && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="bg-white rounded-2xl w-[90%] max-w-2xl p-8 shadow-2xl"
-    >
-      <div className="flex justify-between items-center mb-8">
-        <h3 className="text-2xl font-bold text-black">
-          Manage Roles & Positions
-        </h3>
-        <button 
-          onClick={() => setIsEditModalOpen(false)}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <IoClose className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Add new role section */}
-      <div className="mb-8">
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={newRoleName}
-            onChange={(e) => setNewRoleName(e.target.value)}
-            placeholder="Enter new role name"
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-          />
-          <button
-            onClick={handleAddRole}
-            className="px-6 py-3 bg-black hover:bg-grey-600 text-white rounded-xl flex items-center gap-2 transition-colors"
-          >
-            <IoAddOutline className="w-5 h-5" />
-            Add
-          </button>
-        </div>
-      </div>
-
-      {/* Roles list */}
-      <div className="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-        {categories.find(cat => cat.id === 'role').options.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p className="text-lg">No roles added yet</p>
-            <p className="text-sm">Start by adding a new role above</p>
-          </div>
-        ) : (
-          categories.find(cat => cat.id === 'role').options.map((role, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
-            >
-              {editingId === index ? (
-                <>
+            {/* Content */}
+            <div className="relative z-10">
+              <h3 className="text-2xl font-bold mb-8 text-white">Add New Category</h3>
+              <form className="w-full space-y-6">
+                <div className="space-y-2">
+                  <label htmlFor="categoryLabel" className="text-sm text-gray-300 font-medium block">
+                    Category Label
+                  </label>
                   <input
                     type="text"
-                    value={editedRoleName}
-                    onChange={(e) => setEditedRoleName(e.target.value)}
-                    className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    id="categoryLabel"
+                    className="w-full h-12 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400
+                             focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-200
+                             backdrop-blur-sm px-4"
+                    placeholder="Enter category name"
+                    value={newCategoryLabel}
+                    onChange={(e) => setNewCategoryLabel(e.target.value)}
                   />
-                  <button
-                    onClick={() => handleSaveEdit(index)}
-                    className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                  >
-                    <IoCheckmark className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setEditingId(null)}
-                    className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                  >
-                    <IoClose className="w-5 h-5" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="flex-1 font-medium">{role}</span>
-                  <button
-                    onClick={() => handleStartEdit(index, role)}
-                    className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                  >
-                    <IoPencil className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleRemoveRoleOption(index)}
-                    className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                  >
-                    <IoTrash className="w-5 h-5" />
-                  </button>
-                </>
-              )}
-            </motion.div>
-          ))
-        )}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="fieldType" className="text-sm text-gray-300 font-medium block">
+                    Field Type
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="fieldType"
+                      className="w-full h-12 rounded-xl bg-white/10 border border-white/20 text-white
+                               focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-200
+                               backdrop-blur-sm px-4 appearance-none"
+                      value={newFieldType}
+                      onChange={(e) => {
+                        setNewFieldType(e.target.value);
+                        if (['radio', 'checkbox', 'select'].includes(e.target.value)) {
+                          setNewOptions(['']);
+                        }
+                      }}
+                    >
+                      <option value="" className="text-gray-800">- Select Type -</option>
+                      <option value="text" className="text-gray-800">Text</option>
+                      <option value="date" className="text-gray-800">Date</option>
+                      <option value="number" className="text-gray-800">Number</option>
+                      <option value="select" className="text-gray-800">Dropdown</option>
+                      <option value="radio" className="text-gray-800">Radio Button</option>
+                      <option value="checkbox" className="text-gray-800">Checkbox</option>
+                    </select>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {(newFieldType === 'radio' || newFieldType === 'checkbox' || newFieldType === 'select') && (
+                  <div className="space-y-4 pt-4">
+                    <h4 className="text-sm font-medium text-gray-300">Options</h4>
+                    <div className="space-y-3 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
+                      {newOptions.map((option, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) => {
+                              const updatedOptions = [...newOptions];
+                              updatedOptions[index] = e.target.value;
+                              setNewOptions(updatedOptions);
+                            }}
+                            className="flex-1 h-12 rounded-xl bg-white/10 border border-white/20 text-white
+                                   focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-200
+                                   backdrop-blur-sm px-4"
+                            placeholder={`Option ${index + 1}`}
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => setNewOptions(newOptions.filter((_, i) => i !== index))}
+                            className="p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 
+                                   transition-all duration-200 flex-shrink-0"
+                          >
+                            <IoRemoveCircleOutline className="w-5 h-5 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => setNewOptions([...newOptions, ''])}
+                      className="w-full h-12 rounded-xl border border-white/20 hover:bg-white/10
+                               transition-all duration-200 flex items-center justify-center gap-2
+                               text-white"
+                    >
+                      <IoAddCircleOutline className="w-5 h-5" />
+                      Add Option
+                    </button>
+                  </div>
+                )}
+
+                <button 
+                  type="button" 
+                  onClick={handleAddCategory}
+                  className="w-full h-12 mt-8 rounded-xl bg-white text-gray-900 font-medium
+                           hover:bg-gray-100 transition-all duration-200 flex items-center 
+                           justify-center gap-2 transform hover:scale-[1.02]"
+                >
+                  <IoAddOutline className="w-5 h-5" />
+                  Add Category
+                </button>
+              </form>
+            </div>
+          </div>
+
+
+
+
+
+
+
+        </div>
       </div>
-    </motion.div>
-  </div>
-)}
+
+      {isEditModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 ">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl w-[90%] max-w-2xl p-8 "
+          >
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-bold text-black">
+                Manage Roles & Positions
+              </h3>
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <IoClose className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Add new role section */}
+            <div className="mb-8">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={newRoleName}
+                  onChange={(e) => setNewRoleName(e.target.value)}
+                  placeholder="Enter new role name"
+                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                />
+                <button
+                  onClick={handleAddRole}
+                  className="px-6 py-3 bg-black hover:bg-grey-600 text-white rounded-xl flex items-center gap-2 transition-colors"
+                >
+                  <IoAddOutline className="w-5 h-5" />
+                  Add
+                </button>
+              </div>
+            </div>
+
+            {/* Roles list */}
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              {categories.find(cat => cat.id === 'role').options.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-lg">No roles added yet</p>
+                  <p className="text-sm">Start by adding a new role above</p>
+                </div>
+              ) : (
+                categories.find(cat => cat.id === 'role').options.map((role, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    {editingId === index ? (
+                      <>
+                        <input
+                          type="text"
+                          value={editedRoleName}
+                          onChange={(e) => setEditedRoleName(e.target.value)}
+                          className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                        />
+                        <button
+                          onClick={() => handleSaveEdit(index)}
+                          className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                        >
+                          <IoCheckmark className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setEditingId(null)}
+                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                        >
+                          <IoClose className="w-5 h-5" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="flex-1 font-medium">{role}</span>
+                        <button
+                          onClick={() => handleStartEdit(index, role)}
+                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                        >
+                          <IoPencil className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleRemoveRoleOption(index)}
+                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                        >
+                          <IoTrash className="w-5 h-5" />
+                        </button>
+                      </>
+                    )}
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
       <ErrorPopup />
     </div>
   );

@@ -8,6 +8,7 @@ import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../Redux/authSlice';
 import axiosInstance from '../../axiosConfig';
+import { IoIosPeople } from "react-icons/io";
 
 const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   const dispatch = useDispatch();
@@ -87,7 +88,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
               </li>
               <li>
                 <Link to="/admin/events" className={getLinkClass('/events')} onClick={toggleSidebar}>
-                  <MdGroups3 className="icon-size" />
+                  <MdOutlineFestival className="icon-size" />
                   <span>Events</span>
                 </Link>
               </li>
@@ -97,7 +98,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                   className={`sidebar-link flex items-center justify-between gap-4 hover:text-black text-[#636e72] w-full`}
                 >
                   <div className="flex items-center gap-4">
-                    <MdOutlineFestival className="icon-size" />
+                    <IoIosPeople  className="icon-size" />
                     <span>Employees</span>
                   </div>
                   {isEmployeesOpen ? (
@@ -128,12 +129,6 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                     </li>
                   </ul>
                 )}
-              </li>
-              <li>
-                <Link to="/admin/idcard" className={getLinkClass('/idcard')} onClick={toggleSidebar}>
-                  <IoTimerOutline className="icon-size" />
-                  <span>Id Card</span>
-                </Link>
               </li>
               <li>
                 <button 
