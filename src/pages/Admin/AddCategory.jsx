@@ -5,6 +5,7 @@ import axiosInstance from '../../axiosConfig';
 import { useSelector } from 'react-redux';
 import { selectEventGroupId } from '../../Redux/authSlice';
 import { motion, AnimatePresence } from 'framer-motion';
+import './AddCategory.css'
 
 const AddCategory = () => {
   const [categories, setCategories] = useState([
@@ -390,8 +391,8 @@ const AddCategory = () => {
       </div>
 
       <div className="w-[93.3%] mx-auto bg-white rounded-2xl overflow-hidden">
-        <div className="flex flex-col-reverse lg:flex-row">
-          <div className="w-full lg:w-[50%] p-8 md:p-12">
+        <div className="addcategory-main flex flex-col-reverse lg:flex-row">
+          <div className="w-full lg:w-[60%] p-8 md:p-12 left-sec-category">
             <h2 className="text-2xl font-bold mb-10 text-gray-800">Active Categories</h2>
             <form className="space-y-8">
               {categories.map((category) => (
@@ -463,7 +464,7 @@ const AddCategory = () => {
 
 
 
-          <div className="w-full lg:w-[50%] bg-[#2D3436] p-8 md:p-12 relative overflow-hidden">
+          <div className="w-full lg:w-[40%] right-sec-category bg-[#2D3436] p-5 md:p-12 relative overflow-hidden">
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-black"></div>
@@ -524,11 +525,11 @@ const AddCategory = () => {
                 </div>
 
                 {(newFieldType === 'radio' || newFieldType === 'checkbox' || newFieldType === 'select') && (
-                  <div className="space-y-4 pt-4">
+                  <div className="space-y-4 pt-4 ">
                     <h4 className="text-sm font-medium text-gray-300">Options</h4>
-                    <div className="space-y-3 max-h-[40vh] overflow-y-auto custom-scrollbar pr-2">
+                    <div className="space-y-3  overflow-y-auto custom-scrollbar pr-2">
                       {newOptions.map((option, index) => (
-                        <div key={index} className="flex items-center gap-2">
+                        <div key={index} className="flex items-center gap-2 drop-options">
                           <input
                             type="text"
                             value={option}
@@ -537,7 +538,7 @@ const AddCategory = () => {
                               updatedOptions[index] = e.target.value;
                               setNewOptions(updatedOptions);
                             }}
-                            className="flex-1 h-12 rounded-xl bg-white/10 border border-white/20 text-white
+                            className="flex-1 h-12 option-field rounded-xl bg-white/10 border border-white/20 text-white
                                    focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-200
                                    backdrop-blur-sm px-4"
                             placeholder={`Option ${index + 1}`}

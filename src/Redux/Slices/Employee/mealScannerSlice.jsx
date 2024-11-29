@@ -1,38 +1,47 @@
 // src/Redux/Slices/Employee/mealScannerSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-
-// Add mock data
-const mockDays = [
-  {
-    id: 1,
-    day: "Day 1",
-    mealCategories: ["Breakfast", "Lunch", "Dinner"]
-  },
-  {
-    id: 2,
-    day: "Day 2",
-    mealCategories: ["Breakfast", "Lunch", "Dinner"]
-  },
-  {
-    id: 3,
-    day: "Day 3",
-    mealCategories: ["Breakfast", "Lunch", "Dinner"]
-  }
-];
+import axiosInstance from '../../../axiosConfig';
 
 export const getDays = createAsyncThunk(
   'mealScanner/getDays',
   async (_, { rejectWithValue }) => {
     try {
-      // For now, return mock data instead of making an API call
-      return mockDays;
+      const response = await axiosInstance.get('/no-event-days-emp');
       
-      // Later, when your API is ready, you can uncomment this:
-      // const response = await axios.get('your-api-endpoint/meals');
-      // return response.data;
+      if (!response?.data?.data?.[0]?.event_dates_with_meals) {
+        console.error('Invalid API response structure:', response);
+        return rejectWithValue('Invalid or missing data structure');
+      }
+
+      const eventData = response.data.data[0];
+      const daysData = eventData.event_dates_with_meals;
+      
+      const transformedDays = Object.entries(daysData).map(([dayKey, dayData]) => ({
+        id: dayKey,
+        name: dayKey,
+        date: dayData.date,
+        mealCategories: Array.isArray(dayData.meals) 
+          ? dayData.meals.map(meal => ({
+              id: `meal-${Math.random()}`,
+              name: meal,
+              status: 'pending'
+          }))
+          : [],
+        isOpen: false
+      }));
+      
+      return {
+        eventName: eventData.event_name || 'Unnamed Event',
+        days: transformedDays
+      };
     } catch (error) {
-      return rejectWithValue(error.message);
+      console.error('API Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -42,6 +51,8 @@ const initialState = {
   selectedMeals: {},
   status: 'idle',
   error: null,
+  scannerOpen: false,
+  currentScanningMeal: null
 };
 
 const mealScannerSlice = createSlice({
@@ -60,6 +71,10 @@ const mealScannerSlice = createSlice({
     selectMeal: (state, action) => {
       const { dayId, selectedCategories } = action.payload;
       state.selectedMeals[dayId] = selectedCategories;
+    },
+    toggleScanner: (state, action) => {
+      state.scannerOpen = action.payload.isOpen;
+      state.currentScanningMeal = action.payload.mealInfo || null;
     }
   },
   extraReducers: (builder) => {
@@ -70,23 +85,18 @@ const mealScannerSlice = createSlice({
       })
       .addCase(getDays.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // Ensure action.payload is an array before mapping
-        if (Array.isArray(action.payload)) {
-          state.days = action.payload.map(day => ({
-            ...day,
-            isOpen: false,
-            name: day.day
-          }));
-        } else {
-          state.error = 'Invalid data format received';
-        }
+        state.eventName = action.payload.eventName;
+        state.days = action.payload.days;
+        state.error = null;
       })
       .addCase(getDays.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload || 'Failed to fetch days';
+        state.error = action.payload || 'Failed to fetch meal data';
+        state.days = [];
+        state.eventName = null;
       });
   }
 });
 
-export const { toggleDay, selectMeal } = mealScannerSlice.actions;
+export const { toggleDay, selectMeal, toggleScanner } = mealScannerSlice.actions;
 export default mealScannerSlice.reducer;

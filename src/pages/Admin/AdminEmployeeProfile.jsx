@@ -23,6 +23,9 @@ const AdminEmployeeProfile = () => {
   // Add new state for ID card data
   const [idCardData, setIdCardData] = useState(null);
 
+  // Add this state for events data
+  const [eventsData, setEventsData] = useState([]);
+
   // Get employee ID from URL params
   const { id } = useParams();
 
@@ -63,10 +66,26 @@ const AdminEmployeeProfile = () => {
     }
   };
 
+  // Add new function to fetch events data
+  const fetchEventsData = async () => {
+    try {
+      const response = await axiosInstance.get(`/list-employees-assigned-events/${id}/`);
+      if (response.data?.status_code === 200) {
+        setEventsData(response.data.data || []);
+      } else {
+        setEventsData([]);
+      }
+    } catch (err) {
+      console.error('Error fetching events data:', err);
+      setEventsData([]);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchEmployeeData();
       fetchIdCardData();
+      fetchEventsData();
     }
   }, [id]);
 
@@ -254,7 +273,11 @@ const AdminEmployeeProfile = () => {
           <div className="bg-white p-6 rounded-lg">
             <h1 className="text-2xl font-semibold mb-4">Events Assigned</h1>
             <hr className="w-full border mb-5" />
-            <AdminEventsAssignedTable employeeId={id} />
+            <AdminEventsAssignedTable 
+              data={eventsData} 
+              employeeId={employeeData?.id}
+              employeeName={employeeData?.name}
+            />
           </div>
         )}
 

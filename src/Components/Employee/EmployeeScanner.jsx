@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import QrReader from 'react-qr-scanner';
-import { X, Camera, ScanLine } from 'lucide-react';
+import QrScanner from 'react-qr-scanner';
+import { X, Camera } from 'lucide-react';
+import axiosInstance from '../../axiosConfig';
 
-const EmployeeScanner = () => {
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (args[0]?.includes('defaultProps')) return;
+  if (args[0]?.includes('willReadFrequently')) return;
+  originalConsoleError(...args);
+};
+
+const EmployeeScanner = ({ onClose, mealInfo }) => {
   const [scanning, setScanning] = useState(false);
   const [scannedData, setScannedData] = useState(null);
   const [flashlight, setFlashlight] = useState(false);
   const [camera, setCamera] = useState(null);
+  const [scanStatus, setScanStatus] = useState({ loading: false, error: null });
 
   useEffect(() => {
-    // Cleanup function
     return () => {
       if (camera) {
         const stream = camera.srcObject;
@@ -20,28 +28,83 @@ const EmployeeScanner = () => {
     };
   }, [camera]);
 
-  const handleScan = (data) => {
-    if (data) {
-      // Add vibration feedback if supported
-      if (navigator.vibrate) {
-        navigator.vibrate(200);
+  const handleScan = async (data) => {
+    if (data && mealInfo) {
+      try {
+        // Extract the unique ID from the scanned text
+        const uniqueIdMatch = data.text.match(/Unique ID: (\w+)/);
+        const uniqueId = uniqueIdMatch ? uniqueIdMatch[1] : null;
+
+        if (!uniqueId) {
+          throw new Error('Invalid QR code format');
+        }
+
+        // Format the date from DD-MM-YYYY to YYYY-MM-DD
+        const formatDate = (dateString) => {
+          if (!dateString) {
+            throw new Error('Date is required');
+          }
+          
+          // Split the date string by hyphen
+          const [day, month, year] = dateString.split('-');
+          
+          // Validate parts
+          if (!day || !month || !year) {
+            throw new Error('Invalid date format');
+          }
+          
+          // Return in YYYY-MM-DD format
+          return `${year}-${month}-${day}`;
+        };
+
+        // Vibrate if supported
+        if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
+
+        setScanStatus({ loading: true, error: null });
+        setScannedData(data);
+        setScanning(false);
+
+        // Format the payload
+        const payload = {
+          unique_id: uniqueId,
+          meal_type_name: mealInfo.mealCategory,
+          meal_date: formatDate(mealInfo.date)
+        };
+
+        console.log('Sending payload:', payload); // For debugging
+
+        // Make API call
+        const response = await axiosInstance.post('/scan-meals/', payload);
+        console.log('Scan successful:', response.data);
+
+        // Close the scanner after successful scan
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+
+      } catch (error) {
+        console.error('Scan API Error:', error);
+        setScanStatus({ 
+          loading: false, 
+          error: error.response?.data?.message || 'Failed to process scan'
+        });
       }
-      
-      setScannedData(data);
-      setScanning(false);
-      // Here you can handle the scanned data, e.g., make an API call
-      console.log('Scanned QR Code:', data);
     }
   };
 
   const handleError = (err) => {
-    console.error(err);
+    if (err instanceof Error) {
+      console.error('Scanner Error:', err.message);
+    }
   };
 
   const handleClose = () => {
     setScanning(false);
     setScannedData(null);
     setFlashlight(false);
+    onClose();
   };
 
   const toggleFlashlight = async () => {
@@ -59,106 +122,72 @@ const EmployeeScanner = () => {
     }
   };
 
-  return (
-    <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-50">
-      {scanning ? (
-        // Enhanced full-screen scanner overlay
-        <div className="fixed inset-0 bg-black z-50">
-          {/* Header */}
-          <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/70 to-transparent z-50 flex items-center justify-between px-4">
-            <button 
-              onClick={handleClose}
-              className="text-white p-2 rounded-full hover:bg-white/10"
-            >
-              <X size={24} />
-            </button>
-            <span className="text-white font-medium">Scan QR Code</span>
-            <button
-              onClick={toggleFlashlight}
-              className={`text-white p-2 rounded-full ${flashlight ? 'bg-white/20' : 'hover:bg-white/10'}`}
-            >
-              {/* You can replace this with a flashlight icon */}
-              <Camera size={24} />
-            </button>
-          </div>
+  const previewStyle = {
+    width: '100%',
+    height: '100%',
+    willReadFrequently: true
+  };
 
-          {/* Scanner container with improved styling */}
-          <div className="relative h-full w-full bg-black">
-            <QrReader
-              delay={300}
-              onError={handleError}
-              onScan={handleScan}
-              className="w-full h-full"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-              constraints={{
-                video: { 
-                  facingMode: 'environment',
-                  width: { ideal: 1920 },
-                  height: { ideal: 1080 }
-                }
-              }}
-              ref={node => {
-                if (node) {
-                  setCamera(node.el);
-                }
-              }}
-            />
-            
-            {/* Enhanced scanning overlay */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              {/* Improved scanning frame */}
-              <div className="relative w-72 h-72 mb-8">
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50" />
-                
-                {/* Scanner window */}
-                <div className="absolute inset-0">
-                  {/* Animated border with gradient */}
-                  <div className="absolute inset-0 border-2 border-white/30">
-                    {/* Scanning animation */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-[scan_2s_ease-in-out_infinite]" />
-                  </div>
-                  
-                  {/* Enhanced corner markers */}
-                  <div className="absolute top-0 left-0 w-12 h-12">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-emerald-400" />
-                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-400" />
-                  </div>
-                  <div className="absolute top-0 right-0 w-12 h-12">
-                    <div className="absolute top-0 right-0 w-full h-1 bg-emerald-400" />
-                    <div className="absolute top-0 right-0 w-1 h-full bg-emerald-400" />
-                  </div>
-                  <div className="absolute bottom-0 left-0 w-12 h-12">
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-emerald-400" />
-                    <div className="absolute bottom-0 left-0 w-1 h-full bg-emerald-400" />
-                  </div>
-                  <div className="absolute bottom-0 right-0 w-12 h-12">
-                    <div className="absolute bottom-0 right-0 w-full h-1 bg-emerald-400" />
-                    <div className="absolute bottom-0 right-0 w-1 h-full bg-emerald-400" />
-                  </div>
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      {scanning ? (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl relative max-w-md w-full">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-800">Scan QR Code</h2>
+                <button 
+                  onClick={handleClose}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                >
+                  <X className="text-2xl text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scanner Container */}
+            <div className="p-6">
+              <div className="relative w-full aspect-square max-w-[400px] mx-auto rounded-lg overflow-hidden bg-gray-900">
+                <QrScanner
+                  delay={300}
+                  onError={handleError}
+                  onScan={handleScan}
+                  style={previewStyle}
+                  constraints={{
+                    video: { facingMode: "environment" }
+                  }}
+                  ref={node => {
+                    if (node) {
+                      setCamera(node.el);
+                    }
+                  }}
+                />
+                {/* Scanner Overlay */}
+                <div className="absolute inset-0 border-2 border-white/30">
+                  <div className="absolute inset-0 border-2 border-white/30 m-8"></div>
                 </div>
               </div>
               
-              {/* Improved scanning text */}
-              <div className="text-center space-y-2">
-                <p className="text-white/90 text-lg font-medium">
-                  Align QR code within frame
-                </p>
-                <p className="text-white/60 text-sm">
-                  Scanning will start automatically
-                </p>
-              </div>
+              {/* Instructions */}
+              <p className="text-gray-600 text-center mt-4 text-sm">
+                Position the QR code within the frame to scan
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={handleClose}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
+              >
+                Close Scanner
+              </button>
             </div>
           </div>
         </div>
       ) : (
-        // Enhanced modal design
         <div className="bg-white rounded-2xl w-[90%] md:w-[400px] py-8 px-6 relative shadow-2xl">
-          {/* Close Button */}
           <button 
             onClick={handleClose}
             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -166,15 +195,13 @@ const EmployeeScanner = () => {
             <X size={20} />
           </button>
           
-          {/* Enhanced Header */}
           <div className="flex items-center gap-3 mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Breakfast</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{mealInfo?.mealCategory}</h1>
             <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-sm font-medium">
-              DAY - 5
+              {mealInfo?.date}
             </span>
           </div>
 
-          {/* Enhanced QR Code Section */}
           <div className="flex flex-col items-center gap-6">
             <button 
               onClick={() => setScanning(true)}
@@ -198,7 +225,6 @@ const EmployeeScanner = () => {
               </div>
             </button>
 
-            {/* Enhanced Non-registered Button */}
             <button className="w-full max-w-xs border-2 border-gray-900 rounded-xl py-4 px-6 hover:bg-gray-50 transition-all duration-300 transform hover:scale-[1.02]">
               <span className="text-gray-900 font-medium tracking-wider">
                 NON-REGISTERED USER
@@ -206,14 +232,21 @@ const EmployeeScanner = () => {
             </button>
           </div>
 
-          {/* Enhanced Scanned Data Display */}
-          {scannedData && (
-            <div className="mt-6 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-              <div className="flex items-center gap-2 text-emerald-600 font-medium mb-1">
+          {(scannedData || scanStatus.error) && (
+            <div className={`mt-6 p-4 rounded-xl border ${
+              scanStatus.error 
+                ? 'bg-red-50 border-red-100' 
+                : 'bg-emerald-50 border-emerald-100'
+            }`}>
+              <div className={`flex items-center gap-2 font-medium mb-1 ${
+                scanStatus.error ? 'text-red-600' : 'text-emerald-600'
+              }`}>
                 <Camera size={16} />
-                <span>Scan Successful!</span>
+                <span>{scanStatus.error ? 'Scan Failed!' : 'Scan Successful!'}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-1">{scannedData.text}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                {scanStatus.error || 'Meal scanned successfully'}
+              </p>
             </div>
           )}
         </div>

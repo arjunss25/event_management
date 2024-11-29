@@ -20,7 +20,7 @@ import ProfilePhotoPage from './pages/Admin/AdminPhotoPage';
 import AdminDashboardPage from './Dashboards/AdminDashboard';
 import EmployeeDetails from './pages/Admin/EmployeeDetails';
 import AddCategory from './pages/Admin/AddCategory';
-import Userprofile from './pages/User/Userprofile';
+import Userprofile from './pages/Admin/UserProfile';
 import RegisteredUserTable from './Components/Admin/RegisteredUserTable';
 
 // Import Other Components
@@ -32,6 +32,7 @@ import AdminEmployeeProfile from './pages/Admin/AdminEmployeeProfile';
 import AdminEventsAssignedTable from './Components/Admin/AdminEventsAssignedTable';
 import EmployeeScanner from './Components/Employee/EmployeeScanner';
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
+import UserProfile from './pages/Admin/UserProfile';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const auth = useSelector((state) => state.auth);
@@ -128,6 +129,7 @@ const AppRoutes = () => {
         <Route path="employee-details" element={<EmployeeDetails />} />
         <Route path="add-category" element={<AddCategory />} />
         <Route path="registered-users" element={<RegisteredUserTable />} />
+        <Route path="user/:id" element={<UserProfile />} />
         <Route path="user-profile" element={<Userprofile />} />
         <Route path="add-employee" element={<AddEmpolyee />} />
         {/* <Route path="employee-profile" element={<AdminEmployeeProfile />} /> */}

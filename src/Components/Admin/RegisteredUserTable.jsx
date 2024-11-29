@@ -1,83 +1,88 @@
-import React, { useEffect, useMemo } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchRegisteredUsers } from '../../Redux/Slices/Admin/adminUserRegistrationSlice';
+import { FaRegEye } from 'react-icons/fa';
 
+// Add these new components
+const EmptyState = () => (
+  <tr>
+    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+      <div className="flex flex-col items-center justify-center">
+        <p className="text-lg">No users found</p>
+        <p className="text-sm text-gray-400">No registered users available</p>
+      </div>
+    </td>
+  </tr>
+);
+
+const LoadingSpinner = () => (
+  <div className="w-full h-48 flex items-center justify-center">
+    <div className="animate-pulse flex flex-col items-center">
+      <div className="h-8 w-8 mb-4 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="text-gray-600">Loading users...</div>
+    </div>
+  </div>
+);
+
+const TableContent = ({ users, navigate }) => (
+  <table className="w-full text-sm text-left text-gray-500">
+    <thead className="text-xs text-white uppercase bg-gray-800">
+      <tr>
+        <th className="px-6 py-3">ID</th>
+        <th className="px-6 py-3">Full Name</th>
+        <th className="px-6 py-3">Email</th>
+        <th className="px-6 py-3">Phone</th>
+        <th className="px-6 py-3">Registration Date</th>
+        <th className="px-6 py-3">Actions</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-200">
+      {users.length > 0 ? (
+        users.map((user) => (
+          <tr key={user.id} className="hover:bg-gray-50">
+            <td className="px-6 py-4">{user.id}</td>
+            <td className="px-6 py-4">{user.full_name}</td>
+            <td className="px-6 py-4">{user.email}</td>
+            <td className="px-6 py-4">{user.phone}</td>
+            <td className="px-6 py-4">{user.created_date}</td>
+            <td className="px-6 py-4">
+              <button onClick={() => navigate(`/admin/user/${user.id}`)}>
+                <FaRegEye className="text-gray-500 hover:text-blue-500 text-[1.2rem]" />
+              </button>
+            </td>
+          </tr>
+        ))
+      ) : (
+        <EmptyState />
+      )}
+    </tbody>
+  </table>
+);
+
+// Update the main component
 const RegisteredUserTable = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  // Accessing data from Redux store
+  
+  // Get users from the Redux store
   const { users, loading, error } = useSelector((state) => state.adminUserRegistration);
 
   useEffect(() => {
     dispatch(fetchRegisteredUsers());
   }, [dispatch]);
 
-  const tableRows = useMemo(() => {
-    if (Array.isArray(users)) {
-      return users.map((user) => (
-        <tr key={user.id} className="bg-white hover:bg-gray-50">
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.id}</td>
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.username}</td>
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.email}</td>
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.phone}</td>
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.registrationDate}</td>
-          <td className="px-6 py-6 whitespace-nowrap">
-            <button 
-              onClick={() => navigate(`/admin/user-profile/${user.id}`)}
-              className="bg-blue-500 text-white px-4 py-1 rounded-md text-xs hover:bg-blue-600 transition-colors"
-            >
-              View Profile
-            </button>
-          </td>
-        </tr>
-      ));
-    } else if (typeof users === 'object' && users !== null) {
-      return Object.values(users).map((user) => (
-        <tr key={user.id} className="bg-white hover:bg-gray-50">
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.id}</td>
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.username}</td>
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.email}</td>
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.phone}</td>
-          <td className="px-6 py-6 text-black whitespace-nowrap">{user.registrationDate}</td>
-          <td className="px-6 py-6 whitespace-nowrap">
-            <button 
-              onClick={() => navigate(`/admin/user/${user.id}`)}
-              className="bg-blue-500 text-white px-4 py-1 rounded-md text-xs hover:bg-blue-600 transition-colors"
-            >
-              View Profile
-            </button>
-          </td>
-        </tr>
-      ));
-    } else {
-      return null;
-    }
-  }, [users, navigate]);
-
-  if (loading) return <div className="p-4">Loading...</div>;
-  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
-
   return (
-    <div className="w-full bg-white rounded-lg p-4 md:p-4 mt-10 registered-user-table-main">
-      <div className="relative overflow-x-auto">
-        <div className="min-w-[800px]">
-          <table className="w-full text-sm text-left text-gray-500">
-            <thead className="text-xs text-white uppercase bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">User ID</th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">Username</th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">Email ID</th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">Phone Number</th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">Registration Date</th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {tableRows}
-            </tbody>
-          </table>
+    <div className="w-full">
+      <div className="w-full bg-white rounded-lg p-4">
+        <div className="relative overflow-x-auto">
+          {loading ? (
+            <LoadingSpinner />
+          ) : error ? (
+            <div className="text-center py-4 text-red-500">Error: {error}</div>
+          ) : (
+            <TableContent users={users} navigate={navigate} />
+          )}
         </div>
       </div>
     </div>
