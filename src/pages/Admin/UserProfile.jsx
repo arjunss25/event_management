@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes, FaCheck } from 'react-icons/fa';
 import { RxPerson } from 'react-icons/rx';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../axiosConfig';
@@ -17,6 +17,7 @@ const UserProfile = () => {
   const [mealData, setMealData] = useState([]);
   const [allocatedMeals, setAllocatedMeals] = useState([]);
   const [expandedDays, setExpandedDays] = useState({});
+  const [mealConsumption, setMealConsumption] = useState({});
 
   // Get user ID from URL params
   const { id } = useParams();
@@ -71,6 +72,21 @@ const UserProfile = () => {
     }
   };
 
+  // Add this new fetch function
+  const fetchMealConsumption = async (date) => {
+    try {
+      const response = await axiosInstance.get(`/user-meal-info/${id}/${date}/`);
+      if (response.data?.status_code === 200) {
+        setMealConsumption(prev => ({
+          ...prev,
+          [date]: response.data.data
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching meal consumption:', err);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchUserData();
@@ -86,11 +102,19 @@ const UserProfile = () => {
     setSidebarOpen(false);
   };
 
-  const toggleDay = (dayId) => {
-    setExpandedDays(prev => ({
-      ...prev,
-      [dayId]: !prev[dayId]
-    }));
+  const toggleDay = (dayId, date) => {
+    setExpandedDays(prev => {
+      const newState = {
+        ...prev,
+        [dayId]: !prev[dayId]
+      };
+      
+      // Fetch meal consumption when expanding
+      if (newState[dayId]) {
+        fetchMealConsumption(date);
+      }
+      return newState;
+    });
   };
 
   if (loading) {
@@ -217,13 +241,13 @@ const UserProfile = () => {
               <h2 className="text-xl md:text-2xl font-semibold mb-6">Allocated Meals</h2>
               
               <div className="meal-details-section w-full flex flex-col items-center gap-3">
-                {allocatedMeals.map((day) => (
+                {allocatedMeals.map((day, index) => (
                   <div key={day.id} className="w-full">
                     <button
-                      onClick={() => toggleDay(day.id)}
+                      onClick={() => toggleDay(day.id, day.date)}
                       className="w-full bg-white border border-gray-500 rounded-md px-4 py-2 flex justify-between items-center hover:bg-gray-50"
                     >
-                      <span className="text-gray-700">{day.date}</span>
+                      <span className="text-gray-700">Day {index + 1} - {day.date}</span>
                       {expandedDays[day.id] ? (
                         <FiChevronUp className="w-5 h-5 text-gray-500" />
                       ) : (
@@ -240,6 +264,9 @@ const UserProfile = () => {
                           >
                             <div className="flex items-center justify-between">
                               <span>{meal.name}</span>
+                              {mealConsumption[day.date]?.[meal.name] && (
+                                <FaCheck className="text-green-500" />
+                              )}
                             </div>
                           </div>
                         ))}
@@ -248,44 +275,6 @@ const UserProfile = () => {
                   </div>
                 ))}
               </div>
-
-              <h2 className="text-xl md:text-2xl font-semibold mb-6 mt-8">Meal History</h2>
-              {mealData.length > 0 ? (
-                <div className="overflow-x-auto -mx-4 md:mx-0">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Date
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Meal Type
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {mealData.map((meal, index) => (
-                        <tr key={index}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {meal.date}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {meal.type}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {meal.status}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center">No meal history available</p>
-              )}
             </div>
           )}
         </div>

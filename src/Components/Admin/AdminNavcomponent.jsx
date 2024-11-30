@@ -6,6 +6,7 @@ import { IoLogOutOutline, IoCloseOutline } from "react-icons/io5";
 import { BsQrCodeScan } from "react-icons/bs";
 import QrScanner from 'react-qr-scanner';
 import axiosInstance from '../../axiosConfig';
+import EmployeeCheckinDetails from './EmployeeCheckinDetails';
 
 const originalConsoleError = console.error;
 console.error = (...args) => {
@@ -20,6 +21,9 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   const [logoImage, setLogoImage] = useState('/Neurocode.png');
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
+  const [employeeDetails, setEmployeeDetails] = useState(null);
+  const [scanError, setScanError] = useState(null);
+  const [isScanning, setIsScanning] = useState(true);
 
   useEffect(() => {
     const fetchEventLogo = async () => {
@@ -40,21 +44,67 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     fetchEventLogo();
   }, []);
 
-  const handleScan = (data) => {
-    if (data) {
-      console.log('QR Code detected:', data);
-      setShowScanner(false);
+  const handleScan = async (data) => {
+    if (data && isScanning) {
+      setIsScanning(false); // Prevent multiple scans
+      setScanError(null);
+      
+      try {
+        // Extract email from the formatted string
+        const qrText = data.text;
+        const emailMatch = qrText.match(/Email:\s*([\w.-]+@[\w.-]+)/);
+        
+        if (!emailMatch) {
+          setScanError('Invalid QR code format. Please try a valid employee QR code.');
+          return;
+        }
+
+        const email = emailMatch[1]; // This will get just the email part
+        console.log('Extracted email:', email);
+
+        const response = await axiosInstance.get('/employee-qr-detail/', {
+          data: {
+            employee_email: email
+          }
+        });
+        
+        if (response.data.status === "Success") {
+          setEmployeeDetails(response.data.data);
+          setShowScanner(false);
+        } else {
+          setScanError(response.data.message || 'Failed to get employee details');
+        }
+      } catch (error) {
+        setScanError(error.response?.data?.message || 'Failed to scan QR code. Please try again.');
+      }
     }
   };
 
-  const handleError = (err) => {
-    console.error(err);
+  const handleCheckin = async () => {
+    // Implement check-in logic here
+    setEmployeeDetails(null);
+  };
+
+  const handleCheckout = async () => {
+    // Implement check-out logic here
+    setEmployeeDetails(null);
+  };
+
+  const handleError = (error) => {
+    console.warn('QR Scanner Error:', error?.message);
+    // You can add user notification here if needed
   };
 
   const previewStyle = {
     width: '100%',
     height: '100%',
     willReadFrequently: true
+  };
+
+  const closeScanner = () => {
+    setShowScanner(false);
+    setScanError(null);
+    setIsScanning(true);
   };
 
   return (
@@ -86,7 +136,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold text-gray-800">Scan QR Code</h2>
                     <button 
-                      onClick={() => setShowScanner(false)}
+                      onClick={closeScanner}
                       className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
                     >
                       <IoCloseOutline className="text-2xl text-gray-600" />
@@ -97,31 +147,51 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                 {/* Scanner Container */}
                 <div className="p-6">
                   <div className="relative w-full aspect-square max-w-[400px] mx-auto rounded-lg overflow-hidden bg-gray-900">
-                    <QrScanner
-                      delay={300}
-                      onError={handleError}
-                      onScan={handleScan}
-                      style={previewStyle}
-                      constraints={{
-                        video: { facingMode: "environment" }
-                      }}
-                    />
-                    {/* Scanner Overlay */}
+                    {isScanning && (
+                      <QrScanner
+                        delay={300}
+                        onError={handleError}
+                        onScan={handleScan}
+                        style={previewStyle}
+                        constraints={{
+                          video: { facingMode: "environment" }
+                        }}
+                      />
+                    )}
                     <div className="absolute inset-0 border-2 border-white/30">
                       <div className="absolute inset-0 border-2 border-white/30 m-8"></div>
                     </div>
                   </div>
                   
-                  {/* Instructions */}
-                  <p className="text-gray-600 text-center mt-4 text-sm">
-                    Position the QR code within the frame to scan
-                  </p>
+                  {/* Error Message */}
+                  {scanError && (
+                    <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                      {scanError}
+                    </div>
+                  )}
+                  
+                  {/* Instructions or Retry Button */}
+                  {scanError ? (
+                    <button
+                      onClick={() => {
+                        setScanError(null);
+                        setIsScanning(true);
+                      }}
+                      className="mt-4 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      Try Again
+                    </button>
+                  ) : (
+                    <p className="text-gray-600 text-center mt-4 text-sm">
+                      Position the QR code within the frame to scan
+                    </p>
+                  )}
                 </div>
 
                 {/* Footer */}
                 <div className="p-4 border-t border-gray-200 flex justify-end">
                   <button
-                    onClick={() => setShowScanner(false)}
+                    onClick={closeScanner}
                     className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
                   >
                     Close Scanner
@@ -180,6 +250,15 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
           )}
         </div>
       </div>
+
+      {employeeDetails && (
+        <EmployeeCheckinDetails
+          employee={employeeDetails}
+          onClose={() => setEmployeeDetails(null)}
+          onCheckin={handleCheckin}
+          onCheckout={handleCheckout}
+        />
+      )}
     </div>
   );
 };
