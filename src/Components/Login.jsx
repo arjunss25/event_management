@@ -55,55 +55,52 @@ const Login = () => {
         { email, password }
       );
   
-      if (response.status === 200 && response.data.status === 'Success') {
-        const { access, refresh, role, firebaseToken, event_group_id } = response.data.data;
-        
-        if (firebaseToken) {
-          try {
-            await signInWithCustomToken(auth, firebaseToken);
-            console.log('✅ Firebase authentication successful');
-          } catch (firebaseError) {
-            console.error('Firebase authentication failed:', firebaseError);
-            throw new Error('Firebase authentication failed');
-          }
-        } else {
-          console.warn('⚠️ No Firebase token received from backend');
-        }
-        
-        tokenService.setTokens(access, refresh, firebaseToken);
-        
-        const userData = {
-          email,
-          role,
-        };
-        tokenService.setUserData(userData);
-  
-        dispatch(loginSuccess({
-          token: access,
-          user: userData,
-          event_group_id: event_group_id,
-        }));
-  
-        switch (role?.toLowerCase()) {
-          case 'superadmin':
-            navigate('/superadmin/dashboard');
-            break;
-          case 'admin':
-            navigate('/admin/welcomepage');
-            break;
-          case 'employee':
-            navigate('/employee/scanner');
-            break;
-          default:
-            setError(`Unauthorized role: ${role}`);
+      const { access, refresh, role, firebaseToken, event_group_id } = response.data.data;
+      
+      if (firebaseToken) {
+        try {
+          await signInWithCustomToken(auth, firebaseToken);
+          console.log('✅ Firebase authentication successful');
+        } catch (firebaseError) {
+          console.error('Firebase authentication failed:', firebaseError);
+          throw new Error('Firebase authentication failed');
         }
       } else {
-        throw new Error(response.data.message || 'Authentication failed');
+        console.warn('⚠️ No Firebase token received from backend');
+      }
+      
+      tokenService.setTokens(access, refresh, firebaseToken);
+      
+      const userData = {
+        email,
+        role,
+      };
+      tokenService.setUserData(userData);
+  
+      dispatch(loginSuccess({
+        token: access,
+        user: userData,
+        event_group_id: event_group_id,
+      }));
+  
+      switch (role?.toLowerCase()) {
+        case 'superadmin':
+          navigate('/superadmin/dashboard');
+          break;
+        case 'admin':
+          navigate('/admin/welcomepage');
+          break;
+        case 'employee':
+          navigate('/employee/scanner');
+          break;
+        default:
+          setError(`Unauthorized role: ${role}`);
       }
     } catch (error) {
       console.error('Authentication error:', error);
-      dispatch(loginFailure(error.message));
-      setError('Authentication failed. Please check your credentials.');
+      const errorMessage = error.response?.data?.message || 'Authentication failed. Please check your credentials.';
+      dispatch(loginFailure(errorMessage));
+      setError(errorMessage);
       tokenService.clearTokens();
     }
   };

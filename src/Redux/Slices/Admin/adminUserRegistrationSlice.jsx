@@ -7,12 +7,13 @@ export const fetchRegisteredUsers = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/list-registered-users/');
-      
-      if (response.data.status !== "Success") {
-        return rejectWithValue(response.data.message);
+
+      // Check if response.data exists and contains the data array
+      if (response.data && response.data.data) {
+        return response.data.data;
       }
 
-      return response.data.data;
+      return rejectWithValue('No user data available');
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Failed to fetch registered users'

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { HiMenuAlt1 } from "react-icons/hi";
+import { HiMenuAlt1 } from 'react-icons/hi';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUser, logout } from '../../Redux/authSlice';
-import { IoLogOutOutline, IoCloseOutline } from "react-icons/io5";
-import { BsQrCodeScan } from "react-icons/bs";
+import { IoLogOutOutline, IoCloseOutline } from 'react-icons/io5';
+import { BsQrCodeScan } from 'react-icons/bs';
 import QrScanner from 'react-qr-scanner';
 import axiosInstance from '../../axiosConfig';
 import EmployeeCheckinDetails from './EmployeeCheckinDetails';
@@ -48,43 +48,49 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     if (data && isScanning) {
       setIsScanning(false); // Prevent multiple scans
       setScanError(null);
-      
+
       try {
-        // Extract email from the formatted string
-        const qrText = data.text;
-        const emailMatch = qrText.match(/Email:\s*([\w.-]+@[\w.-]+)/);
-        
-        if (!emailMatch) {
-          setScanError('Invalid QR code format. Please try a valid employee QR code.');
+        // Extract just the email from the QR text
+        const emailMatch = data.text.match(/Email: (.*?)(?:$|,|\s)/);
+        const email = emailMatch ? emailMatch[1] : null;
+
+        if (!email) {
+          setScanError('Invalid QR code. Please try again.');
           return;
         }
 
-        const email = emailMatch[1]; // This will get just the email part
-        console.log('Extracted email:', email);
-
         const response = await axiosInstance.post('/employee-qr-detail/', {
-          employee_email: email
+          employee_email: email, // Will send just the email like "reyna@gmail.com"
         });
-        
-        if (response.data.status === "Success") {
+
+        if (
+          response.data.status === "Success 'Ok'." ||
+          response.data.status === 'Success'
+        ) {
           setEmployeeDetails(response.data.data);
           setShowScanner(false);
         } else {
-          setScanError(response.data.message || 'Failed to get employee details');
+          setScanError(
+            response.data.message || 'Failed to get employee details'
+          );
         }
       } catch (error) {
-        setScanError(error.response?.data?.message || 'Failed to scan QR code. Please try again.');
+        setScanError('Scan failed. Please try again.');
+        console.error('Scan error:', error);
       }
     }
   };
 
   const handleCheckin = async () => {
     try {
-      const response = await axiosInstance.post('/employee-check-in-out/checkin/', {
-        employee_email: employeeDetails.email
-      });
-      
-      if (response.data.status === "Success") {
+      const response = await axiosInstance.post(
+        '/employee-check-in-out/checkin/',
+        {
+          employee_email: employeeDetails.email,
+        }
+      );
+
+      if (response.data.status === 'Success') {
         // You might want to show a success message here
         setEmployeeDetails(null);
       } else {
@@ -92,17 +98,23 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
         console.error('Check-in failed:', response.data.message);
       }
     } catch (error) {
-      console.error('Check-in error:', error.response?.data?.message || 'Failed to check in');
+      console.error(
+        'Check-in error:',
+        error.response?.data?.message || 'Failed to check in'
+      );
     }
   };
 
   const handleCheckout = async () => {
     try {
-      const response = await axiosInstance.post('/employee-check-in-out/checkout/', {
-        employee_email: employeeDetails.email
-      });
-      
-      if (response.data.status === "Success") {
+      const response = await axiosInstance.post(
+        '/employee-check-in-out/checkout/',
+        {
+          employee_email: employeeDetails.email,
+        }
+      );
+
+      if (response.data.status === 'Success') {
         // You might want to show a success message here
         setEmployeeDetails(null);
       } else {
@@ -110,7 +122,10 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
         console.error('Check-out failed:', response.data.message);
       }
     } catch (error) {
-      console.error('Check-out error:', error.response?.data?.message || 'Failed to check out');
+      console.error(
+        'Check-out error:',
+        error.response?.data?.message || 'Failed to check out'
+      );
     }
   };
 
@@ -122,7 +137,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   const previewStyle = {
     width: '100%',
     height: '100%',
-    willReadFrequently: true
+    willReadFrequently: true,
   };
 
   const closeScanner = () => {
@@ -144,7 +159,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   };
 
   return (
-    <div className='w-full font-bold h-[8vh] flex items-center justify-between lg:justify-end px-5 py-8 lg:px-10 lg:py-10'>
+    <div className="w-full font-bold h-[8vh] flex items-center justify-between lg:justify-end px-5 py-8 lg:px-10 lg:py-10">
       {/* left-section for small screens */}
       <div className="left-section block lg:hidden" onClick={toggleSidebar}>
         <div className="menubar text-[2rem] text-[#636e72] hover:text-black cursor-pointer">
@@ -156,13 +171,13 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
       <div className="right-sec flex items-center gap-5">
         {/* QR Scanner */}
         <div className="relative">
-          <button 
-            onClick={toggleScanner} 
-            className='text-[2rem] text-[#636e72] hover:text-black transition-colors duration-200'
+          <button
+            onClick={toggleScanner}
+            className="text-[2rem] text-[#636e72] hover:text-black transition-colors duration-200"
           >
             <BsQrCodeScan />
           </button>
-          
+
           {/* Enhanced Scanner Modal */}
           {showScanner && (
             <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
@@ -170,8 +185,10 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                 {/* Header */}
                 <div className="p-4 border-b border-gray-200">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-800">Scan QR Code</h2>
-                    <button 
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      Scan QR Code
+                    </h2>
+                    <button
                       onClick={closeScanner}
                       className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
                     >
@@ -190,7 +207,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                         onScan={handleScan}
                         style={previewStyle}
                         constraints={{
-                          video: { facingMode: "environment" }
+                          video: { facingMode: 'environment' },
                         }}
                       />
                     )}
@@ -198,14 +215,14 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                       <div className="absolute inset-0 border-2 border-white/30 m-8"></div>
                     </div>
                   </div>
-                  
+
                   {/* Error Message */}
                   {scanError && (
                     <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
                       {scanError}
                     </div>
                   )}
-                  
+
                   {/* Instructions or Retry Button */}
                   {scanError ? (
                     <button
@@ -240,13 +257,13 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
 
         {/* profile-icon */}
         <div className="profile-icon relative">
-          <div 
+          <div
             className="w-10 h-10 rounded-full border-[1px] border-[#636e72] flex items-center justify-center cursor-pointer"
             onClick={() => setShowProfile(!showProfile)}
           >
-            <img 
-              className='w-[1.5rem] object-contain' 
-              src={logoImage}  
+            <img
+              className="w-[1.5rem] object-contain"
+              src={logoImage}
               alt="Profile"
               onError={(e) => {
                 e.target.src = '/Neurocode.png';
@@ -257,7 +274,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
           {/* Profile Dropdown */}
           {showProfile && (
             <div className="absolute right-0 top-10 w-64 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
-              <button 
+              <button
                 onClick={() => setShowProfile(false)}
                 className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
               >
@@ -272,7 +289,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                   {user?.email}
                 </div>
               </div>
-              
+
               <div className="px-4 py-2">
                 <button
                   onClick={() => dispatch(logout())}
