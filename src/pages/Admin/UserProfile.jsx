@@ -46,6 +46,8 @@ const UserProfile = () => {
   };
 
   // Fetch meal data
+
+  
   // const fetchMealData = async () => {
   //   try {
   //     const response = await axiosInstance.get(`/user-meals/${id}/`);
