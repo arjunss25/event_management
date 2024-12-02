@@ -37,7 +37,15 @@ const AdminEventDetails = () => {
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
   const toggleEditModal = () => {
-    setIsEditModalOpen(!isEditModalOpen);
+    setIsEditModalOpen(prev => !prev);
+    if (isEditModalOpen) {
+      setFormData({
+        venue: selectedEvent?.venue || '',
+        seatsAllocated: selectedEvent?.seatsBooked?.toString() || '',
+        paymentStatus: selectedEvent?.paymentStatus || '',
+        totalAmount: selectedEvent?.totalAmount || ''
+      });
+    }
   };
 
   const handleNext = () => {
@@ -64,8 +72,11 @@ const AdminEventDetails = () => {
     dispatch(updateEventDetails({
       venue: formData.venue,
       seatsBooked: parseInt(formData.seatsAllocated)
-    }));
-    toggleEditModal();
+    })).then(() => {
+      setIsEditModalOpen(false);
+      setCurrentStep(0);
+      dispatch(fetchEventDetails());
+    });
   };
 
   const renderEventDetailsContent = () => {
@@ -321,7 +332,7 @@ const AdminEventDetails = () => {
                 {currentStep > 0 && (
                   <button 
                     onClick={handlePrevious}
-                    className="px-4 py-2 text-white bg-gray-500 rounded-lg"
+                    className="px-5 py-2 text-black border-[1px] border-black rounded-full"
                   >
                     Previous
                   </button>
@@ -329,14 +340,14 @@ const AdminEventDetails = () => {
                 {currentStep === 2 ? (
                   <button 
                     onClick={handleSave}
-                    className="px-4 py-2 text-white bg-green-600 rounded-lg"
+                    className="px-8 py-2 text-white bg-black rounded-full"
                   >
                     Save
                   </button>
                 ) : currentStep < 2 && (
                   <button 
                     onClick={handleNext}
-                    className="px-4 py-2 text-white bg-black rounded-lg"
+                    className="px-8 py-2 text-white bg-black rounded-full"
                   >
                     Next
                   </button>

@@ -1,6 +1,6 @@
-.employee-allocation-table::-webkit-scrollbar{
+/* .employee-allocation-table::-webkit-scrollbar{
     display: none;
-}
+} */
 
 
 
@@ -10,5 +10,11 @@
     }
     .employee-allocation-left, .employee-allocation-right{
         width: 100%;
+    }
+  }
+@media (min-width: 350px) and (max-width:515px) {
+    .position-btn-sec{
+        flex-direction: column;
+        align-items: flex-start;
     }
   }

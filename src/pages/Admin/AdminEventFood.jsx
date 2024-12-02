@@ -20,6 +20,7 @@ import {
   postMealCategoryForDate,
   postRemoveMealCategory,
 } from '../../Redux/Slices/Admin/eventFoodSlice';
+import './AdminEventFood.css';
 
 const AdminEventFood = () => {
   const dispatch = useDispatch();
@@ -89,9 +90,9 @@ const AdminEventFood = () => {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row w-full gap-4 p-4">
+    <div className="flex flex-col-reverse lg:flex-row w-full gap-4 meal-sec-main">
       {/* Left Section - Daily Meal Overview */}
-      <div className="w-full lg:w-1/2 bg-white rounded-lg meal-sec ">
+      <div className="w-full lg:w-1/2 bg-white rounded-lg meal-sec meal-sec-left ">
         <h2 className="text-xl font-semibold mb-4 lg:mb-6 text-gray-800">Daily Meal Overview</h2>
         
         <div className="mb-4 px-5 py-3 bg-black text-white w-fit rounded-full">
@@ -170,7 +171,7 @@ const AdminEventFood = () => {
       </div>
 
       {/* Right Section - Add Meal Category */}
-      <div className="w-full lg:w-1/2 bg-black rounded-lg p-4 lg:p-6 shadow-md">
+      <div className="w-full lg:w-1/2 bg-black rounded-lg p-4 lg:p-6 shadow-md meal-sec-right">
         <h2 className="text-xl font-semibold mb-4 lg:mb-6 text-white">
           Add Meal Category {selectedDayId ? `for Day ${selectedDayId}` : ''}
           {!applyToAllDays && selectedDayId && days.find(d => d.id === selectedDayId)?.date && (
@@ -180,7 +181,7 @@ const AdminEventFood = () => {
           )}
         </h2>
         
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 add-cat-sec">
           <input
             type="text"
             placeholder="Meal Category"

@@ -7,6 +7,7 @@ import { auth } from './firebase/firebaseConfig';
 import { API_CONFIG } from './config/config';
 import { tokenService } from './tokenService';
 import axiosInstance from './axiosConfig';
+import axios from 'axios';
 
 
 export const checkServerConnection = async () => {
@@ -29,34 +30,30 @@ export const checkServerConnection = async () => {
 export const refreshAccessToken = async () => {
   try {
     const refreshToken = tokenService.getRefreshToken();
-    const firebaseToken = tokenService.getFirebaseToken();
-
-    console.log('Attempting to refresh access token...');
-    console.log('Refresh Token:', refreshToken);
-    console.log('Firebase Token:', firebaseToken);
-
-    if (!refreshToken || !firebaseToken) {
-      throw new Error('Missing tokens for refresh');
+    
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
     }
 
-    const response = await axiosInstance.post('/refresh-token/', {
-      refresh: refreshToken,
-    }, {
-      headers: {
-        'Authorization': `Bearer ${firebaseToken}`,
-      },
-    });
+    const response = await axios.post(
+      'https://event.neurocode.in/webapi/refresh-token/',
+      { refresh: refreshToken },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to refresh token');
+    if (response.data.status === 'Success') {
+      const { access, refresh } = response.data.data;
+      tokenService.setTokens(access, refresh);
+      return access;
+    } else {
+      throw new Error('Token refresh failed');
     }
-
-    const data = await response.json();
-    tokenService.setTokens(data.access, data.refresh);
-    return data.access;
   } catch (error) {
-    console.error('Token refresh failed:', error.message);
+    console.error('Token refresh failed:', error);
     tokenService.clearTokens();
     throw error;
   }

@@ -1,15 +1,5 @@
 import axios from 'axios';
-import { refreshAccessToken } from './authService';
 import { tokenService } from './tokenService';
-
-// Create axios instance with updated baseURL
-const axiosInstance = axios.create({
-  baseURL: 'https://event.neurocode.in/webapi',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -25,56 +15,33 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const axiosInstance = axios.create({
+  baseURL: 'https://event.neurocode.in/webapi',
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  }
+});
+
 // Request interceptor
 axiosInstance.interceptors.request.use(
-  async (config) => {
-    const firebaseToken = tokenService.getFirebaseToken();
-    const accessToken = tokenService.getAccessToken();
-
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+  (config) => {
+    const token = tokenService.getAccessToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    if (firebaseToken) {
-      config.headers['Firebase-Token'] = firebaseToken; 
-    }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Request:', {
-        url: config.url,
-        method: config.method,
-        headers: config.headers,
-        data: config.data
-      });
-    }
-
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
 // Response interceptor
 axiosInstance.interceptors.response.use(
-  (response) => {
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Response:', {
-        status: response.status,
-        data: response.data
-      });
-    }
-    return response;
-  },
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    // Log errors in development
-    if (process.env.NODE_ENV === 'development') {
-      // console.error('Response Error:', {
-      //   status: error.response?.status,
-      //   data: error.response?.data,
-      //   config: originalRequest
-      // });
-    }
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -92,13 +59,29 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const newAccessToken = await refreshAccessToken();
-        tokenService.setAccessToken(newAccessToken);
+        const refreshToken = tokenService.getRefreshToken();
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const response = await axios.post(
+          'https://event.neurocode.in/webapi/refresh-token/',
+          { refresh: refreshToken },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        const { access, refresh } = response.data.data;
         
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-        processQueue(null, newAccessToken);
+        // Store new tokens
+        tokenService.setTokens(access, refresh);
         
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        // Update authorization header
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+        originalRequest.headers.Authorization = `Bearer ${access}`;
+        
+        // Process queue
+        processQueue(null, access);
+        
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
@@ -109,6 +92,7 @@ axiosInstance.interceptors.response.use(
         isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );

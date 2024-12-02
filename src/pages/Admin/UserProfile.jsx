@@ -46,19 +46,19 @@ const UserProfile = () => {
   };
 
   // Fetch meal data
-  const fetchMealData = async () => {
-    try {
-      const response = await axiosInstance.get(`/api/user-meals/${id}/`);
-      if (response.data?.status_code === 200) {
-        setMealData(response.data.data || []);
-      } else {
-        setMealData([]);
-      }
-    } catch (err) {
-      console.error('Error fetching meal data:', err);
-      setMealData([]);
-    }
-  };
+  // const fetchMealData = async () => {
+  //   try {
+  //     const response = await axiosInstance.get(`/user-meals/${id}/`);
+  //     if (response.data?.status_code === 200) {
+  //       setMealData(response.data.data || []);
+  //     } else {
+  //       setMealData([]);
+  //     }
+  //   } catch (err) {
+  //     console.error('Error fetching meal data:', err);
+  //     setMealData([]);
+  //   }
+  // };
 
   // Add this new fetch function
   const fetchAllocatedMeals = async () => {
@@ -90,7 +90,7 @@ const UserProfile = () => {
   useEffect(() => {
     if (id) {
       fetchUserData();
-      fetchMealData();
+      // fetchMealData();
       fetchAllocatedMeals();
     }
   }, [id]);

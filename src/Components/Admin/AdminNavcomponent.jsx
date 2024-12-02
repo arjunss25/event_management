@@ -62,10 +62,8 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
         const email = emailMatch[1]; // This will get just the email part
         console.log('Extracted email:', email);
 
-        const response = await axiosInstance.get('/employee-qr-detail/', {
-          data: {
-            employee_email: email
-          }
+        const response = await axiosInstance.post('/employee-qr-detail/', {
+          employee_email: email
         });
         
         if (response.data.status === "Success") {
@@ -81,13 +79,39 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   };
 
   const handleCheckin = async () => {
-    // Implement check-in logic here
-    setEmployeeDetails(null);
+    try {
+      const response = await axiosInstance.post('/employee-check-in-out/checkin/', {
+        employee_email: employeeDetails.email
+      });
+      
+      if (response.data.status === "Success") {
+        // You might want to show a success message here
+        setEmployeeDetails(null);
+      } else {
+        // Handle error case
+        console.error('Check-in failed:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Check-in error:', error.response?.data?.message || 'Failed to check in');
+    }
   };
 
   const handleCheckout = async () => {
-    // Implement check-out logic here
-    setEmployeeDetails(null);
+    try {
+      const response = await axiosInstance.post('/employee-check-in-out/checkout/', {
+        employee_email: employeeDetails.email
+      });
+      
+      if (response.data.status === "Success") {
+        // You might want to show a success message here
+        setEmployeeDetails(null);
+      } else {
+        // Handle error case
+        console.error('Check-out failed:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Check-out error:', error.response?.data?.message || 'Failed to check out');
+    }
   };
 
   const handleError = (error) => {
@@ -105,6 +129,18 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     setShowScanner(false);
     setScanError(null);
     setIsScanning(true);
+    setTimeout(() => {
+      setIsScanning(true);
+    }, 100);
+  };
+
+  const toggleScanner = () => {
+    if (showScanner) {
+      closeScanner();
+    } else {
+      setShowScanner(true);
+      setIsScanning(true);
+    }
   };
 
   return (
@@ -121,7 +157,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
         {/* QR Scanner */}
         <div className="relative">
           <button 
-            onClick={() => setShowScanner(!showScanner)} 
+            onClick={toggleScanner} 
             className='text-[2rem] text-[#636e72] hover:text-black transition-colors duration-200'
           >
             <BsQrCodeScan />

@@ -31,7 +31,11 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
   const handleScan = async (data) => {
     if (data && mealInfo) {
       try {
-        // Extract the unique ID from the scanned text
+        setScanning(false);
+
+        console.log('Scanned Data:', data);
+        console.log('Selected Meal Info:', mealInfo);
+
         const uniqueIdMatch = data.text.match(/Unique ID: (\w+)/);
         const uniqueId = uniqueIdMatch ? uniqueIdMatch[1] : null;
 
@@ -39,56 +43,38 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
           throw new Error('Invalid QR code format');
         }
 
-        // Format the date from DD-MM-YYYY to YYYY-MM-DD
-        const formatDate = (dateString) => {
-          if (!dateString) {
-            throw new Error('Date is required');
-          }
-          
-          // Split the date string by hyphen
-          const [day, month, year] = dateString.split('-');
-          
-          // Validate parts
-          if (!day || !month || !year) {
-            throw new Error('Invalid date format');
-          }
-          
-          // Return in YYYY-MM-DD format
-          return `${year}-${month}-${day}`;
-        };
-
-        // Vibrate if supported
-        if (navigator.vibrate) {
-          navigator.vibrate(200);
+        if (!mealInfo.date) {
+          throw new Error('No meal date selected. Please select a meal first.');
         }
 
-        setScanStatus({ loading: true, error: null });
-        setScannedData(data);
-        setScanning(false);
+        if (!mealInfo.mealCategory) {
+          throw new Error('No meal category selected.');
+        }
 
-        // Format the payload
+        const [day, month, year] = mealInfo.date.split('-');
+        const formattedDate = `${year}-${month}-${day}`;
+
         const payload = {
           unique_id: uniqueId,
           meal_type_name: mealInfo.mealCategory,
-          meal_date: formatDate(mealInfo.date)
+          meal_date: formattedDate
         };
 
-        console.log('Sending payload:', payload); // For debugging
+        console.log('Sending payload:', payload);
 
-        // Make API call
         const response = await axiosInstance.post('/scan-meals/', payload);
-        console.log('Scan successful:', response.data);
+        console.log('API Response:', response.data);
 
-        // Close the scanner after successful scan
         setTimeout(() => {
           onClose();
         }, 2000);
 
       } catch (error) {
+        setScanning(false);
         console.error('Scan API Error:', error);
         setScanStatus({ 
           loading: false, 
-          error: error.response?.data?.message || 'Failed to process scan'
+          error: error.message || 'Failed to process scan'
         });
       }
     }

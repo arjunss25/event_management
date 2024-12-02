@@ -8,43 +8,36 @@ const TOKEN_CONFIG = {
 };
 
 export const tokenService = {
-  setTokens(accessToken, refreshToken, firebaseToken) {
-    console.log('setTokens called with:', { 
-      accessToken: accessToken ? '✓' : '✗', 
-      refreshToken: refreshToken ? '✓' : '✗', 
-      firebaseToken: firebaseToken ? '✓' : '✗' 
-    });
-    
+  setTokens(accessToken, refreshToken, firebaseToken = null) {
     if (typeof window !== "undefined") {
       try {
         if (accessToken) {
           localStorage.setItem(TOKEN_CONFIG.ACCESS_TOKEN, accessToken);
-          console.log('✅ Access Token stored successfully');
+          console.log('✅ Access Token set');
         }
         
         if (refreshToken) {
           localStorage.setItem(TOKEN_CONFIG.REFRESH_TOKEN, refreshToken);
-          console.log('✅ Refresh Token stored successfully');
+          console.log('✅ Refresh Token set');
         }
         
         if (firebaseToken) {
           localStorage.setItem(TOKEN_CONFIG.FIREBASE_TOKEN, firebaseToken);
-          console.log('✅ Firebase Token stored successfully');
-        } else {
-          console.warn('⚠️ No Firebase token provided to setTokens');
+          console.log('✅ Firebase Token set');
         }
 
-        // Verify storage
-        console.log('🔍 Verifying stored tokens:', {
-          accessToken: localStorage.getItem(TOKEN_CONFIG.ACCESS_TOKEN) ? '✓' : '✗',
-          refreshToken: localStorage.getItem(TOKEN_CONFIG.REFRESH_TOKEN) ? '✓' : '✗',
-          firebaseToken: localStorage.getItem(TOKEN_CONFIG.FIREBASE_TOKEN) ? '✓' : '✗'
-        });
+        // Verify tokens were stored
+        const storedAccess = localStorage.getItem(TOKEN_CONFIG.ACCESS_TOKEN);
+        const storedRefresh = localStorage.getItem(TOKEN_CONFIG.REFRESH_TOKEN);
+
+        if (accessToken && !storedAccess || refreshToken && !storedRefresh) {
+          throw new Error('Token storage verification failed');
+        }
       } catch (error) {
-        console.error('❌ Error storing tokens:', error);
+        console.error('Error storing tokens:', error);
+        this.clearTokens();
+        throw error;
       }
-    } else {
-      console.error("❌ localStorage is not available in this environment.");
     }
   },
 
@@ -192,6 +185,19 @@ export const tokenService = {
       return isExpired;
     } catch (error) {
       console.error('❌ Error decoding token:', error);
+      return true;
+    }
+  },
+
+  isAccessTokenExpired() {
+    const token = this.getAccessToken();
+    if (!token) return true;
+    
+    try {
+      const decoded = jwtDecode(token);
+      const currentTime = Math.floor(Date.now() / 1000);
+      return decoded.exp < currentTime;
+    } catch {
       return true;
     }
   },

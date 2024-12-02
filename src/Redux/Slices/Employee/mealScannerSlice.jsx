@@ -1,5 +1,5 @@
 // src/Redux/Slices/Employee/mealScannerSlice.js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import axiosInstance from '../../../axiosConfig';
 
@@ -25,7 +25,8 @@ export const getDays = createAsyncThunk(
           ? dayData.meals.map(meal => ({
               id: `meal-${Math.random()}`,
               name: meal,
-              status: 'pending'
+              status: 'pending',
+              date: dayData.date
           }))
           : [],
         isOpen: false
@@ -73,8 +74,9 @@ const mealScannerSlice = createSlice({
       state.selectedMeals[dayId] = selectedCategories;
     },
     toggleScanner: (state, action) => {
-      state.scannerOpen = action.payload.isOpen;
-      state.currentScanningMeal = action.payload.mealInfo || null;
+      const { isOpen, mealInfo } = action.payload;
+      state.scannerOpen = isOpen;
+      state.currentScanningMeal = mealInfo;
     }
   },
   extraReducers: (builder) => {

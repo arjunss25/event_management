@@ -1,3 +1,19 @@
 .meal-sec::-webkit-scrollbar{
     width: 0px !important;
 }
+
+
+
+@media (min-width: 1024px) and (max-width:1400px) {
+    .meal-sec-main{
+        flex-direction: column-reverse;
+    }
+    .meal-sec-left, .meal-sec-right{
+        width: 100%;
+    }
+  }
+@media (min-width: 350px) and (max-width:420px) {
+    .add-cat-sec{
+        flex-direction: column;
+    }
+  }

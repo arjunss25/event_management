@@ -26,12 +26,13 @@ const MealScanner = () => {
     dispatch(toggleDay(dayId));
   };
 
-  const handleMealSelect = (dayId, mealCategory) => {
+  const handleMealSelect = (dayId, mealCategory, date) => {
     dispatch(toggleScanner({ 
       isOpen: true, 
       mealInfo: {
         dayId,
-        mealCategory
+        mealCategory,
+        date
       }
     }));
   };
@@ -82,7 +83,7 @@ const MealScanner = () => {
                 {day.mealCategories.map((meal, index) => (
                   <div 
                     key={`${day.id}-${meal.name}-${index}`}
-                    onClick={() => handleMealSelect(day.id, meal.name)}
+                    onClick={() => handleMealSelect(day.id, meal.name, day.date)}
                     className={`p-3 cursor-pointer ${
                       selectedMeals[day.id]?.includes(meal.name) ? 'bg-[#98f5e1]' : 'bg-gray-50'
                     } border-t border-gray-200 first:border-t-0 hover:bg-[#98f5e1] transition-colors`}

@@ -35,25 +35,19 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
   const dispatch = useDispatch();
   const { paymentLoading, paymentError } = useSelector((state) => state.events);
   
-  // Log the props to verify we're receiving them
-  console.log('AddPaymentModal Props:', { eventId, eventGroupId });
-  
   const [formData, setFormData] = useState({
     date: '',
-    amount: '',
-    status: 'Pending'
+    amount: ''
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Log the full payment data before dispatch
     const paymentData = {
       eventId: eventId,
       eventGroupId: eventGroupId,
       date: formData.date,
-      amount: formData.amount,
-      status: formData.status
+      amount: formData.amount
     };
     
     console.log('Submitting payment with data:', paymentData);
@@ -124,23 +118,6 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
                 placeholder="Enter amount"
                 required
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Status
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="Pending">Pending</option>
-                <option value="Advance Paid">Advance Paid</option>
-                <option value="Completed">Completed</option>
-              </select>
             </div>
           </div>
 
@@ -575,7 +552,7 @@ const EventsTable = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="w-20">
-                          {event.payment_status !== 'Completed' && (
+                          {event.payment_status !== 'Completed' && event.event_status !== 'completed' && (
                             <button
                               className={`w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors ${
                                 isCanceling ? 'opacity-50 cursor-not-allowed' : ''

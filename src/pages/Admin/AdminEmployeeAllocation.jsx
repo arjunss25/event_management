@@ -37,6 +37,7 @@ import {
   resetEventEmployees,
   addEmployeesToEvent,
 } from '../../Redux/Slices/Admin/employeeAllocationSlice';
+import './AdminEmployeeAllocation.css';
 
 // Loading component
 const LoadingState = () => (
@@ -284,7 +285,7 @@ const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => 
     <>
       {sections.map((section) => (
         <div key={section.position} className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 position-btn-sec">
             <h3 className="text-lg font-medium text-gray-700">{section.position}</h3>
             <button
               onClick={() => onRemovePosition(section.position)}
@@ -506,8 +507,8 @@ const AdminEmployeeAllocation = () => {
   }
 
   return (
-    <div className="flex w-full min-h-screen lg:flex-row flex-col gap-4 p-4">
-      <div className="w-full lg:w-1/2 bg-white rounded-lg p-6 ">
+    <div className="flex w-full min-h-screen  lg:flex-row flex-col gap-4  employee-allocation-main">
+      <div className="w-full lg:w-1/2 bg-white rounded-lg p-6 employee-allocation-left">
         <div className="flex justify-start items-center mb-6 w-full pb-5 border-b-[2px] border-black">
           <h2 className="text-[1.5rem]  text-gray-800">Employee Allocation</h2>
           
@@ -517,7 +518,7 @@ const AdminEmployeeAllocation = () => {
             onClick={handleOpenImportModal}
             className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
           >
-            Import from Previous Events
+            Import from Events
           </button>
           
         </div>
@@ -532,7 +533,7 @@ const AdminEmployeeAllocation = () => {
         )}
       </div>
 
-      <div className="w-full lg:w-1/2 bg-black rounded-lg p-6 ">
+      <div className="w-full lg:w-1/2 bg-black rounded-lg p-6 employee-allocation-left">
         <h2 className="text-xl font-semibold mb-6 text-white">Add Employees to Position</h2>
         <div className="mb-6 relative">
           <select
