@@ -24,6 +24,9 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [scanError, setScanError] = useState(null);
   const [isScanning, setIsScanning] = useState(true);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [scanResult, setScanResult] = useState({ success: false, message: '' });
+  const [pauseScanning, setPauseScanning] = useState(false);
 
   useEffect(() => {
     const fetchEventLogo = async () => {
@@ -44,23 +47,32 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     fetchEventLogo();
   }, []);
 
+  const resetScannerState = () => {
+    setPauseScanning(false);
+    setScanError(null);
+    setIsScanning(true);
+  };
+
   const handleScan = async (data) => {
-    if (data && isScanning) {
-      setIsScanning(false); // Prevent multiple scans
+    if (data && isScanning && !pauseScanning) {
+      setPauseScanning(true);
       setScanError(null);
 
       try {
-        // Extract just the email from the QR text
         const emailMatch = data.text.match(/Email: (.*?)(?:$|,|\s)/);
         const email = emailMatch ? emailMatch[1] : null;
 
         if (!email) {
-          setScanError('Invalid QR code. Please try again.');
+          setScanResult({
+            success: false,
+            message: 'Invalid QR code. Please try again.',
+          });
+          setShowStatusModal(true);
           return;
         }
 
         const response = await axiosInstance.post('/employee-qr-detail/', {
-          employee_email: email, // Will send just the email like "reyna@gmail.com"
+          employee_email: email,
         });
 
         if (
@@ -69,13 +81,23 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
         ) {
           setEmployeeDetails(response.data.data);
           setShowScanner(false);
+          setScanResult({
+            success: true,
+            message: 'Employee details retrieved successfully',
+          });
         } else {
-          setScanError(
-            response.data.message || 'Failed to get employee details'
-          );
+          setScanResult({
+            success: false,
+            message: response.data.message || 'Failed to get employee details',
+          });
         }
+        setShowStatusModal(true);
       } catch (error) {
-        setScanError('Scan failed. Please try again.');
+        setScanResult({
+          success: false,
+          message: 'Scan failed. Please try again.',
+        });
+        setShowStatusModal(true);
         console.error('Scan error:', error);
       }
     }
@@ -158,6 +180,16 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     }
   };
 
+  const handleStatusModalClose = () => {
+    setShowStatusModal(false);
+    resetScannerState();
+    
+    // Small delay to ensure clean state before next scan
+    setTimeout(() => {
+      setPauseScanning(false);
+    }, 100);
+  };
+
   return (
     <div className="w-full font-bold h-[8vh] flex items-center justify-between lg:justify-end px-5 py-8 lg:px-10 lg:py-10">
       {/* left-section for small screens */}
@@ -202,6 +234,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                   <div className="relative w-full aspect-square max-w-[400px] mx-auto rounded-lg overflow-hidden bg-gray-900">
                     {isScanning && (
                       <QrScanner
+                        key={`scanner-${pauseScanning}`}
                         delay={300}
                         onError={handleError}
                         onScan={handleScan}
@@ -216,30 +249,36 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                     </div>
                   </div>
 
-                  {/* Error Message */}
-                  {scanError && (
-                    <div className="mt-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
-                      {scanError}
-                    </div>
-                  )}
-
-                  {/* Instructions or Retry Button */}
-                  {scanError ? (
-                    <button
-                      onClick={() => {
-                        setScanError(null);
-                        setIsScanning(true);
-                      }}
-                      className="mt-4 w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                    >
-                      Try Again
-                    </button>
-                  ) : (
-                    <p className="text-gray-600 text-center mt-4 text-sm">
-                      Position the QR code within the frame to scan
-                    </p>
-                  )}
+                  <p className="text-gray-600 text-center mt-4 text-sm">
+                    Position the QR code within the frame to scan
+                  </p>
                 </div>
+
+                {/* Add Status Modal */}
+                {showStatusModal && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div
+                      className={`bg-white p-6 rounded-lg shadow-xl max-w-sm mx-4 ${
+                        scanResult.success ? 'border-green-500' : 'border-red-500'
+                      } border-2`}
+                    >
+                      <div
+                        className={`text-lg font-semibold mb-2 ${
+                          scanResult.success ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {scanResult.success ? 'Scan Successful!' : 'Scan Failed!'}
+                      </div>
+                      <p className="text-gray-600 mb-4">{scanResult.message}</p>
+                      <button
+                        onClick={handleStatusModalClose}
+                        className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        Continue Scanning
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Footer */}
                 <div className="p-4 border-t border-gray-200 flex justify-end">

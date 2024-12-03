@@ -1,7 +1,7 @@
-import { 
-  signInWithEmailAndPassword, 
-  GoogleAuthProvider, 
-  signInWithPopup 
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { auth } from './firebase/firebaseConfig';
 import { API_CONFIG } from './config/config';
@@ -9,16 +9,18 @@ import { tokenService } from './tokenService';
 import axiosInstance from './axiosConfig';
 import axios from 'axios';
 
-
 export const checkServerConnection = async () => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-    const response = await fetch('https://event.neurocode.in/webapi/health-check/', {
-      method: 'GET',
-      signal: controller.signal,
-    });
-    
+    const response = await fetch(
+      'https://event.neurocode.in/webapi/health-check/',
+      {
+        method: 'GET',
+        signal: controller.signal,
+      }
+    );
+
     clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
@@ -30,7 +32,7 @@ export const checkServerConnection = async () => {
 export const refreshAccessToken = async () => {
   try {
     const refreshToken = tokenService.getRefreshToken();
-    
+
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -40,8 +42,8 @@ export const refreshAccessToken = async () => {
       { refresh: refreshToken },
       {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
 
@@ -61,7 +63,11 @@ export const refreshAccessToken = async () => {
 
 export const loginWithEmail = async (email, password) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const firebaseToken = await userCredential.user.getIdToken();
     tokenService.setFirebaseToken(firebaseToken);
 
@@ -118,7 +124,8 @@ export const loginWithGoogle = async () => {
         errorMessage = 'Sign-in popup was closed';
         break;
       case 'auth/popup-blocked':
-        errorMessage = 'Sign-in popup was blocked. Please allow popups for this site.';
+        errorMessage =
+          'Sign-in popup was blocked. Please allow popups for this site.';
         break;
       default:
         errorMessage = error.message;
@@ -129,28 +136,33 @@ export const loginWithGoogle = async () => {
 
 export const authenticateWithBackend = async (credentials) => {
   try {
-    const response = await axiosInstance.post('/superadmin-login/', {
-      email: credentials.email,
-      firebase_token: credentials.firebaseToken,
-      uid: credentials.uid,
-      displayName: credentials.displayName || '',
-    });
+    const response = await axiosInstance.post(
+      '/unified-login/',
+      {
+        firebase_token: credentials.firebase_token,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Backend authentication failed');
+    if (response.data && response.data.status === "Success 'Ok'.") {
+      const { access, refresh, role } = response.data.data;
+
+      tokenService.setTokens(access, refresh);
+      tokenService.setUserData({
+        role: role,
+      });
+
+      return {
+        success: true,
+        ...response.data.data,
+      };
+    } else {
+      throw new Error(response.data.message || 'Backend authentication failed');
     }
-
-    const data = await response.json();
-    tokenService.setTokens(data.access, data.refresh);
-    tokenService.setUserData({
-      email: credentials.email,
-      uid: credentials.uid,
-      displayName: credentials.displayName,
-      role: data.role,
-    });
-
-    return { success: true, ...data };
   } catch (error) {
     console.error('Backend authentication error:', error.message);
     throw error;

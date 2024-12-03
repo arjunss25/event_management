@@ -162,8 +162,8 @@ const EmployeeTable = () => {
   };
 
   const fetchEmployees = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const response = await axiosInstance.get('/list-all-employees/');
       if (response.data?.status_code !== 200) {
         setEmployees([]);
@@ -214,6 +214,14 @@ const EmployeeTable = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
       <div className="mb-6 flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
@@ -255,16 +263,12 @@ const EmployeeTable = () => {
 
       <div className="w-full bg-white rounded-lg p-4">
         <div className="relative overflow-x-auto">
-          {loading ? (
-            <LoadingSpinner />
-          ) : (
-            <TableContent
-              employees={filteredEmployees}
-              handleView={handleView}
-              setSelectedEmployee={setSelectedEmployee}
-              setShowModal={setShowModal}
-            />
-          )}
+          <TableContent
+            employees={filteredEmployees}
+            handleView={handleView}
+            setSelectedEmployee={setSelectedEmployee}
+            setShowModal={setShowModal}
+          />
         </div>
       </div>
 

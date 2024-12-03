@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchEventDetails, updateEventDetails } from '../../Redux/Slices/Admin/AdminEventSlice';
+import {
+  fetchEventDetails,
+  updateEventDetails,
+} from '../../Redux/Slices/Admin/AdminEventSlice';
 import UserRegistration from './UserRegistration';
 import AdminEmployeeAllocation from './AdminEmployeeAllocation';
 import AdminEventFood from './AdminEventFood';
@@ -8,7 +11,9 @@ import { FaBars, FaTimes } from 'react-icons/fa';
 
 const AdminEventDetails = () => {
   const dispatch = useDispatch();
-  const { selectedEvent, loading, error } = useSelector((state) => state.adminEvents);
+  const { selectedEvent, loading, error } = useSelector(
+    (state) => state.adminEvents
+  );
   const [activeTab, setActiveTab] = useState('eventDetails');
   const [currentStep, setCurrentStep] = useState(0);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -17,7 +22,7 @@ const AdminEventDetails = () => {
     venue: '',
     seatsAllocated: '',
     paymentStatus: '',
-    totalAmount: ''
+    totalAmount: '',
   });
 
   useEffect(() => {
@@ -30,20 +35,20 @@ const AdminEventDetails = () => {
         venue: selectedEvent.venue || '',
         seatsAllocated: selectedEvent.seatsBooked?.toString() || '',
         paymentStatus: selectedEvent.paymentStatus || '',
-        totalAmount: selectedEvent.totalAmount || ''
+        totalAmount: selectedEvent.totalAmount || '',
       });
     }
   }, [selectedEvent]);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
   const toggleEditModal = () => {
-    setIsEditModalOpen(prev => !prev);
+    setIsEditModalOpen((prev) => !prev);
     if (isEditModalOpen) {
       setFormData({
         venue: selectedEvent?.venue || '',
         seatsAllocated: selectedEvent?.seatsBooked?.toString() || '',
         paymentStatus: selectedEvent?.paymentStatus || '',
-        totalAmount: selectedEvent?.totalAmount || ''
+        totalAmount: selectedEvent?.totalAmount || '',
       });
     }
   };
@@ -62,17 +67,19 @@ const AdminEventDetails = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSave = () => {
-    dispatch(updateEventDetails({
-      venue: formData.venue,
-      seatsBooked: parseInt(formData.seatsAllocated)
-    })).then(() => {
+    dispatch(
+      updateEventDetails({
+        venue: formData.venue,
+        seatsBooked: parseInt(formData.seatsAllocated),
+      })
+    ).then(() => {
       setIsEditModalOpen(false);
       setCurrentStep(0);
       dispatch(fetchEventDetails());
@@ -84,21 +91,27 @@ const AdminEventDetails = () => {
       case 0:
         return (
           <div className="bg-white p-8">
-            <h2 className="text-3xl font-bold mb-6 text-gray-800">General Details</h2>
+            <h2 className="text-3xl font-bold mb-6 text-gray-800">
+              General Details
+            </h2>
             <hr className="w-full border-gray-200 mb-6" />
             <div className="grid grid-cols-1 gap-6 mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex flex-col">
                     <p className="text-gray-500 text-sm mb-1">Event</p>
-                    <p className="text-lg font-semibold">{selectedEvent?.eventName || 'N/A'}</p>
+                    <p className="text-lg font-semibold">
+                      {selectedEvent?.eventName || 'N/A'}
+                    </p>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex flex-col">
                     <p className="text-gray-500 text-sm mb-1">Start Date</p>
                     <p className="text-lg font-semibold">
-                      {selectedEvent?.startDate ? new Date(selectedEvent.startDate).toLocaleDateString() : 'N/A'}
+                      {selectedEvent?.startDate
+                        ? new Date(selectedEvent.startDate).toLocaleDateString()
+                        : 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -106,20 +119,24 @@ const AdminEventDetails = () => {
                   <div className="flex flex-col">
                     <p className="text-gray-500 text-sm mb-1">End Date</p>
                     <p className="text-lg font-semibold">
-                      {selectedEvent?.endDate ? new Date(selectedEvent.endDate).toLocaleDateString() : 'N/A'}
+                      {selectedEvent?.endDate
+                        ? new Date(selectedEvent.endDate).toLocaleDateString()
+                        : 'N/A'}
                     </p>
                   </div>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <div className="flex flex-col">
                     <p className="text-gray-500 text-sm mb-1">Payment Status</p>
-                    <p className={`text-lg font-semibold ${
-                      selectedEvent?.paymentStatus === 'Completed' 
-                        ? 'text-emerald-500' 
-                        : selectedEvent?.paymentStatus === 'Pending'
-                        ? 'text-amber-500'
-                        : 'text-red-500'
-                    }`}>
+                    <p
+                      className={`text-lg font-semibold ${
+                        selectedEvent?.paymentStatus === 'Completed'
+                          ? 'text-emerald-500'
+                          : selectedEvent?.paymentStatus === 'Pending'
+                          ? 'text-amber-500'
+                          : 'text-red-500'
+                      }`}
+                    >
                       {selectedEvent?.paymentStatus || 'N/A'}
                     </p>
                   </div>
@@ -134,12 +151,16 @@ const AdminEventDetails = () => {
                 </div>
               </div>
 
-              <h2 className="text-3xl font-bold mt-12 mb-6 text-gray-800">Additional Info</h2>
+              <h2 className="text-3xl font-bold mt-12 mb-6 text-gray-800">
+                Additional Info
+              </h2>
               <hr className="w-full border-gray-200 mb-6" />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-gray-700 font-medium mb-2">Venue</label>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Venue
+                  </label>
                   <textarea
                     name="venue"
                     value={formData.venue}
@@ -151,7 +172,9 @@ const AdminEventDetails = () => {
                   ></textarea>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-gray-700 font-medium mb-2">Seats Allocated</label>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Seats Allocated
+                  </label>
                   <input
                     type="text"
                     name="seatsAllocated"
@@ -170,8 +193,18 @@ const AdminEventDetails = () => {
                 onClick={toggleEditModal}
                 className="px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
                 </svg>
                 Edit Details
               </button>
@@ -181,13 +214,25 @@ const AdminEventDetails = () => {
               <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
                 <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl transform transition-all">
                   <div className="flex justify-between items-center mb-6 pb-4 border-b">
-                    <h2 className="text-2xl font-bold text-gray-800">Edit Event Details</h2>
-                    <button 
+                    <h2 className="text-2xl font-bold text-gray-800">
+                      Edit Event Details
+                    </h2>
+                    <button
                       onClick={toggleEditModal}
                       className="text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -236,8 +281,18 @@ const AdminEventDetails = () => {
                       }}
                       className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center gap-2"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                       Save Changes
                     </button>
@@ -262,14 +317,17 @@ const AdminEventDetails = () => {
 
   return (
     <div className="flex min-h-screen ">
-      <div className='w-full flex bg-white'>
+      <div className="w-full flex bg-white">
         {/* Sidebar */}
         <div
           className={`fixed top-0 left-0 h-full w-64 bg-white z-10 transform border-r-2 border-grey-200 ${
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex flex-col lg:w-64 p-4 pt-14`}
         >
-          <button onClick={toggleSidebar} className="lg:hidden absolute top-4 right-4 text-gray-600">
+          <button
+            onClick={toggleSidebar}
+            className="lg:hidden absolute top-4 right-4 text-gray-600"
+          >
             <FaTimes size={24} />
           </button>
 
@@ -277,8 +335,12 @@ const AdminEventDetails = () => {
             <div className="w-20 h-20 rounded-full border-2 border-black flex items-center justify-center bg-purple-100">
               <span className="text-purple-600 font-semibold">Grip</span>
             </div>
-            <h2 className="mt-4 text-lg font-semibold">Royal Events</h2>
-            <p className="text-sm text-gray-500">{selectedEvent?.email || 'No email available'}</p>
+            <h2 className="mt-4 text-lg font-semibold">
+              {selectedEvent?.eventGroupName || 'No company name'}
+            </h2>
+            <p className="text-sm text-gray-500">
+              {selectedEvent?.eventGroupEmail || 'No email available'}
+            </p>
           </div>
 
           <nav className="mt-6">
@@ -288,15 +350,27 @@ const AdminEventDetails = () => {
                 toggleSidebar();
               }}
               className={`flex items-center p-2 rounded-md w-full text-left ${
-                activeTab === 'eventDetails' ? 'bg-[#98ffe0] text-black border-b-2 border-black' : 'text-gray-600'
+                activeTab === 'eventDetails'
+                  ? 'bg-[#98ffe0] text-black border-b-2 border-black'
+                  : 'text-gray-600'
               }`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
               </svg>
               <span className="ml-4">Event Details</span>
             </button>
-            
+
             <button
               onClick={() => {
                 setActiveTab('userRegistration');
@@ -304,11 +378,23 @@ const AdminEventDetails = () => {
                 toggleSidebar();
               }}
               className={`flex items-center p-2 rounded-md w-full text-left mt-2 ${
-                activeTab === 'userRegistration' ? 'bg-[#98ffe0] text-black border-b-2 border-black' : 'text-gray-600'
+                activeTab === 'userRegistration'
+                  ? 'bg-[#98ffe0] text-black border-b-2 border-black'
+                  : 'text-gray-600'
               }`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
               </svg>
               <span className="ml-4">User Registration</span>
             </button>
@@ -330,7 +416,7 @@ const AdminEventDetails = () => {
               {/* Navigation Buttons */}
               <div className="flex justify-end mt-4 space-x-4">
                 {currentStep > 0 && (
-                  <button 
+                  <button
                     onClick={handlePrevious}
                     className="px-5 py-2 text-black border-[1px] border-black rounded-full"
                   >
@@ -338,19 +424,21 @@ const AdminEventDetails = () => {
                   </button>
                 )}
                 {currentStep === 2 ? (
-                  <button 
+                  <button
                     onClick={handleSave}
                     className="px-8 py-2 text-white bg-black rounded-full"
                   >
                     Save
                   </button>
-                ) : currentStep < 2 && (
-                  <button 
-                    onClick={handleNext}
-                    className="px-8 py-2 text-white bg-black rounded-full"
-                  >
-                    Next
-                  </button>
+                ) : (
+                  currentStep < 2 && (
+                    <button
+                      onClick={handleNext}
+                      className="px-8 py-2 text-white bg-black rounded-full"
+                    >
+                      Next
+                    </button>
+                  )
                 )}
               </div>
             </>

@@ -109,15 +109,12 @@ const Login = () => {
     try {
       const result = await loginWithGoogle();
       if (result.success) {
-        const { firebaseToken, user } = result;
-        console.log('Firebase Token:', firebaseToken);
-
-        // Authenticate with your backend using the Firebase token
+        const { firebaseToken } = result;
+        
+        console.log('Sending payload:', { firebase_token: firebaseToken });
+        
         const backendResponse = await authenticateWithBackend({
-          email: user.email,
-          firebaseToken,
-          uid: user.uid,
-          displayName: user.displayName,
+          firebase_token: firebaseToken
         });
 
         if (backendResponse.success) {
@@ -126,13 +123,13 @@ const Login = () => {
           // Store tokens and user data
           tokenService.setTokens(access, refresh, firebaseToken);
           tokenService.setUserData({
-            email: user.email,
+            email: result.user.email,
             role,
           });
 
           dispatch(loginSuccess({
             token: access,
-            user: { email: user.email, role },
+            user: { email: result.user.email, role },
           }));
 
           // Navigate based on role

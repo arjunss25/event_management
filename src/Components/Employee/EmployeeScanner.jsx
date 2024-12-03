@@ -31,16 +31,11 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
     if (data?.text && mealInfo && !pauseScanning) {
       setPauseScanning(true);
       try {
-        console.log('Scanned Data:', data);
         const uniqueIdMatch = data.text.match(/Unique ID: (\w+)/);
         const uniqueId = uniqueIdMatch ? uniqueIdMatch[1] : null;
 
         if (!uniqueId) {
           throw new Error('Invalid QR code format');
-        }
-
-        if (!mealInfo.date || !mealInfo.mealCategory) {
-          throw new Error('Please select a meal and date first.');
         }
 
         const [day, month, year] = mealInfo.date.split('-');
@@ -53,18 +48,19 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
         };
 
         const response = await axiosInstance.post('/scan-meals/', payload);
-        console.log('API Response:', response.data);
+        console.log('Scan successful:', response.data);
 
         setScanResult({
           success: true,
           message: 'Meal scanned successfully',
         });
         setShowStatusModal(true);
+
       } catch (error) {
-        console.error('Scan API Error:', error);
+        console.error('Scan Error:', error);
         setScanResult({
           success: false,
-          message: error.message || 'Failed to process scan',
+          message: error.response?.data?.message || 'Failed to process scan',
         });
         setShowStatusModal(true);
       }

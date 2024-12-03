@@ -7,7 +7,7 @@ export const fetchEventDetails = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/event-details`);
-      
+
       return {
         id: response.data.data.id,
         eventName: response.data.data.event_name,
@@ -18,10 +18,14 @@ export const fetchEventDetails = createAsyncThunk(
         totalAmount: response.data.data.total_amount,
         seatsBooked: response.data.data.seats_booked,
         eventStatus: response.data.data.event_status,
-        image: response.data.data.image
+        image: response.data.data.image,
+        eventGroupName: response.data.data.event_group_name,
+        eventGroupEmail: response.data.data.event_group_email,
       };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch event details');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch event details'
+      );
     }
   }
 );
@@ -41,7 +45,7 @@ export const updateEventDetails = createAsyncThunk(
         venue: eventData.venue,
         seats_booked: eventData.seatsBooked,
         total_amount: eventData.totalAmount,
-        payment_status: eventData.paymentStatus
+        payment_status: eventData.paymentStatus,
       });
 
       // Return the complete updated data
@@ -49,10 +53,12 @@ export const updateEventDetails = createAsyncThunk(
         venue: eventData.venue,
         seatsBooked: eventData.seatsBooked,
         totalAmount: eventData.totalAmount,
-        paymentStatus: eventData.paymentStatus
+        paymentStatus: eventData.paymentStatus,
       };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update event details');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to update event details'
+      );
     }
   }
 );
@@ -63,9 +69,9 @@ export const fetchAdminEvents = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/events');
-      
+
       // Map API response to expected format
-      return response.data.data.map(event => ({
+      return response.data.data.map((event) => ({
         id: event.id,
         eventName: event.event_name,
         startDate: event.start_date,
@@ -73,10 +79,12 @@ export const fetchAdminEvents = createAsyncThunk(
         venue: event.venue || '',
         paymentStatus: event.total_amount ? 'Completed' : 'Pending',
         seatsBooked: event.seats_booked || 0,
-        eventStatus: event.event_status
+        eventStatus: event.event_status,
       }));
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch events');
+      return rejectWithValue(
+        error.response?.data?.message || 'Failed to fetch events'
+      );
     }
   }
 );
@@ -121,7 +129,7 @@ const AdminEventsSlice = createSlice({
         if (state.selectedEvent) {
           state.selectedEvent = {
             ...state.selectedEvent,
-            ...action.payload
+            ...action.payload,
           };
         }
         state.error = null;

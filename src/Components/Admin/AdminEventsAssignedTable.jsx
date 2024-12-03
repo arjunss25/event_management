@@ -1,26 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../axiosConfig';
 
 import '../Superadmin/TableComponent.css';
 
 const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
+  const [showScanReport, setShowScanReport] = useState(false);
+  const [scanReportData, setScanReportData] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState(null);
+  const [eventDays, setEventDays] = useState([]);
+  const [selectedDay, setSelectedDay] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [filteredScanData, setFilteredScanData] = useState([]);
+
   const handleRemove = async (eventId) => {
     try {
       const payload = {
         employees: [
           {
             id: employeeId,
-            name: employeeName
-          }
-        ]
+            name: employeeName,
+          },
+        ],
       };
 
       console.log('Payload being sent:', payload);
 
       const response = await axiosInstance.delete('/employee-allocation/', {
-        data: payload
+        data: payload,
       });
-      
+
       if (response.status === 200) {
         alert('Employee removed from event successfully');
         window.location.reload();
@@ -34,11 +42,147 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     }
   };
 
+  const fetchEventDays = async () => {
+    try {
+      const response = await axiosInstance.get('/list-event-days/');
+      if (response.status === 200) {
+        const daysData = response.data.data.data[0];
+        const daysArray = Object.entries(daysData).map(([day, date]) => ({
+          day,
+          date,
+        }));
+        setEventDays(daysArray);
+      }
+    } catch (error) {
+      console.error('Error fetching event days:', error);
+    }
+  };
+
+  const handleScanReport = async (eventId) => {
+    setIsLoading(true);
+    try {
+      const response = await axiosInstance.get(`/scan-report/${employeeId}/`);
+      if (response.status === 200) {
+        setScanReportData(response.data.data);
+        setFilteredScanData(response.data.data);
+        setShowScanReport(true);
+        setSelectedEventId(eventId);
+        await fetchEventDays();
+      }
+    } catch (error) {
+      console.error('Error fetching scan report:', error);
+      alert('Error fetching scan report');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDateFilter = (selectedDate) => {
+    setSelectedDay(selectedDate);
+    if (selectedDate === '') {
+      setFilteredScanData(scanReportData);
+    } else {
+      console.log('Selected date:', selectedDate);
+      console.log('Sample scan date:', scanReportData[0]?.meal_date);
+
+      const filtered = scanReportData.filter((scan) => {
+        const scanDate = scan.meal_date
+          .split('T')[0]
+          .split('-')
+          .reverse()
+          .join('-');
+        return scanDate === selectedDate;
+      });
+
+      console.log('Filtered data:', filtered);
+      setFilteredScanData(filtered);
+    }
+  };
+
+  if (showScanReport) {
+    return (
+      <div className="overflow-x-auto">
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={() => setShowScanReport(false)}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            Back to Events
+          </button>
+
+          <select
+            value={selectedDay}
+            onChange={(e) => handleDateFilter(e.target.value)}
+            className="px-4 py-2 border rounded"
+          >
+            <option value="">All Days</option>
+            {eventDays.map(({ day, date }) => (
+              <option key={day} value={date}>
+                {day} - {date}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          </div>
+        ) : (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Event Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Meal Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Time
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredScanData.map((scan, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {scan.user_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {scan.registered_event_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {scan.meal_type_name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {scan.meal_date}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {scan.meal_time}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    );
+  }
+
   // Check if data is undefined or empty
   if (!data || data.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500 text-lg">No events assigned to this employee.</p>
+        <p className="text-gray-500 text-lg">
+          No events assigned to this employee.
+        </p>
       </div>
     );
   }
@@ -71,29 +215,36 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         <tbody className="bg-white divide-y divide-gray-200">
           {data.map((event, index) => (
             <tr key={index}>
-              <td className="px-6 py-4 whitespace-nowrap">{event.event_name}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{event.start_date}</td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {event.event_name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                {event.start_date}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap">{event.end_date}</td>
               <td className="px-6 py-4 whitespace-nowrap">{event.venue}</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  event.event_status === 'upcoming' 
-                    ? 'bg-blue-100 text-blue-800' 
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs ${
+                    event.event_status === 'upcoming'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
                   {event.event_status}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 {event.event_status === 'upcoming' ? (
                   <button
-                    onClick={() => handleRemove(event.event_id)}
+                    onClick={() => handleRemove(event.id)}
                     className="text-red-600 hover:text-red-800"
                   >
                     Remove
                   </button>
                 ) : (
                   <button
+                    onClick={() => handleScanReport(event.id)}
                     className="text-blue-600 hover:text-blue-800"
                   >
                     Scan Report

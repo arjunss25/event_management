@@ -129,7 +129,7 @@ const AddEmployee = () => {
         extra_fields: formData.extra_fields
       };
 
-      console.log('Sending payload:', payload); // For debugging
+      console.log('Sending payload:', payload); 
       
       const response = await axiosInstance.post('/register-employee/', payload);
       console.log('Success Response:', response.data);

@@ -69,7 +69,9 @@ const AdminEmployeeProfile = () => {
   // Add new function to fetch events data
   const fetchEventsData = async () => {
     try {
-      const response = await axiosInstance.get(`/list-employees-assigned-events/${id}/`);
+      const response = await axiosInstance.get(
+        `/list-employees-assigned-events/${id}/`
+      );
       if (response.data?.status_code === 200) {
         setEventsData(response.data.data || []);
       } else {
@@ -102,7 +104,7 @@ const AdminEmployeeProfile = () => {
       position: employeeData.position,
       address: employeeData.address,
       is_available: employeeData.is_available,
-      role: employeeData.role
+      role: employeeData.role,
     };
     setTempData(editableFields);
     setModalOpen(true);
@@ -110,7 +112,7 @@ const AdminEmployeeProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setTempData(prevData => ({ ...prevData, [name]: value }));
+    setTempData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const saveChanges = async () => {
@@ -125,10 +127,13 @@ const AdminEmployeeProfile = () => {
         position: tempData.position,
         address: tempData.address,
         is_available: tempData.is_available,
-        role: tempData.role
+        role: tempData.role,
       };
-  
-      const response = await axiosInstance.put(`/employee-details/${id}/`, payload);
+
+      const response = await axiosInstance.put(
+        `/employee-details/${id}/`,
+        payload
+      );
       if (response.data?.status_code === 200) {
         setEmployeeData(tempData);
         setModalOpen(false);
@@ -140,7 +145,6 @@ const AdminEmployeeProfile = () => {
       console.error('Error:', err);
     }
   };
-  
 
   const handleNavigation = (section) => {
     setActiveSection(section);
@@ -148,20 +152,33 @@ const AdminEmployeeProfile = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="flex items-center justify-center min-h-screen text-red-500">{error}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen text-red-500">
+        {error}
+      </div>
+    );
   }
 
   return (
     <div className="flex min-h-screen bg-white">
       {/* Sidebar */}
-      <div className={`fixed top-0 left-0 h-screen w-64 bg-white z-10 transform border-r-2 border-grey-200 ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex flex-col lg:w-64 p-4`}>
-        <button onClick={toggleSidebar} className="lg:hidden absolute top-4 right-4 text-gray-600">
+      <div
+        className={`fixed top-0 left-0 h-screen w-64 bg-white z-10 transform border-r-2 border-grey-200 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex flex-col lg:w-64 p-4`}
+      >
+        <button
+          onClick={toggleSidebar}
+          className="lg:hidden absolute top-4 right-4 text-gray-600"
+        >
           <FaTimes size={24} />
         </button>
 
@@ -179,7 +196,9 @@ const AdminEmployeeProfile = () => {
           <button
             onClick={() => handleNavigation('personal-info')}
             className={`flex items-center p-2 rounded-md w-full text-left ${
-              activeSection === 'personal-info' ? 'bg-[#98FFE0] text-black border-b-2 border-black' : 'text-gray-600'
+              activeSection === 'personal-info'
+                ? 'bg-[#98FFE0] text-black border-b-2 border-black'
+                : 'text-gray-600'
             }`}
           >
             <RxPerson />
@@ -188,7 +207,9 @@ const AdminEmployeeProfile = () => {
           <button
             onClick={() => handleNavigation('events-assigned')}
             className={`flex items-center p-2 rounded-md w-full text-left ${
-              activeSection === 'events-assigned' ? 'bg-[#98FFE0] text-black border-b-2 border-black' : 'text-gray-600'
+              activeSection === 'events-assigned'
+                ? 'bg-[#98FFE0] text-black border-b-2 border-black'
+                : 'text-gray-600'
             }`}
           >
             <RxPerson />
@@ -197,7 +218,9 @@ const AdminEmployeeProfile = () => {
           <button
             onClick={() => handleNavigation('id-card')}
             className={`flex items-center p-2 rounded-md w-full text-left ${
-              activeSection === 'id-card' ? 'bg-[#98FFE0] text-black border-b-2 border-black' : 'text-gray-600'
+              activeSection === 'id-card'
+                ? 'bg-[#98FFE0] text-black border-b-2 border-black'
+                : 'text-gray-600'
             }`}
           >
             <RxPerson />
@@ -215,7 +238,7 @@ const AdminEmployeeProfile = () => {
           >
             <FaBars size={24} />
           </button>
-          <button 
+          <button
             onClick={() => window.history.back()}
             className="px-4 py-2 text-gray-600 hover:text-gray-900 flex items-center"
           >
@@ -226,7 +249,9 @@ const AdminEmployeeProfile = () => {
         {/* Content sections */}
         {activeSection === 'personal-info' && (
           <div className="bg-white p-6 rounded-lg">
-            <h1 className="text-2xl font-semibold mb-4">Employee Information</h1>
+            <h1 className="text-2xl font-semibold mb-4">
+              Employee Information
+            </h1>
             <hr className="w-full border mb-5" />
             <div className="flex flex-col xl:flex-row items-start justify-between">
               <div className="grid grid-cols-1 gap-4 mt-2">
@@ -252,7 +277,9 @@ const AdminEmployeeProfile = () => {
                 </div>
                 <div className="flex flex-col xl:flex-row">
                   <p className="text-gray-500 w-52">Status</p>
-                  <p>{employeeData?.is_available ? 'Available' : 'Not Available'}</p>
+                  <p>
+                    {employeeData?.is_available ? 'Available' : 'Not Available'}
+                  </p>
                 </div>
                 <div className="flex flex-col xl:flex-row">
                   <p className="text-gray-500 w-52">Role</p>
@@ -273,8 +300,8 @@ const AdminEmployeeProfile = () => {
           <div className="bg-white p-6 rounded-lg">
             <h1 className="text-2xl font-semibold mb-4">Events Assigned</h1>
             <hr className="w-full border mb-5" />
-            <AdminEventsAssignedTable 
-              data={eventsData} 
+            <AdminEventsAssignedTable
+              data={eventsData}
               employeeId={employeeData?.id}
               employeeName={employeeData?.name}
             />
@@ -285,39 +312,45 @@ const AdminEmployeeProfile = () => {
           <div className="bg-white p-6 rounded-lg">
             <h1 className="text-2xl font-semibold mb-4">ID Card</h1>
             <hr className="w-full border mb-5" />
-            
+
             {idCardData ? (
               <div className="max-w-md mx-auto relative">
                 <div className="w-[350px] relative shadow-md rounded-2xl overflow-hidden">
                   {/* Background Template Image */}
-                  <img 
-                    src={idCardTemplate} 
+                  <img
+                    src={idCardTemplate}
                     alt="ID Card Template"
                     className="w-full h-full object-contain"
                   />
-                  
+
                   {/* Content overlaid on template */}
                   <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center">
                     {/* Header Section - Reduced top margin */}
                     <div className="w-full text-white py-2 px-6 mt-4">
-                      <h3 className="text-md font-semi-bold opacity-90 mb-0.5">EVENT STAFF</h3>
-                      <h4 className="text-xs opacity-75">{idCardData.event_group_name}</h4>
+                      <h3 className="text-md font-semi-bold opacity-90 mb-0.5">
+                        EVENT STAFF
+                      </h3>
+                      <h4 className="text-xs opacity-75">
+                        {idCardData.event_group_name}
+                      </h4>
                     </div>
 
                     {/* Profile Section - Reduced margin */}
                     <div className="mt-4 relative">
                       <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
-                        <img 
+                        <img
                           src={`https://event.neurocode.in${idCardData.image}`}
                           alt="Employee"
                           className="w-full h-full object-cover"
                         />
                       </div>
                     </div>
-                    
+
                     {/* Name and Position - Reduced margins */}
                     <div className="text-center mt-2 px-4">
-                      <h2 className="text-xl font-bold text-[#1a237e] mb-1">{idCardData.name}</h2>
+                      <h2 className="text-xl font-bold text-[#1a237e] mb-1">
+                        {idCardData.name}
+                      </h2>
                       <span className="inline-block bg-[#e8eaf6] text-[#3949ab] px-3 py-0.5 rounded-full text-sm font-medium">
                         {idCardData.position}
                       </span>
@@ -327,28 +360,52 @@ const AdminEmployeeProfile = () => {
                     <div className="w-[90%] px-6 mt-4 space-y-1.5">
                       <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
                         <div className="w-6">
-                          <svg className="w-4 h-4 text-[#3949ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          <svg
+                            className="w-4 h-4 text-[#3949ab]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
                           </svg>
                         </div>
                         <div className="flex-1">
                           <p className="text-[10px] text-gray-500">Email</p>
-                          <p className="text-xs font-medium text-gray-800 break-all">{idCardData.email}</p>
+                          <p className="text-xs font-medium text-gray-800 break-all">
+                            {idCardData.email}
+                          </p>
                         </div>
                       </div>
 
                       <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
                         <div className="w-6">
-                          <svg className="w-4 h-4 text-[#3949ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                          <svg
+                            className="w-4 h-4 text-[#3949ab]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                            />
                           </svg>
                         </div>
                         <div className="flex-1">
                           <p className="text-[10px] text-gray-500">Phone</p>
-                          <p className="text-xs font-medium text-gray-800">{idCardData.phone}</p>
+                          <p className="text-xs font-medium text-gray-800">
+                            {idCardData.phone}
+                          </p>
                         </div>
                       </div>
-{/* 
+                      {/* 
                       {idCardData.DOB && (
                         <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
                           <div className="w-6">
@@ -367,11 +424,13 @@ const AdminEmployeeProfile = () => {
                     {/* QR Code - Adjusted margin */}
                     <div className="mt-4 mb-4">
                       <div className="bg-white p-1 rounded-lg shadow-md">
-                        <img 
+                        <img
                           src={`https://event.neurocode.in${idCardData.qr_code_image}`}
                           alt="QR Code"
                           className="w-16 h-16"
-                          onError={(e) => console.log('Image failed to load:', e)}
+                          onError={(e) =>
+                            console.log('Image failed to load:', e)
+                          }
                         />
                       </div>
                     </div>
@@ -389,21 +448,25 @@ const AdminEmployeeProfile = () => {
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md h-[80vh] overflow-y-scroll">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Edit Employee Information</h2>
-                <button 
+                <h2 className="text-xl font-semibold">
+                  Edit Employee Information
+                </h2>
+                <button
                   onClick={() => setModalOpen(false)}
                   className="text-gray-500 hover:text-gray-700"
                 >
                   <FaTimes />
                 </button>
               </div>
-              
+
               <form onSubmit={(e) => e.preventDefault()}>
                 {Object.entries(tempData || {}).map(([key, value]) => {
                   if (key !== 'id' && key !== 'event_group') {
                     return (
                       <label key={key} className="block mb-4">
-                        <span className="text-gray-700 capitalize">{key.replace(/_/g, ' ')}</span>
+                        <span className="text-gray-700 capitalize">
+                          {key.replace(/_/g, ' ')}
+                        </span>
                         {key === 'is_available' ? (
                           <select
                             name={key}
@@ -429,15 +492,15 @@ const AdminEmployeeProfile = () => {
                   return null;
                 })}
               </form>
-              
+
               <div className="flex justify-end gap-2 mt-6">
-                <button 
+                <button
                   onClick={() => setModalOpen(false)}
                   className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={saveChanges}
                   className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
                 >
