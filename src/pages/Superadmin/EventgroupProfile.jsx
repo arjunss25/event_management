@@ -247,7 +247,7 @@ const EventgroupProfile = () => {
   );
 
   if (error) return (
-    <div className="w-full p-4 bg-red-50 border border-red-200 rounded-lg">
+    <div className="w-full p-4 bg-red-500 border border-red-200 rounded-lg">
       <p className="text-red-500 text-center">{error}</p>
       <button 
         onClick={() => navigate('/event-groups')}
@@ -313,8 +313,8 @@ const EventgroupProfile = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-x-hidden w-[900px] bg-white">
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex-1 p-5 md:p-8 overflow-x-hidden w-[900px] bg-white">
+        <div className="flex items-start sm:items-center justify-between flex-col  sm:flex-row  mb-6">
           <button
             onClick={toggleSidebar}
             className="lg:hidden p-2 text-gray-600 focus:outline-none"
@@ -323,7 +323,7 @@ const EventgroupProfile = () => {
           </button>
           <button 
             onClick={() => navigate('/superadmin/eventgroups')}
-            className="px-4 py-2 text-gray-600 hover:text-gray-900 flex items-center"
+            className="px-4 py-2 text-white bg-black rounded-full flex items-center sm:mt-0 mt-4"
           >
             <span  className="mr-2">←</span> Back to Event Groups
           </button>
