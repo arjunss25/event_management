@@ -22,6 +22,7 @@ import EmployeeDetails from './pages/Admin/EmployeeDetails';
 import AddCategory from './pages/Admin/AddCategory';
 import Userprofile from './pages/Admin/UserProfile';
 import RegisteredUserTable from './Components/Admin/RegisteredUserTable';
+import AdminEventsList from './pages/Admin/AdminEventsList';
 
 // Import Other Components
 import Login from './Components/Login';
@@ -36,7 +37,7 @@ import UserProfile from './pages/Admin/UserProfile';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const auth = useSelector((state) => state.auth);
-  
+
   const userRole = auth.user?.role?.trim().toLowerCase();
   const expectedRole = requiredRole?.trim().toLowerCase();
 
@@ -66,7 +67,7 @@ const AppRoutes = () => {
 
   const getInitialRoute = () => {
     if (!auth.token) return '/login';
-    
+
     switch (auth.user?.role?.toLowerCase()) {
       case 'admin':
         return '/admin/welcomepage';
@@ -82,15 +83,11 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Route */}
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={
-          auth.token ? (
-            <Navigate to={getInitialRoute()} replace />
-          ) : (
-            <Login />
-          )
-        } 
+          auth.token ? <Navigate to={getInitialRoute()} replace /> : <Login />
+        }
       />
 
       {/* Superadmin Routes */}
@@ -134,8 +131,21 @@ const AppRoutes = () => {
         <Route path="add-employee" element={<AddEmpolyee />} />
         {/* <Route path="employee-profile" element={<AdminEmployeeProfile />} /> */}
         <Route path="employee-profile/:id" element={<AdminEmployeeProfile />} />
-        <Route path="events-assigned-table" element={<AdminEventsAssignedTable />} />
+        <Route
+          path="events-assigned-table"
+          element={<AdminEventsAssignedTable />}
+        />
       </Route>
+
+      {/* Add a separate route for events-list outside the AdminLayout */}
+      <Route
+        path="/admin/events-list"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminEventsList />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Employee Routes */}
       <Route

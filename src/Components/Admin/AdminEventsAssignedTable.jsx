@@ -76,8 +76,9 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     try {
       const response = await axiosInstance.get(`/scan-report/${employeeId}/`);
       if (response.status === 200) {
-        setScanReportData(response.data.data);
-        setFilteredScanData(response.data.data);
+        const responseData = Array.isArray(response.data.data) ? response.data.data : [];
+        setScanReportData(responseData);
+        setFilteredScanData(responseData);
         setShowScanReport(true);
         setSelectedEventId(eventId);
         await fetchEventDays();
@@ -86,6 +87,8 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     } catch (error) {
       console.error('Error fetching scan report:', error);
       alert('Error fetching scan report');
+      setScanReportData([]);
+      setFilteredScanData([]);
     } finally {
       setIsLoading(false);
     }
@@ -166,6 +169,10 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          </div>
+        ) : filteredScanData.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500 text-lg">No scan data available.</p>
           </div>
         ) : (
           <table className="min-w-full divide-y divide-gray-200">

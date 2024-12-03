@@ -6,7 +6,7 @@ import axiosInstance from '../../axiosConfig';
 
 const AdminWelcomePage = () => {
   const navigate = useNavigate();
-  const auth = useSelector((state) => state.auth); 
+  const auth = useSelector((state) => state.auth);
   const [eventGroupName, setEventGroupName] = useState('');
   const [eventName, setEventName] = useState('');
 
@@ -14,12 +14,14 @@ const AdminWelcomePage = () => {
     const fetchEventGroupName = async () => {
       try {
         const response = await axiosInstance.get('/welcome-eventgroup-name/');
-        setEventGroupName(response.data?.data?.event_group_name || 'Event Group');
+        setEventGroupName(
+          response.data?.data?.event_group_name || 'Event Group'
+        );
       } catch (error) {
         console.error('Error fetching event group name:', error);
       }
     };
-  
+
     fetchEventGroupName();
   }, []);
 
@@ -32,18 +34,22 @@ const AdminWelcomePage = () => {
         console.error('Error fetching event group name:', error);
       }
     };
-  
+
     fetchEventName();
   }, []);
 
   const handleNext = () => {
-    navigate('/admin/profile-photo');
+    navigate('/admin/events-list');
   };
 
   return (
     <div className="bg-gradient-to-b from-gray-100 to-gray-300 text-gray-800 w-full h-screen flex flex-col items-center justify-center">
       <div className="top-img-sec w-full h-[40vh] relative overflow-hidden">
-        <img src="/eventimg.jpg" alt="" className='w-full h-full object-cover opacity-80' />
+        <img
+          src="/eventimg.jpg"
+          alt=""
+          className="w-full h-full object-cover opacity-80"
+        />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <motion.h1
             className="text-6xl font-extrabold text-white"
@@ -63,8 +69,9 @@ const AdminWelcomePage = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 1 }}
         >
-          We're glad to have you here as part of 
-          <span className="text-blue-500 font-semibold"> {eventGroupName}</span>, for
+          We're glad to have you here as part of
+          <span className="text-blue-500 font-semibold"> {eventGroupName}</span>
+          , for
           <span className="text-blue-500 font-semibold"> {eventName}</span>
         </motion.p>
         <motion.div

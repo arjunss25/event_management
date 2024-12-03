@@ -26,6 +26,9 @@ const AdminEmployeeProfile = () => {
   // Add this state for events data
   const [eventsData, setEventsData] = useState([]);
 
+  // Add this state for check-in/out data
+  const [checkInOutData, setCheckInOutData] = useState([]);
+
   // Get employee ID from URL params
   const { id } = useParams();
 
@@ -83,11 +86,28 @@ const AdminEmployeeProfile = () => {
     }
   };
 
+  // Add new function to fetch check-in/out data
+  const fetchCheckInOutData = async () => {
+    try {
+      const response = await axiosInstance.get(`/employee-inout-details/${id}/`);
+      if (response.data?.status_code === 200 && Array.isArray(response.data.data)) {
+        setCheckInOutData(response.data.data);
+      } else {
+        console.warn('Check-in/out data is not in expected format:', response.data);
+        setCheckInOutData([]);
+      }
+    } catch (err) {
+      console.error('Error fetching check-in/out data:', err);
+      setCheckInOutData([]);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchEmployeeData();
       fetchIdCardData();
       fetchEventsData();
+      fetchCheckInOutData();
     }
   }, [id]);
 
@@ -225,6 +245,17 @@ const AdminEmployeeProfile = () => {
           >
             <RxPerson />
             <span className="ml-4">ID Card</span>
+          </button>
+          <button
+            onClick={() => handleNavigation('check-in-out-log')}
+            className={`flex items-center p-2 rounded-md w-full text-left ${
+              activeSection === 'check-in-out-log'
+                ? 'bg-[#98FFE0] text-black border-b-2 border-black'
+                : 'text-gray-600'
+            }`}
+          >
+            <RxPerson />
+            <span className="ml-4">Check-In/Out Log</span>
           </button>
         </nav>
       </div>
@@ -440,6 +471,49 @@ const AdminEmployeeProfile = () => {
             ) : (
               <p>Loading ID card details...</p>
             )}
+          </div>
+        )}
+
+        {activeSection === 'check-in-out-log' && (
+          <div className="bg-white p-6 rounded-lg">
+            <h1 className="text-2xl font-semibold mb-4">Daily Check-in Log</h1>
+            <hr className="w-full border mb-5" />
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="w-12"></th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-In Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-Out Time</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {Array.isArray(checkInOutData) && checkInOutData.length > 0 ? (
+                    checkInOutData.map((log, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.checkin_date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.checkin_time}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.checkout_time}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                        No check-in/out data available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

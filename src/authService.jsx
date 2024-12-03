@@ -147,7 +147,7 @@ export const authenticateWithBackend = async (credentials) => {
     });
 
     const response = await axiosInstance.post(
-      '/unified-login/',
+      '/unified-login',
       {
         firebase_token: credentials.firebase_token,
       },
@@ -184,7 +184,8 @@ export const authenticateWithBackend = async (credentials) => {
     });
 
     if (error.response?.status === 404) {
-      throw new Error('Authentication endpoint not found. Please verify the API configuration.');
+      console.error('Full URL attempted:', `${axiosInstance.defaults.baseURL}${error.config?.url}`);
+      throw new Error('Authentication endpoint not found. Please check the API URL configuration.');
     }
 
     throw error;
