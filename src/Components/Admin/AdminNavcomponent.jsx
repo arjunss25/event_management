@@ -50,7 +50,10 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   const resetScannerState = () => {
     setPauseScanning(false);
     setScanError(null);
-    setIsScanning(true);
+    setIsScanning(false);
+    setTimeout(() => {
+      setIsScanning(true);
+    }, 100);
   };
 
   const handleScan = async (data) => {
@@ -113,17 +116,31 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
       );
 
       if (response.data.status === 'Success') {
-        // You might want to show a success message here
         setEmployeeDetails(null);
+        setShowScanner(true);
+        setIsScanning(true);
+        setPauseScanning(false);
+        setScanResult({
+          success: true,
+          message: 'Check-in successful! Employee has been checked in.',
+        });
+        setShowStatusModal(true);
       } else {
-        // Handle error case
-        console.error('Check-in failed:', response.data.message);
+        setScanResult({
+          success: false,
+          message:
+            'Check-in failed: ' + (response.data.message || 'Unknown error'),
+        });
+        setShowStatusModal(true);
       }
     } catch (error) {
-      console.error(
-        'Check-in error:',
-        error.response?.data?.message || 'Failed to check in'
-      );
+      setScanResult({
+        success: false,
+        message:
+          'Check-in failed: ' +
+          (error.response?.data?.message || 'Server error'),
+      });
+      setShowStatusModal(true);
     }
   };
 
@@ -137,17 +154,31 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
       );
 
       if (response.data.status === 'Success') {
-        // You might want to show a success message here
         setEmployeeDetails(null);
+        setShowScanner(true);
+        setIsScanning(true);
+        setPauseScanning(false);
+        setScanResult({
+          success: true,
+          message: 'Check-out successful! Employee has been checked out.',
+        });
+        setShowStatusModal(true);
       } else {
-        // Handle error case
-        console.error('Check-out failed:', response.data.message);
+        setScanResult({
+          success: false,
+          message:
+            'Check-out failed: ' + (response.data.message || 'Unknown error'),
+        });
+        setShowStatusModal(true);
       }
     } catch (error) {
-      console.error(
-        'Check-out error:',
-        error.response?.data?.message || 'Failed to check out'
-      );
+      setScanResult({
+        success: false,
+        message:
+          'Check-out failed: ' +
+          (error.response?.data?.message || 'Server error'),
+      });
+      setShowStatusModal(true);
     }
   };
 
@@ -183,7 +214,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   const handleStatusModalClose = () => {
     setShowStatusModal(false);
     resetScannerState();
-    
+
     // Small delay to ensure clean state before next scan
     setTimeout(() => {
       setPauseScanning(false);
@@ -259,7 +290,9 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div
                       className={`bg-white p-6 rounded-lg shadow-xl max-w-sm mx-4 ${
-                        scanResult.success ? 'border-green-500' : 'border-red-500'
+                        scanResult.success
+                          ? 'border-green-500'
+                          : 'border-red-500'
                       } border-2`}
                     >
                       <div
@@ -267,7 +300,9 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                           scanResult.success ? 'text-green-600' : 'text-red-600'
                         }`}
                       >
-                        {scanResult.success ? 'Scan Successful!' : 'Scan Failed!'}
+                        {scanResult.success
+                          ? 'Scan Successful!'
+                          : 'Scan Failed!'}
                       </div>
                       <p className="text-gray-600 mb-4">{scanResult.message}</p>
                       <button
@@ -346,9 +381,15 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
       {employeeDetails && (
         <EmployeeCheckinDetails
           employee={employeeDetails}
-          onClose={() => setEmployeeDetails(null)}
+          onClose={() => {
+            setEmployeeDetails(null);
+            setShowScanner(true);
+            setIsScanning(true);
+            setPauseScanning(false);
+          }}
           onCheckin={handleCheckin}
           onCheckout={handleCheckout}
+          setShowScanner={setShowScanner}
         />
       )}
     </div>

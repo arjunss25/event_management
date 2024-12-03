@@ -11,6 +11,8 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
   const [selectedDay, setSelectedDay] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [filteredScanData, setFilteredScanData] = useState([]);
+  const [mealTypes, setMealTypes] = useState([]);
+  const [selectedMealType, setSelectedMealType] = useState('');
 
   const handleRemove = async (eventId) => {
     try {
@@ -58,6 +60,17 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     }
   };
 
+  const fetchMealTypes = async () => {
+    try {
+      const response = await axiosInstance.get('/unique-meals-list/');
+      if (response.status === 200) {
+        setMealTypes(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching meal types:', error);
+    }
+  };
+
   const handleScanReport = async (eventId) => {
     setIsLoading(true);
     try {
@@ -68,6 +81,7 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         setShowScanReport(true);
         setSelectedEventId(eventId);
         await fetchEventDays();
+        await fetchMealTypes();
       }
     } catch (error) {
       console.error('Error fetching scan report:', error);
@@ -99,6 +113,16 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     }
   };
 
+  const handleMealTypeFilter = (selectedType) => {
+    setSelectedMealType(selectedType);
+    if (selectedType === '') {
+      setFilteredScanData(scanReportData);
+    } else {
+      const filtered = scanReportData.filter(scan => scan.meal_type_name === selectedType);
+      setFilteredScanData(filtered);
+    }
+  };
+
   if (showScanReport) {
     return (
       <div className="overflow-x-auto">
@@ -109,19 +133,34 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
           >
             Back to Events
           </button>
+          
+          <div className="flex gap-4">
+            <select
+              value={selectedDay}
+              onChange={(e) => handleDateFilter(e.target.value)}
+              className="px-4 py-2 border rounded"
+            >
+              <option value="">All Days</option>
+              {eventDays.map(({ day, date }) => (
+                <option key={day} value={date}>
+                  {day} - {date}
+                </option>
+              ))}
+            </select>
 
-          <select
-            value={selectedDay}
-            onChange={(e) => handleDateFilter(e.target.value)}
-            className="px-4 py-2 border rounded"
-          >
-            <option value="">All Days</option>
-            {eventDays.map(({ day, date }) => (
-              <option key={day} value={date}>
-                {day} - {date}
-              </option>
-            ))}
-          </select>
+            <select
+              value={selectedMealType}
+              onChange={(e) => handleMealTypeFilter(e.target.value)}
+              className="px-4 py-2 border rounded"
+            >
+              <option value="">All Meal Types</option>
+              {mealTypes.map((mealType, index) => (
+                <option key={index} value={mealType}>
+                  {mealType}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {isLoading ? (

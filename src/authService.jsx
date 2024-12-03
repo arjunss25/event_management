@@ -105,6 +105,9 @@ export const loginWithGoogle = async () => {
   try {
     const userCredential = await signInWithPopup(auth, provider);
     const firebaseToken = await userCredential.user.getIdToken();
+    
+    console.log('Firebase Token generated:', firebaseToken ? 'Token generated successfully' : 'Token generation failed');
+    
     tokenService.setFirebaseToken(firebaseToken);
 
     return {
@@ -124,8 +127,7 @@ export const loginWithGoogle = async () => {
         errorMessage = 'Sign-in popup was closed';
         break;
       case 'auth/popup-blocked':
-        errorMessage =
-          'Sign-in popup was blocked. Please allow popups for this site.';
+        errorMessage = 'Sign-in popup was blocked. Please allow popups for this site.';
         break;
       default:
         errorMessage = error.message;
@@ -136,6 +138,14 @@ export const loginWithGoogle = async () => {
 
 export const authenticateWithBackend = async (credentials) => {
   try {
+    console.log('Firebase Token:', credentials.firebase_token);
+    
+    console.log('Calling API endpoint:', `${axiosInstance.defaults.baseURL}/unified-login/`);
+    
+    console.log('Request payload:', {
+      firebase_token: credentials.firebase_token
+    });
+
     const response = await axiosInstance.post(
       '/unified-login/',
       {
@@ -148,7 +158,7 @@ export const authenticateWithBackend = async (credentials) => {
       }
     );
 
-    if (response.data && response.data.status === "Success 'Ok'.") {
+    if (response.data && response.data.status === "Success") {
       const { access, refresh, role } = response.data.data;
 
       tokenService.setTokens(access, refresh);
@@ -161,10 +171,22 @@ export const authenticateWithBackend = async (credentials) => {
         ...response.data.data,
       };
     } else {
-      throw new Error(response.data.message || 'Backend authentication failed');
+      throw new Error(response.data?.message || 'Backend authentication failed');
     }
   } catch (error) {
-    console.error('Backend authentication error:', error.message);
+    console.error('Backend authentication error details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+      firebaseToken: credentials.firebase_token ? 'Present' : 'Missing',
+    });
+
+    if (error.response?.status === 404) {
+      throw new Error('Authentication endpoint not found. Please verify the API configuration.');
+    }
+
     throw error;
   }
 };

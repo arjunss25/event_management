@@ -311,7 +311,11 @@ const AdminEventDetails = () => {
     }
   };
 
-  if (loading) return <div className="p-4">Loading...</div>;
+  if (loading) return (
+    <div className="w-full h-[90vh] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+    </div>
+  );
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
   if (!selectedEvent) return <div className="p-4">Event not found.</div>;
 

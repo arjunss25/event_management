@@ -217,8 +217,6 @@ export const postMealCategory = (mealName) => async (dispatch) => {
       name: mealName
     });
     dispatch(addMealCategorySuccess());
-    // Optionally refresh the meals list
-    dispatch(fetchMeals());
   } catch (error) {
     dispatch(addMealCategoryFailure(error.message));
   }
@@ -254,8 +252,6 @@ export const postMealCategoryForDate = (mealName, date) => async (dispatch) => {
       date: date
     });
     dispatch(addMealCategorySuccess());
-    // Refresh the meals list
-    dispatch(fetchMeals());
   } catch (error) {
     dispatch(addMealCategoryFailure(error.message));
   }
@@ -269,8 +265,6 @@ export const postRemoveMealCategory = (mealTypeId, date) => async (dispatch) => 
       date: date
     });
     dispatch(removeMealCategorySuccess());
-    // Refresh the meals list after removal
-    dispatch(fetchMeals());
   } catch (error) {
     dispatch(removeMealCategoryFailure(error.message));
   }
