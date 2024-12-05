@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { HiMenuAlt1 } from 'react-icons/hi';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectUser, logout } from '../../Redux/authSlice';
@@ -7,6 +7,8 @@ import { BsQrCodeScan } from 'react-icons/bs';
 import QrScanner from 'react-qr-scanner';
 import axiosInstance from '../../axiosConfig';
 import EmployeeCheckinDetails from './EmployeeCheckinDetails';
+import imageCompression from 'browser-image-compression';
+import { ImagePlus, Camera } from 'lucide-react';
 
 const originalConsoleError = console.error;
 console.error = (...args) => {
@@ -14,6 +16,20 @@ console.error = (...args) => {
   if (args[0]?.includes('willReadFrequently')) return;
   originalConsoleError(...args);
 };
+
+// Create a simple event bus
+const eventBus = {
+  listeners: new Set(),
+  emit() {
+    this.listeners.forEach(listener => listener());
+  },
+  subscribe(listener) {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+};
+
+export { eventBus }; // Export for use in SidebarAdmin
 
 const AdminNavcomponent = ({ toggleSidebar }) => {
   const [showProfile, setShowProfile] = useState(false);
@@ -27,6 +43,11 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [scanResult, setScanResult] = useState({ success: false, message: '' });
   const [pauseScanning, setPauseScanning] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const fileInputRef = useRef(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchEventLogo = async () => {
@@ -45,7 +66,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     };
 
     fetchEventLogo();
-  }, []);
+  }, [refreshKey]);
 
   const resetScannerState = () => {
     setPauseScanning(false);
@@ -221,8 +242,79 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     }, 100);
   };
 
+  const compressImage = async (file) => {
+    const options = {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 1000,
+      useWebWorker: true,
+      initialQuality: 0.6,
+      fileType: 'image/jpeg',
+    };
+
+    try {
+      const compressedFile = await imageCompression(file, options);
+      console.log('Original file size:', file.size / 1024 / 1024, 'MB');
+      console.log(
+        'Compressed file size:',
+        compressedFile.size / 1024 / 1024,
+        'MB'
+      );
+      return compressedFile;
+    } catch (error) {
+      console.error('Image compression failed', error);
+      throw error;
+    }
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      try {
+        setIsUploading(true);
+        const compressedFile = await compressImage(file);
+        setSelectedFile(compressedFile);
+        handleImageUpload(compressedFile);
+      } catch (error) {
+        setUploadError('Failed to process image. Please try again.');
+        setIsUploading(false);
+      }
+    }
+  };
+
+  const handleImageUpload = async (file) => {
+    const formData = new FormData();
+    formData.append('image', file, 'profile.jpg');
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      const response = await axiosInstance.patch('/update-event-dp/', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json'
+        },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
+      });
+      const newImageUrl = response.data.data.image;
+      setLogoImage(newImageUrl);
+      setShowProfile(false);
+      setRefreshKey(prevKey => prevKey + 1);
+      eventBus.emit(); // Notify other components to refresh
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadError(error.response?.data?.message || 'Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
-    <div className="w-full font-bold h-[8vh] flex items-center justify-between lg:justify-end px-5 py-8 lg:px-10 lg:py-10">
+    <div
+      key={refreshKey}
+      className="w-full font-bold h-[8vh] flex items-center justify-between lg:justify-end px-5 py-8 lg:px-10 lg:py-10"
+    >
       {/* left-section for small screens */}
       <div className="left-section block lg:hidden" onClick={toggleSidebar}>
         <div className="menubar text-[2rem] text-[#636e72] hover:text-black cursor-pointer">
@@ -332,11 +424,12 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
         {/* profile-icon */}
         <div className="profile-icon relative">
           <div
-            className="w-10 h-10 rounded-full border-[1px] border-[#636e72] flex items-center justify-center cursor-pointer"
+            className="w-10 h-10 rounded-full border-[1px] border-[#636e72] flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={() => setShowProfile(!showProfile)}
           >
             <img
-              className="w-[1.5rem] object-contain"
+              key={refreshKey}
+              className="w-full h-full object-cover"
               src={logoImage}
               alt="Profile"
               onError={(e) => {
@@ -356,6 +449,42 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
               </button>
 
               <div className="px-4 py-3 border-b border-gray-100">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-20 h-20 mx-auto mb-3 rounded-full border-2 border-dashed border-gray-300 overflow-hidden cursor-pointer hover:border-blue-400 transition-all duration-300 relative"
+                >
+                  <img
+                    key={refreshKey}
+                    src={logoImage}
+                    alt="Profile"
+                    className="w-full h-full object-cover rounded-full"
+                    onError={(e) => {
+                      e.target.src = '/Neurocode.png';
+                    }}
+                  />
+                  <Camera className="absolute bottom-2 right-2 text-gray-500" />
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+
+                {isUploading && (
+                  <div className="text-center text-sm text-gray-600">
+                    Uploading...
+                  </div>
+                )}
+
+                {uploadError && (
+                  <div className="text-center text-sm text-red-500">
+                    {uploadError}
+                  </div>
+                )}
+
                 <div className="font-medium text-sm text-gray-800">
                   {user?.role || 'Admin'}
                 </div>

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { LuLayoutDashboard } from "react-icons/lu";
-import { MdGroups3, MdOutlineFestival } from "react-icons/md";
-import { IoTimerOutline } from "react-icons/io5";
-import { AiOutlineLogout, AiOutlineClose } from "react-icons/ai";
+import { LuLayoutDashboard } from 'react-icons/lu';
+import { MdGroups3, MdOutlineFestival } from 'react-icons/md';
+import { IoTimerOutline } from 'react-icons/io5';
+import { AiOutlineLogout, AiOutlineClose } from 'react-icons/ai';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { useDispatch } from 'react-redux';
 import { logout } from '../../Redux/authSlice';
 import axiosInstance from '../../axiosConfig';
-import { IoIosPeople } from "react-icons/io";
+import { IoIosPeople } from 'react-icons/io';
+import { eventBus } from '../Admin/AdminNavcomponent';
 
 const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   const dispatch = useDispatch();
@@ -16,6 +17,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   const navigate = useNavigate();
   const [isEmployeesOpen, setIsEmployeesOpen] = useState(false);
   const [logoImage, setLogoImage] = useState('/Neurocode2.png');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchEventLogo = async () => {
@@ -34,15 +36,23 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
     };
 
     fetchEventLogo();
+  }, [refreshKey]);
+
+  useEffect(() => {
+    // Subscribe to image update events
+    const unsubscribe = eventBus.subscribe(() => {
+      setRefreshKey((prev) => prev + 1);
+    });
+
+    return () => unsubscribe(); // Cleanup subscription
   }, []);
 
   const isActive = (path) => location.pathname === `/admin${path}`;
 
-  const getLinkClass = (path) => (
+  const getLinkClass = (path) =>
     `sidebar-link flex items-center gap-4 hover:text-black ${
       isActive(path) ? 'text-black' : 'text-[#636e72]'
-    }`
-  );
+    }`;
 
   const toggleEmployees = () => {
     setIsEmployeesOpen(!isEmployeesOpen);
@@ -55,50 +65,66 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
 
   return (
     <>
-      <div 
+      <div
         className={`fixed left-0 top-0 z-[10] w-full sm:w-[300px] lg:w-[300px] h-screen bg-white border-r border-[#e6e6e6] transition-transform duration-300 
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+          ${
+            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0`}
       >
         <div className="w-full relative">
-          {/* Close button for mobile screens */}
-          <div className="absolute top-4 right-4 lg:hidden cursor-pointer" onClick={toggleSidebar}>
+          {/* Updated Close button position to match SuperAdmin */}
+          <div
+            className="absolute top-4 right-4 lg:hidden cursor-pointer"
+            onClick={toggleSidebar}
+          >
             <AiOutlineClose className="text-2xl text-gray-600 hover:text-black" />
           </div>
 
-          {/* Updated Logo section with specific dimensions */}
-          <div className="logo-section w-full mt-20 h-[150px] flex items-center justify-center">
-            <img 
-              className="h-[80px] w-auto max-w-[160px] object-contain" 
-              src={logoImage} 
-              alt="Logo"
-              onError={(e) => {
-                e.target.src = '/Neurocode2.png';
-              }}
-            />
+          {/* Logo section */}
+          <div className="logo-section w-full mt-10 h-[150px] flex items-center justify-center">
+            <div className="w-[80px] h-[80px] rounded-full overflow-hidden border-2 border-gray-200">
+              <img
+                key={refreshKey}
+                className="w-full h-full object-cover"
+                src={logoImage}
+                alt="Logo"
+                onError={(e) => {
+                  e.target.src = '/Neurocode2.png';
+                }}
+              />
+            </div>
           </div>
 
           {/* Sidebar links */}
           <div className="sidebar-links flex justify-center lg:justify-start lg:ml-10 text-[1.2rem]">
             <ul className="flex flex-col gap-6">
               <li>
-                <Link to="/admin/dashboard" className={getLinkClass('/dashboard')} onClick={toggleSidebar}>
+                <Link
+                  to="/admin/dashboard"
+                  className={getLinkClass('/dashboard')}
+                  onClick={toggleSidebar}
+                >
                   <LuLayoutDashboard className="icon-size" />
                   <span>Dashboard</span>
                 </Link>
               </li>
               <li>
-                <Link to="/admin/events" className={getLinkClass('/events')} onClick={toggleSidebar}>
+                <Link
+                  to="/admin/events"
+                  className={getLinkClass('/events')}
+                  onClick={toggleSidebar}
+                >
                   <MdOutlineFestival className="icon-size" />
                   <span>Events</span>
                 </Link>
               </li>
               <li className="flex flex-col">
-                <button 
+                <button
                   onClick={toggleEmployees}
                   className={`sidebar-link flex items-center justify-between gap-4 hover:text-black text-[#636e72] w-full`}
                 >
                   <div className="flex items-center gap-4">
-                    <IoIosPeople  className="icon-size" />
+                    <IoIosPeople className="icon-size" />
                     <span>Employees</span>
                   </div>
                   {isEmployeesOpen ? (
@@ -110,8 +136,8 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                 {isEmployeesOpen && (
                   <ul className="ml-8 mt-2 flex flex-col gap-2">
                     <li>
-                      <Link 
-                        to="/admin/employee-details" 
+                      <Link
+                        to="/admin/employee-details"
                         className={getLinkClass('/employee-details')}
                         onClick={toggleSidebar}
                       >
@@ -119,8 +145,8 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                       </Link>
                     </li>
                     <li>
-                      <Link 
-                        to="/admin/add-category" 
+                      <Link
+                        to="/admin/add-category"
                         className={getLinkClass('/add-category')}
                         onClick={toggleSidebar}
                       >
@@ -131,7 +157,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                 )}
               </li>
               <li>
-                <button 
+                <button
                   onClick={handleLogout}
                   className="sidebar-link flex items-center gap-4 hover:text-black text-[#636e72]"
                 >

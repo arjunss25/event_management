@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import QrScanner from 'react-qr-scanner';
 import { X, Camera } from 'lucide-react';
 import axiosInstance from '../../axiosConfig';
+import { useDispatch } from 'react-redux';
+import { scanMeal } from '../../Redux/Slices/Employee/mealScannerSlice';
 
 const originalConsoleError = console.error;
 console.error = (...args) => {
@@ -11,6 +13,7 @@ console.error = (...args) => {
 };
 
 const EmployeeScanner = ({ onClose, mealInfo }) => {
+  const dispatch = useDispatch();
   const [scanning, setScanning] = useState(false);
   const [scannedData, setScannedData] = useState(null);
   const [flashlight, setFlashlight] = useState(false);
@@ -55,7 +58,6 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
           message: 'Meal scanned successfully',
         });
         setShowStatusModal(true);
-
       } catch (error) {
         console.error('Scan Error:', error);
         setScanResult({
@@ -104,7 +106,7 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
   const handleStatusModalClose = () => {
     setShowStatusModal(false);
     resetScannerState();
-    
+
     // Small delay to ensure clean state before next scan
     setTimeout(() => {
       setPauseScanning(false);
@@ -123,6 +125,24 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
       resetScannerState();
     };
   }, [camera]);
+
+  const handleSuccessfulScan = async (scannedData) => {
+    try {
+      // Dispatch the scan action with meal info
+      await dispatch(
+        scanMeal({
+          mealCategory: mealInfo.mealCategory,
+          date: mealInfo.date,
+          scannedData: scannedData, // QR code data or whatever was scanned
+        })
+      ).unwrap();
+
+      // Close scanner on success
+      onClose();
+    } catch (error) {
+      console.error('Scan failed:', error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">

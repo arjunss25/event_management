@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axiosConfig from "../../axiosConfig";
 import { Link } from "react-router-dom";
+import { IoIosRemoveCircleOutline, IoIosArrowDown } from "react-icons/io";
+import "./UserRegistration.css";
  
 const UserRegistration = () => {
   const [formFields, setFormFields] = useState([
-    { id: 1, label: "Full Name", type: "text", placeholder: "Name" },
-    { id: 2, label: "Email Address", type: "email", placeholder: "e-mail" },
-    { id: 3, label: "Phone Number", type: "tel", placeholder: "phone number" },
+    { id: 1, label: "Full Name", type: "text", placeholder: "Name", isDefault: true },
+    { id: 2, label: "Email Address", type: "email", placeholder: "e-mail", isDefault: true },
   ]);
   const [fetchedExtraFields, setFetchedExtraFields] = useState([]);
   const [newField, setNewField] = useState({
@@ -217,18 +218,13 @@ const UserRegistration = () => {
   };
  
   const renderInputField = (field) => {
-    console.log("Rendering field:", field);
-   
     switch (field.type) {
       case 'select':
         return (
           <div key={field.id} className="mb-4">
-            {/* <label className="block text-gray-700 text-sm font-bold mb-2">
-              {field.label}
-            </label> */}
             <select
               name={field.id}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all outline-none"
               onChange={handleInputChange}
             >
               <option value="">Select {field.label}</option>
@@ -240,65 +236,56 @@ const UserRegistration = () => {
             </select>
           </div>
         );
- 
+
       case 'radio':
         return (
           <div key={field.id} className="mb-4">
-            {/* <label className="block text-gray-700 text-sm font-bold mb-2">
-              {field.label}
-            </label> */}
-            <div className="mt-2">
+            <div className="space-y-2">
               {field.options && field.options.map((option, idx) => (
-                <label key={`${field.id}-option-${idx}`} className="inline-flex items-center mr-4">
+                <label key={`${field.id}-option-${idx}`} className="flex items-center gap-2">
                   <input
                     type="radio"
                     name={field.id}
                     value={option.value || option}
                     onChange={handleInputChange}
-                    className="form-radio h-4 w-4 text-blue-600"
+                    className="w-4 h-4 text-black border-gray-300 focus:ring-gray-200"
                   />
-                  <span className="ml-2">{option.value || option}</span>
+                  <span className="text-gray-700">{option.value || option}</span>
                 </label>
               ))}
             </div>
           </div>
         );
- 
+
       case 'checkbox':
         return (
           <div key={field.id} className="mb-4">
-            {/* <label className="block text-gray-700 text-sm font-bold mb-2">
-              {field.label}
-            </label> */}
-            <div className="mt-2">
+            <div className="space-y-2">
               {field.options && field.options.map((option, idx) => (
-                <label key={`${field.id}-option-${idx}`} className="inline-flex items-center mr-4">
+                <label key={`${field.id}-option-${idx}`} className="flex items-center gap-2">
                   <input
                     type="checkbox"
                     name={field.id}
                     value={option.value || option}
                     onChange={handleInputChange}
-                    className="form-checkbox h-4 w-4 text-blue-600"
+                    className="w-4 h-4 text-black rounded border-gray-300 focus:ring-gray-200"
                   />
-                  <span className="ml-2">{option.value || option}</span>
+                  <span className="text-gray-700">{option.value || option}</span>
                 </label>
               ))}
             </div>
           </div>
         );
- 
+
       default:
         return (
           <div key={field.id} className="mb-4">
-            {/* <label className="block text-gray-700 text-sm font-bold mb-2">
-              {field.label}
-            </label> */}
             <input
               type={field.type}
               name={field.id}
               placeholder={field.placeholder}
               onChange={handleInputChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all outline-none"
             />
           </div>
         );
@@ -306,162 +293,186 @@ const UserRegistration = () => {
   };
  
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex w-full  lg:flex-row flex-col gap-8 registration-section-main">
       {/* Form Section */}
-      <div className="w-1/2 p-8">
-        <h2 className="text-2xl font-semibold mb-6">User Registration</h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {allFormFields.map((field) => (
-            <div key={field.id} className="space-y-2 relative">
-              {/* <label className="block text-sm font-medium text-gray-700">
-                {field.label}
-              </label> */}
-              {renderInputField(field)}
-{field.label && (
-  <button
-    type="button"
-    onClick={() => handleDeleteField(field.label)}
-    className="absolute top-0 right-0 text-red-500"
-  >
-    &#x2715;
-  </button>
-)}
-
- 
-            </div>
-          ))}
-          <button type="submit" className="w-full px-4 py-2 bg-blue-600 text-white rounded-md">
-            Submit Form
-          </button>
-        </form>
- 
-        {/* File Upload Section */}
-        <div className="pt-6 border-t">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium">Upload Registration Details</span>
+      <div className="w-full left-sec lg:w-1/2">
+        <div className="bg-white rounded-2xl shadow-sm p-3 sm:p-8">
+          <div className="flex justify-between items-center mb-8 header-btn-sec">
+            <h2 className="text-2xl font-semibold text-gray-800">User Registration</h2>
             <button
-              type="button"
               onClick={() => setIsFileUploadEnabled(!isFileUploadEnabled)}
-              className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${
-                isFileUploadEnabled ? 'bg-blue-600' : 'bg-gray-200'
-              }`}
-              aria-pressed={isFileUploadEnabled}
-              aria-label="Toggle file upload section"
+              className="up-btn  flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <div
-                className={`w-4 h-4 bg-white rounded-full transform transition-transform duration-200 ${
-                  isFileUploadEnabled ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
+              <span className="text-sm">CSV Upload</span>
+              <div className={`w-10 h-5 rounded-full p-0.5 transition-colors duration-200 ${
+                isFileUploadEnabled ? 'bg-black' : 'bg-gray-300'
+              }`}>
+                <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${
+                  isFileUploadEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`} />
+              </div>
             </button>
           </div>
- 
-          {isFileUploadEnabled && (
-            <div className="space-y-2">
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300"
-              />
-              {selectedFile && (
-                <p className="text-sm text-gray-600">Selected File: {selectedFile.name}</p>
-              )}
+
+          {isFileUploadEnabled ? (
+            <div className="space-y-4">
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <label 
+                  htmlFor="file-upload"
+                  className="cursor-pointer flex flex-col items-center gap-3"
+                >
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                  <span className="text-sm text-gray-600">Click to upload CSV file</span>
+                </label>
+                {selectedFile && (
+                  <div className="mt-4 text-sm text-gray-600">
+                    Selected: {selectedFile.name}
+                  </div>
+                )}
+              </div>
               <button
-                type="button"
                 onClick={handleFileUpload}
-                disabled={loading}
-                className={`w-full px-4 py-2 rounded-md transition-colors duration-200 ${
-                  loading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                disabled={loading || !selectedFile}
+                className={`w-full py-3 rounded-xl transition-all duration-200 ${
+                  loading || !selectedFile
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-black text-white hover:bg-gray-800 shadow-sm hover:shadow-md'
                 }`}
               >
-                {loading ? 'Uploading...' : 'Upload'}
+                {loading ? 'Uploading...' : 'Upload File'}
               </button>
             </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {allFormFields.map((field) => (
+                <div key={field.id} className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {field.label}
+                    </label>
+                    {!field.isDefault && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteField(field.label)}
+                        className="text-red-500 hover:text-red-600 transition-colors"
+                        title="Remove field"
+                      >
+                        <IoIosRemoveCircleOutline className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                  {renderInputField(field)}
+                </div>
+              ))}
+              
+              {generatedLink && (
+                <div className="text-center text-gray-700">
+                  Successfully registered! Click <Link to={generatedLink} className="text-black hover:underline">here</Link> to continue.
+                </div>
+              )}
+              
+              <button 
+                type="submit" 
+                className="w-full py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                Save Form
+              </button>
+            </form>
           )}
         </div>
- 
-        {/* Display generated link */}
-        {generatedLink && (
-          <div className="pt-4">
-            <Link to={generatedLink} className="text-blue-600 hover:text-blue-800">
-              Go to Confirmation Page
-            </Link>
-          </div>
-        )}
       </div>
- 
+
       {/* Field Addition Section */}
-      <div className="w-1/2 bg-gray-800 p-8">
-        <div className="bg-white rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">Add Input Fields</h3>
-          <div className="space-y-4">
+      <div className="w-full right-sect lg:w-1/2">
+        <div className="bg-black rounded-2xl shadow-sm p-5 sm:p-8">
+          <h3 className="text-xl font-semibold mb-8 text-white">Customize Registration Form</h3>
+          <div className="bg-white rounded-xl p-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Field Label</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Field Label</label>
               <input
                 type="text"
                 value={newField.label}
                 onChange={(e) => setNewField({ ...newField, label: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className="w-full p-3 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all"
+                placeholder="Enter field label"
               />
             </div>
+            
             <div>
-              <label className="block text-sm font-medium text-gray-700">Field Type</label>
-              <select
-                value={newField.type}
-                onChange={(e) => setNewField({ ...newField, type: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                {fieldTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </option>
-                ))}
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Field Type</label>
+              <div className="relative">
+                <select
+                  value={newField.type}
+                  onChange={(e) => setNewField({ ...newField, type: e.target.value })}
+                  className="w-full p-3 pr-10 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all appearance-none"
+                >
+                  {fieldTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
+                <IoIosArrowDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
             </div>
+
             {["select", "radio", "checkbox"].includes(newField.type) && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Options</label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={optionInput}
-                    onChange={(e) => setOptionInput(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    placeholder="Option value"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddOption}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="space-y-1 mt-2">
-                  {newField.options.map((option, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span>{option}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveOption(index)}
-                        className="text-red-500"
-                      >
-                        &#x2715;
-                      </button>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={optionInput}
+                      onChange={(e) => setOptionInput(e.target.value)}
+                      className="flex-1 p-3 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all"
+                      placeholder="Add an option"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddOption}
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {newField.options.length > 0 && (
+                    <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                      {newField.options.map((option, index) => (
+                        <div key={index} className="flex items-center justify-between bg-white p-2 rounded-md">
+                          <span className="text-sm text-gray-600">{option}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveOption(index)}
+                            className="text-red-500 hover:text-red-600"
+                          >
+                            <IoIosRemoveCircleOutline className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
+
             <button
               type="button"
               onClick={handleAddField}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md"
+              className="w-full py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              Add Field
+              Add New Field
             </button>
           </div>
         </div>

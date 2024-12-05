@@ -161,14 +161,14 @@ const UserProfile = () => {
       <div className={`fixed top-0 left-0 h-screen w-64 bg-white z-10 transform border-r-2 border-grey-200 ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col md:w-72 lg:w-64 p-4`}>
-        <button onClick={toggleSidebar} className="lg:hidden absolute top-4 right-4 text-gray-600">
+        <button onClick={toggleSidebar} className="md:hidden absolute top-4 right-4 text-grey-600">
           <FaTimes size={24} />
         </button>
 
         <div className="flex flex-col items-center">
           <img
-            className="w-20 h-20 rounded-full border-2 border-black"
-            src="/profile_pic.svg"
+            className="w-20 h-20 rounded-full mt-10 "
+            src="/profile-avatar.png"
             alt="Profile"
           />
           <h2 className="mt-4 text-lg font-semibold">{userData?.full_name}</h2>
@@ -204,7 +204,7 @@ const UserProfile = () => {
           {/* Mobile Menu Button - Moved inside and repositioned */}
           <button
             onClick={toggleSidebar}
-            className="md:hidden absolute -left-2 -top-8 z-20 text-gray-600"
+            className="md:hidden absolute -left-2 -top-8 z-12 text-gray-600"
           >
             <FaBars size={24} />
           </button>

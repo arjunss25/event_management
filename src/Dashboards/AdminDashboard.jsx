@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Dashboardcards from '../Components/Dashboardcards';
-import { MdOutlineFoodBank, MdDinnerDining, MdFreeBreakfast, MdCoffee, MdRestaurant } from "react-icons/md";
-import { FaBowlRice } from "react-icons/fa6";
-import { GiMeal } from "react-icons/gi";
+import {
+  MdOutlineFoodBank,
+  MdDinnerDining,
+  MdFreeBreakfast,
+  MdCoffee,
+  MdRestaurant,
+} from 'react-icons/md';
+import { FaBowlRice } from 'react-icons/fa6';
+import { GiMeal } from 'react-icons/gi';
 import axiosInstance from '../axiosConfig';
 import RegisteredUserTable from '../Components/Admin/RegisteredUserTable';
+import { websocketService } from '../services/websocketService';
 
 const AdminDashboard = () => {
   const [mealData, setMealData] = useState([]);
@@ -30,23 +37,51 @@ const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    const fetchMealTypes = async () => {
+    // Fetch initial meal counts
+    const fetchMealData = async () => {
       try {
-        const response = await axiosInstance.get('/unique-meals-list/');
+        const response = await axiosInstance.get('/mealcount-currentdate/');
         if (response.data?.data) {
-          const transformedData = response.data.data.map(mealType => ({
-            eventType: mealType,
-            number: 0,
-            icon: getMealIcon(mealType),
+          const transformedData = response.data.data.map(meal => ({
+            eventType: meal.meal_type_name,
+            number: meal.count,
+            icon: getMealIcon(meal.meal_type_name),
           }));
           setMealData(transformedData);
         }
       } catch (error) {
-        console.error('Error fetching meal types:', error);
+        console.error('Error fetching meal counts:', error);
       }
     };
 
-    fetchMealTypes();
+    fetchMealData();
+
+    // Subscribe to WebSocket updates
+    const unsubscribe = websocketService.subscribe((data) => {
+      console.log('🔵 WebSocket message received:', data);
+      
+      // Match the backend consumer message format
+      if (data.meal_type) {
+        setMealData(prevData => {
+          const updatedData = prevData.map(meal => {
+            if (meal.eventType.toLowerCase() === data.meal_type.toLowerCase()) {
+              console.log(`🎯 Updating count for ${meal.eventType} to ${data.count}`);
+              return { ...meal, number: data.count };
+            }
+            return meal;
+          });
+          return updatedData;
+        });
+      }
+    });
+
+    websocketService.connect();
+
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribe();
+      websocketService.disconnect();
+    };
   }, []);
 
   return (
@@ -65,7 +100,7 @@ const AdminDashboard = () => {
           {/* table-component */}
           <div className="table-component mt-10">
             <h1 className="text-xl lg:text-2xl font-semibold mb-6">Events</h1>
-            <RegisteredUserTable/>
+            <RegisteredUserTable />
           </div>
         </div>
       </main>
