@@ -5,7 +5,7 @@ let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -20,12 +20,18 @@ const axiosInstance = axios.create({
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
 });
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
+    console.log('Making request to:', {
+      url: config.url,
+      method: config.method,
+      baseURL: config.baseURL,
+      fullUrl: `${config.baseURL}${config.url}`,
+    });
     const token = tokenService.getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -48,11 +54,11 @@ axiosInstance.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(token => {
+          .then((token) => {
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return axiosInstance(originalRequest);
           })
-          .catch(err => Promise.reject(err));
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
@@ -71,17 +77,19 @@ axiosInstance.interceptors.response.use(
         );
 
         const { access, refresh } = response.data.data;
-        
+
         // Store new tokens
         tokenService.setTokens(access, refresh);
-        
+
         // Update authorization header
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+        axiosInstance.defaults.headers.common[
+          'Authorization'
+        ] = `Bearer ${access}`;
         originalRequest.headers.Authorization = `Bearer ${access}`;
-        
+
         // Process queue
         processQueue(null, access);
-        
+
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);

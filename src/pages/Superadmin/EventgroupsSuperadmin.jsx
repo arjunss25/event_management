@@ -4,6 +4,8 @@ import { FaTimes } from 'react-icons/fa';
 import EventgroupsSuperadminTable from '../../Components/Superadmin/EventgroupsSuperadminTable';
 import axiosInstance from '../../axiosConfig';
 import { tokenService } from '../../tokenService';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 
 const EventgroupsSuperadmin = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -16,6 +18,45 @@ const EventgroupsSuperadmin = () => {
   const [accessToken, setAccessToken] = useState('');
   const [firebaseToken, setFirebaseToken] = useState('');
   const [userRole, setUserRole] = useState('');
+
+  const [formErrors, setFormErrors] = useState({
+    eventGroupName: '',
+    ownerName: '',
+    email: '',
+    phone: '',
+  });
+
+  const validateForm = (data) => {
+    const errors = {};
+
+    if (!data.eventGroupName.trim()) {
+      errors.eventGroupName = 'Event Group Name is required';
+    } else if (data.eventGroupName.length < 2) {
+      errors.eventGroupName = 'Event Group Name must be at least 2 characters';
+    }
+
+    if (!data.ownerName.trim()) {
+      errors.ownerName = 'Owner Name is required';
+    } else if (data.ownerName.length < 2) {
+      errors.ownerName = 'Owner Name must be at least 2 characters';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!data.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!emailRegex.test(data.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (!data.phone.trim()) {
+      errors.phone = 'Phone number is required';
+    } else if (!phoneRegex.test(data.phone.replace(/\D/g, ''))) {
+      errors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    return errors;
+  };
 
   useEffect(() => {
     const token = tokenService.getAccessToken();
@@ -36,29 +77,96 @@ const EventgroupsSuperadmin = () => {
   };
 
   const handleAddEventGroup = async (eventGroupData) => {
+    const validationErrors = validateForm(eventGroupData);
+    setFormErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
+
+      // First create Firebase user
+      console.log('Creating Firebase user for:', eventGroupData.email);
+      const defaultPassword = `${eventGroupData.eventGroupName
+        .replace(/\s+/g, '')
+        .toLowerCase()}@123`;
+
+      let firebaseUser;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          eventGroupData.email,
+          defaultPassword
+        );
+        firebaseUser = userCredential.user;
+        console.log('✅ Firebase user created successfully:', {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+        });
+      } catch (firebaseError) {
+        console.error('Firebase registration error:', {
+          code: firebaseError.code,
+          message: firebaseError.message,
+        });
+
+        // Handle specific Firebase errors
+        if (firebaseError.code === 'auth/email-already-in-use') {
+          throw new Error('An account with this email already exists.');
+        } else if (firebaseError.code === 'auth/invalid-email') {
+          throw new Error('The email address is not valid.');
+        } else if (firebaseError.code === 'auth/operation-not-allowed') {
+          throw new Error(
+            'Email/password accounts are not enabled. Please contact support.'
+          );
+        } else if (firebaseError.code === 'auth/weak-password') {
+          throw new Error('The password is too weak.');
+        }
+        throw firebaseError;
+      }
 
       const requestData = {
         company_name: eventGroupData.eventGroupName,
         owner_name: eventGroupData.ownerName,
         email: eventGroupData.email,
         phone: eventGroupData.phone,
+        firebase_uid: firebaseUser.uid, // Include Firebase UID in the payload
       };
 
       console.log('Sending request with data:', requestData);
 
-      const response = await axiosInstance.post('/register-eventgroup/', requestData);
+      const response = await axiosInstance.post(
+        '/register-eventgroup/',
+        requestData
+      );
 
       console.log('API Response:', response);
 
       if (response.status === 200 || response.status === 201) {
-        alert('Event group added successfully');
+        alert(
+          `Event group added successfully! Default password is: ${defaultPassword}`
+        );
         toggleDrawer();
+      } else {
+        // If backend registration fails, delete the Firebase user
+        if (firebaseUser) {
+          try {
+            await firebaseUser.delete();
+            console.log(
+              '🗑️ Firebase user deleted due to backend registration failure'
+            );
+          } catch (deleteError) {
+            console.error('Error deleting Firebase user:', deleteError);
+          }
+        }
+        throw new Error(
+          response.data?.message || 'Failed to register event group'
+        );
       }
     } catch (err) {
-      console.error("Error details:", {
+      console.error('Error details:', {
         message: err.message,
         response: err.response?.data,
         status: err.response?.status,
@@ -69,7 +177,8 @@ const EventgroupsSuperadmin = () => {
       if (err.response) {
         switch (err.response.status) {
           case 400:
-            errorMessage = err.response.data?.message || 'Invalid data provided';
+            errorMessage =
+              err.response.data?.message || 'Invalid data provided';
             break;
           case 401:
             errorMessage = 'Please log in again to continue';
@@ -80,16 +189,22 @@ const EventgroupsSuperadmin = () => {
             errorMessage = 'You do not have permission to perform this action';
             break;
           case 404:
-            errorMessage = 'Service endpoint not found. Please contact support.';
+            errorMessage =
+              'Service endpoint not found. Please contact support.';
             break;
           case 422:
-            errorMessage = err.response.data?.message || 'Invalid event group data';
+            errorMessage =
+              err.response.data?.message || 'Invalid event group data';
             break;
           default:
-            errorMessage = err.response.data?.message || 'An unexpected error occurred';
+            errorMessage =
+              err.response.data?.message || 'An unexpected error occurred';
         }
       } else if (err.request) {
-        errorMessage = 'Unable to reach the server. Please check your connection.';
+        errorMessage =
+          'Unable to reach the server. Please check your connection.';
+      } else {
+        errorMessage = err.message;
       }
 
       setError(errorMessage);
@@ -112,7 +227,7 @@ const EventgroupsSuperadmin = () => {
         setSearchResults([]);
       }
     } catch (err) {
-      console.error("Error details:", {
+      console.error('Error details:', {
         message: err.message,
         response: err.response?.data,
         status: err.response?.status,
@@ -161,7 +276,9 @@ const EventgroupsSuperadmin = () => {
 
         {/* Table Section */}
         <div className="table-section mt-6 overflow-x-auto">
-          <EventgroupsSuperadminTable data={searchResults.length > 0 ? searchResults : events} />
+          <EventgroupsSuperadminTable
+            data={searchResults.length > 0 ? searchResults : events}
+          />
         </div>
       </div>
 
@@ -176,7 +293,9 @@ const EventgroupsSuperadmin = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative flex justify-center items-center mb-8">
-              <h2 className="text-xl font-semibold">Add Event Group</h2>
+              <h2 className="text-[1.5rem] sm:text-[2rem] font-semibold">
+                Add Event Group
+              </h2>
               <button
                 onClick={toggleDrawer}
                 className="absolute right-0 text-gray-600 hover:text-gray-800 text-[1.5rem]"
@@ -207,52 +326,72 @@ const EventgroupsSuperadmin = () => {
               <div className="w-full max-w-6xl px-4 md:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-16">
                   <div>
-                    <label className="block text-gray-700 mb-2">Event Group Name</label>
-                    <input 
-                      type="text" 
+                    <label className="block text-gray-700 mb-2">
+                      Event Group Name
+                    </label>
+                    {formErrors.eventGroupName && (
+                      <div className="text-red-500 text-sm mb-1">
+                        {formErrors.eventGroupName}
+                      </div>
+                    )}
+                    <input
+                      type="text"
                       name="eventGroupName"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter event group name"
-                      required 
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 mb-2">Owner's Name</label>
-                    <input 
-                      type="text" 
+                    <label className="block text-gray-700 mb-2">
+                      Owner's Name
+                    </label>
+                    {formErrors.ownerName && (
+                      <div className="text-red-500 text-sm mb-1">
+                        {formErrors.ownerName}
+                      </div>
+                    )}
+                    <input
+                      type="text"
                       name="ownerName"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter owner's name"
-                      required
                     />
                   </div>
 
                   <div>
                     <label className="block text-gray-700 mb-2">Email</label>
-                    <input 
-                      type="email" 
+                    {formErrors.email && (
+                      <div className="text-red-500 text-sm mb-1">
+                        {formErrors.email}
+                      </div>
+                    )}
+                    <input
+                      type="email"
                       name="email"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter email address"
-                      required
                     />
                   </div>
 
                   <div>
                     <label className="block text-gray-700 mb-2">Phone</label>
-                    <input 
-                      type="tel" 
+                    {formErrors.phone && (
+                      <div className="text-red-500 text-sm mb-1">
+                        {formErrors.phone}
+                      </div>
+                    )}
+                    <input
+                      type="tel"
                       name="phone"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Enter phone number"
-                      required
                     />
                   </div>
                 </div>
 
                 <div className="flex justify-center mt-10">
-                  <button 
+                  <button
                     type="submit"
                     className="bg-black text-white px-10 py-2 rounded hover:bg-gray-800 transition-colors duration-200"
                     disabled={loading}

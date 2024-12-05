@@ -1,21 +1,38 @@
 import React, { useEffect, useState, memo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RiEditLine } from "react-icons/ri";
-import "./TableComponent.css";
+import { RiEditLine } from 'react-icons/ri';
+import './TableComponent.css';
 import {
   fetchEventsByGroupId,
   updateEvent,
 } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
 
+// Update the STATUS_STYLES configuration to match TableComponent colors
+const STATUS_STYLES = {
+  event: {
+    upcoming: 'bg-[#E6F3FF] text-[#0066CC]',
+    ongoing: 'bg-[#FFF3E6] text-[#CC7700]',
+    completed: 'bg-[#E6FFE6] text-[#008000]',
+    pending: 'bg-[#FFE6E6] text-[#CC0000]',
+    PENDING: 'bg-[#FFE6E6] text-[#CC0000]',
+    Pending: 'bg-[#FFE6E6] text-[#CC0000]',
+    cancelled: 'bg-[#FFE6E6] text-[#CC0000]',
+    canceled: 'bg-[#FFE6E6] text-[#CC0000]'
+  },
+  payment: {
+    pending: 'bg-[#FFE6E6] text-[#CC0000]',
+    PENDING: 'bg-[#FFE6E6] text-[#CC0000]',
+    Pending: 'bg-[#FFE6E6] text-[#CC0000]',
+    completed: 'bg-[#E6FFE6] text-[#008000]',
+    'advance paid': 'bg-[#FFF3E6] text-[#CC7700]',
+    advance: 'bg-[#FFF3E6] text-[#CC7700]',
+    failed: 'bg-[#FFE6E6] text-[#CC0000]',
+    ongoing: 'bg-[#E6F3FF] text-[#0066CC]'
+  }
+};
 
 // Separate Modal component with memo
-const EditModal = memo(({ 
-  isOpen, 
-  onClose, 
-  formData, 
-  onSubmit, 
-  onChange 
-}) => {
+const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
   if (!isOpen) return null;
 
   return (
@@ -24,7 +41,10 @@ const EditModal = memo(({
         <h2 className="text-xl font-bold mb-4">Edit Event</h2>
         <form onSubmit={onSubmit}>
           <div className="mb-4">
-            <label htmlFor="event_name" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="event_name"
+              className="block text-sm font-medium text-gray-700"
+            >
               Event Name
             </label>
             <input
@@ -37,7 +57,10 @@ const EditModal = memo(({
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="start_date" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="start_date"
+              className="block text-sm font-medium text-gray-700"
+            >
               Start Date
             </label>
             <input
@@ -50,7 +73,10 @@ const EditModal = memo(({
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="end_date" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="end_date"
+              className="block text-sm font-medium text-gray-700"
+            >
               End Date
             </label>
             <input
@@ -63,7 +89,10 @@ const EditModal = memo(({
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="event_status" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="event_status"
+              className="block text-sm font-medium text-gray-700"
+            >
               Event Status
             </label>
             <select
@@ -109,7 +138,7 @@ const EventgroupEventsList = ({ eventGroupId }) => {
     start_date: '',
     end_date: '',
     event_status: '',
-    payment_status: ''
+    payment_status: '',
   });
 
   useEffect(() => {
@@ -125,16 +154,16 @@ const EventgroupEventsList = ({ eventGroupId }) => {
       start_date: event.start_date || '',
       end_date: event.end_date || '',
       event_status: event.event_status || '',
-      payment_status: event.payment_status || ''
+      payment_status: event.payment_status || '',
     });
     setIsModalOpen(true);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({
+    setFormData((prevData) => ({
       ...prevData,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -142,14 +171,16 @@ const EventgroupEventsList = ({ eventGroupId }) => {
     e.preventDefault();
     const updateData = {
       id: selectedEvent.id,
-      ...formData
+      ...formData,
     };
-    
+
     try {
-      await dispatch(updateEvent({ 
-        eventGroupId, 
-        eventData: updateData 
-      })).unwrap();
+      await dispatch(
+        updateEvent({
+          eventGroupId,
+          eventData: updateData,
+        })
+      ).unwrap();
       setIsModalOpen(false);
       dispatch(fetchEventsByGroupId(eventGroupId));
     } catch (error) {
@@ -157,7 +188,6 @@ const EventgroupEventsList = ({ eventGroupId }) => {
     }
   };
 
-  
   if (!eventGroupId) {
     return <div className="p-4">No event group selected</div>;
   }
@@ -184,7 +214,9 @@ const EventgroupEventsList = ({ eventGroupId }) => {
   if (!Array.isArray(events) || events.length === 0) {
     return (
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-        <p className="text-gray-600">No events have been added to this group yet.</p>
+        <p className="text-gray-600">
+          No events have been added to this group yet.
+        </p>
       </div>
     );
   }
@@ -196,11 +228,21 @@ const EventgroupEventsList = ({ eventGroupId }) => {
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-white uppercase bg-[#2D3436]">
               <tr>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">Event</th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">Start Date</th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">End Date</th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">Event Status</th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">Payment Status</th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                  Event
+                </th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                  Start Date
+                </th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                  End Date
+                </th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                  Event Status
+                </th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                  Payment Status
+                </th>
                 <th className="px-4 py-3 font-medium whitespace-nowrap"></th>
               </tr>
             </thead>
@@ -218,17 +260,31 @@ const EventgroupEventsList = ({ eventGroupId }) => {
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="w-28">
-                      <span>{event.event_status || 'N/A'}</span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          STATUS_STYLES.event[event.event_status] ||
+                          'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {event.event_status || 'N/A'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="w-28">
-                      <span>{event.payment_status || 'N/A'}</span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          STATUS_STYLES.payment[event.payment_status] ||
+                          'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {event.payment_status || 'N/A'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                     {event.event_status === 'upcoming' && (
-                      <button 
+                      <button
                         onClick={() => handleEditClick(event)}
                         className="text-black hover:text-blue-700 flex items-center justify-center text-[1.3rem]"
                       >
@@ -242,7 +298,7 @@ const EventgroupEventsList = ({ eventGroupId }) => {
           </table>
         </div>
       </div>
-      
+
       <EditModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

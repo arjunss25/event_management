@@ -25,6 +25,12 @@ const AddCategory = () => {
   const [newRoleName, setNewRoleName] = useState('');
   const [editedRoleName, setEditedRoleName] = useState('');
 
+
+  // Add console.log to debug
+  useEffect(() => {
+    console.log('Current event_group_id:', event_group_id);
+  }, [event_group_id]);
+
   // Fetch initial categories and position choices
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -73,6 +79,14 @@ const AddCategory = () => {
         .map(role => role.trim())
         .filter(role => role !== '');
   
+      console.log('Current event_group_id from Redux:', event_group_id);
+      
+      if (!event_group_id || event_group_id === 'undefined') {
+        setErrorMessage('Event group ID is missing or invalid');
+        setShowError(true);
+        return;
+      }
+  
       if (validRoles.length === 0) {
         setErrorMessage('Please enter at least one role');
         setShowError(true);
@@ -87,7 +101,7 @@ const AddCategory = () => {
           name: role
         };
   
-        console.log('Payload being sent:', payload);
+        console.log('Position payload:', payload);
   
         const response = await axiosInstance.post('/position-choices/', payload);
         console.log('Server response:', response);
@@ -123,6 +137,12 @@ const AddCategory = () => {
   const handleAddCategory = async () => {
     if (newCategoryLabel && newFieldType) {
       try {
+        if (!event_group_id) {
+          setErrorMessage('Event group ID is missing');
+          setShowError(true);
+          return;
+        }
+
         // Check for duplicate category
         const isDuplicate = categories.some(
           cat => cat.label.toLowerCase() === newCategoryLabel.toLowerCase()
@@ -143,6 +163,7 @@ const AddCategory = () => {
             name: newCategoryLabel,
             event_group: event_group_id
           };
+          console.log('Role payload:', payload);
           await axiosInstance.post('/position-choices/', payload);
         } else {
           // Regular category payload
@@ -151,7 +172,8 @@ const AddCategory = () => {
             field_type: newFieldType === 'select' ? 'Option' : 
                        newFieldType === 'radio' ? 'Radio' : 
                        newFieldType === 'checkbox' ? 'Checkbox' : 
-                       newFieldType.charAt(0).toUpperCase() + newFieldType.slice(1)
+                       newFieldType.charAt(0).toUpperCase() + newFieldType.slice(1),
+            event_group: event_group_id
           };
 
           // Add options for dropdown, radio, and checkbox
@@ -162,10 +184,7 @@ const AddCategory = () => {
             }, {});
           }
 
-          // Add event_group_id to the payload
-          payload.event_group = event_group_id;
-
-          // API call to add new field
+          console.log('Category payload:', payload);
           await axiosInstance.post('/add-employee-extrafields/', payload);
         }
 
@@ -471,7 +490,7 @@ const AddCategory = () => {
             </div>
 
             {/* Content */}
-            <div className="relative z-10">
+            <div className="relative z-5">
               <h3 className="text-2xl font-bold mb-8 text-white">Add New Category</h3>
               <form className="w-full space-y-6">
                 <div className="space-y-2">
@@ -591,14 +610,14 @@ const AddCategory = () => {
       </div>
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 ">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z- ">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white rounded-2xl w-[90%] max-w-2xl p-8 "
+            className="bg-white rounded-2xl w-[90%] max-w-2xl p-8 lg:ml-[300px] "
           >
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-8 ">
               <h3 className="text-2xl font-bold text-black">
                 Manage Roles & Positions
               </h3>
@@ -612,13 +631,13 @@ const AddCategory = () => {
 
             {/* Add new role section */}
             <div className="mb-8">
-              <div className="flex gap-3">
+              <div className="flex sm:flex-row flex-col sm:items-center items-start gap-3">
                 <input
                   type="text"
                   value={newRoleName}
                   onChange={(e) => setNewRoleName(e.target.value)}
                   placeholder="Enter new role name"
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                  className="flex-1 w-full sm:w-auto px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                 />
                 <button
                   onClick={handleAddRole}

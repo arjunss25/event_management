@@ -57,7 +57,7 @@ const EventgroupProfile = () => {
     try {
       setIsLoading(true);
       // Replace with your actual API call
-      const response = await fetch(`/api/event-groups/${id}`);
+      const response = await axiosInstance.get(`/api/event-groups/${id}`);
       if (!response.ok) throw new Error('Failed to fetch event data');
       const data = await response.json();
 
@@ -259,7 +259,7 @@ const EventgroupProfile = () => {
   );
 
   return (
-    <div className="flex min-h-screen px-10 pb-10">
+    <div className="flex min-h-screen px-3 sm:px-10 pb-10">
       {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 h-screen w-64 bg-white z-10 transform border-r-2 border-grey-200 pt-20 ${
@@ -323,7 +323,7 @@ const EventgroupProfile = () => {
           </button>
           <button 
             onClick={() => navigate('/superadmin/eventgroups')}
-            className="px-4 py-2 text-white bg-black rounded-full flex items-center sm:mt-0 mt-4"
+            className="px-4 py-2 text-white bg-black rounded-full flex items-center sm:mt-8 mt-4"
           >
             <span  className="mr-2">←</span> Back to Event Groups
           </button>
@@ -472,13 +472,13 @@ const EventgroupProfile = () => {
               <div className="flex justify-end gap-2 mt-6">
                 <button 
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={saveChanges}
-                  className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors duration-200"
+                  className="px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200"
                 >
                   Save Changes
                 </button>

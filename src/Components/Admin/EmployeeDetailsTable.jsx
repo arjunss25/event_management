@@ -4,19 +4,28 @@ import { FaRegEye, FaChevronDown } from 'react-icons/fa';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
 import axiosInstance from '../../axiosConfig';
 import { debounce } from 'lodash';
+import { auth } from '../../firebase/firebaseConfig';
+import { deleteUser, signInWithEmailAndPassword } from 'firebase/auth';
 
 const EmptyState = () => (
   <tr>
     <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
       <div className="flex flex-col items-center justify-center">
         <p className="text-lg">No employees found</p>
-        <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+        <p className="text-sm text-gray-400">
+          Try adjusting your search or filters
+        </p>
       </div>
     </td>
   </tr>
 );
 
-const TableContent = ({ employees, handleView, setSelectedEmployee, setShowModal }) => {
+const TableContent = ({
+  employees,
+  handleView,
+  setSelectedEmployee,
+  setShowModal,
+}) => {
   return (
     <table className="w-full text-sm text-left text-gray-500">
       <thead className="text-xs text-white uppercase bg-gray-800">
@@ -42,7 +51,9 @@ const TableContent = ({ employees, handleView, setSelectedEmployee, setShowModal
               <td className="px-6 py-4">
                 <span
                   className={`px-3 py-1 rounded-full text-xs ${
-                    employee.currentlyAssigned ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                    employee.currentlyAssigned
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
                   }`}
                 >
                   {employee.currentlyAssigned ? 'No' : 'Yes'}
@@ -93,7 +104,9 @@ const EmployeeTable = () => {
 
   const searchEmployees = async (searchTerm) => {
     try {
-      const response = await axiosInstance.get(`/search-employee-start/${searchTerm}/`);
+      const response = await axiosInstance.get(
+        `/search-employee-start/${searchTerm}/`
+      );
       if (response.data?.status_code !== 200) {
         setEmployees([]);
         return;
@@ -111,10 +124,7 @@ const EmployeeTable = () => {
     }
   };
 
-  const debouncedSearch = useMemo(
-    () => debounce(searchEmployees, 300),
-    []
-  );
+  const debouncedSearch = useMemo(() => debounce(searchEmployees, 300), []);
 
   useEffect(() => {
     return () => {
@@ -137,10 +147,12 @@ const EmployeeTable = () => {
     const position = e.target.value;
     setPositionFilter(position);
     setLoading(true);
-    
+
     try {
       if (position) {
-        const response = await axiosInstance.get(`/filter-employee-position/${position}/`);
+        const response = await axiosInstance.get(
+          `/filter-employee-position/${position}/`
+        );
         if (response.data?.status_code !== 200) {
           setEmployees([]);
           return;
@@ -174,7 +186,7 @@ const EmployeeTable = () => {
         currentlyAssigned: emp.is_available,
       }));
       setEmployees(employeeData);
-      
+
       // Extract and store all unique positions
       const positions = [...new Set(employeeData.map((emp) => emp.position))];
       setAllPositions(positions);
@@ -206,11 +218,88 @@ const EmployeeTable = () => {
 
   const handleDelete = async () => {
     try {
-      await axiosInstance.delete(`/employee-details/${selectedEmployee}`);
-      setEmployees(employees.filter((emp) => emp.id !== selectedEmployee));
-      setShowModal(false);
+      // First get the employee details to access the Firebase UID
+      const employee = employees.find(emp => emp.id === selectedEmployee);
+      if (!employee) {
+        throw new Error('Employee not found');
+      }
+
+      console.log('Deleting employee:', {
+        id: employee.id,
+        email: employee.email,
+        firebase_uid: employee.firebase_uid
+      });
+
+      // Delete from backend first
+      const response = await axiosInstance.delete(`/employee-details/${selectedEmployee}`);
+      
+      if (response.status === 200 || response.status === 204) {
+        try {
+          // Delete the user from Firebase if firebase_uid exists
+          if (employee.firebase_uid) {
+            console.log('Attempting to delete Firebase user:', employee.firebase_uid);
+            
+            // First attempt using the backend endpoint
+            const firebaseResponse = await axiosInstance.post('/delete-firebase-user/', {
+              firebase_uid: employee.firebase_uid,
+              email: employee.email // Adding email for additional verification
+            });
+
+            if (firebaseResponse.status === 200) {
+              console.log('✅ Firebase user deleted successfully via backend');
+            } else {
+              // If backend deletion fails, try alternative deletion method
+              console.warn('⚠️ Backend Firebase deletion failed, attempting alternative method');
+              
+              // Alternative: Delete through Firebase Admin SDK (handled by backend)
+              const alternativeResponse = await axiosInstance.delete('/delete-firebase-user-alternative/', {
+                data: {
+                  firebase_uid: employee.firebase_uid,
+                  email: employee.email
+                }
+              });
+
+              if (alternativeResponse.status === 200) {
+                console.log('✅ Firebase user deleted successfully via alternative method');
+              } else {
+                throw new Error('Failed to delete Firebase user through both methods');
+              }
+            }
+          } else {
+            console.warn('⚠️ No Firebase UID found for employee:', employee.id);
+          }
+
+          // Update local state
+          setEmployees(employees.filter((emp) => emp.id !== selectedEmployee));
+          setShowModal(false);
+          
+          // Show success message
+          alert('Employee deleted successfully');
+        } catch (firebaseError) {
+          console.error('Firebase deletion error:', {
+            error: firebaseError,
+            employee: employee.id,
+            firebase_uid: employee.firebase_uid
+          });
+          
+          // Log additional details for debugging
+          if (firebaseError.response) {
+            console.error('Firebase deletion response:', {
+              status: firebaseError.response.status,
+              data: firebaseError.response.data
+            });
+          }
+
+          // Even if Firebase deletion fails, the employee was removed from your backend
+          alert('Employee deleted from system, but Firebase account cleanup may have failed. Please contact support.');
+        }
+      }
     } catch (err) {
-      console.error('Error deleting employee:', err);
+      console.error('Error deleting employee:', {
+        error: err,
+        employee: selectedEmployee
+      });
+      alert('Failed to delete employee. Please try again.');
     }
   };
 
@@ -276,7 +365,10 @@ const EmployeeTable = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] md:w-[400px] text-center">
             <h3 className="text-xl font-semibold mb-4">Confirm Deletion</h3>
-            <p className="text-gray-600 mb-6">Are you sure you want to delete this employee? This action cannot be undone.</p>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this employee? This action cannot
+              be undone.
+            </p>
             <div className="flex justify-between">
               <button
                 className="px-4 py-2 bg-gray-200 rounded-full hover:bg-gray-300"

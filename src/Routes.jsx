@@ -34,6 +34,7 @@ import AdminEventsAssignedTable from './Components/Admin/AdminEventsAssignedTabl
 import EmployeeScanner from './Components/Employee/EmployeeScanner';
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
 import UserProfile from './pages/Admin/UserProfile';
+import ConfirmationPage from './pages/Admin/ConfirmationPage';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const auth = useSelector((state) => state.auth);
@@ -129,6 +130,7 @@ const AppRoutes = () => {
         <Route path="user/:id" element={<UserProfile />} />
         <Route path="user-profile" element={<Userprofile />} />
         <Route path="add-employee" element={<AddEmpolyee />} />
+        <Route path="/admin/confirmation" element={<ConfirmationPage />} />
         {/* <Route path="employee-profile" element={<AdminEmployeeProfile />} /> */}
         <Route path="employee-profile/:id" element={<AdminEmployeeProfile />} />
         <Route

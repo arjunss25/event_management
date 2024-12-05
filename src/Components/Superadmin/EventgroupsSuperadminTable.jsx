@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   fetchEvents,
   deleteEvent,
-  clearErrors
+  clearErrors,
 } from '../../Redux/Slices/SuperAdmin/EventgroupssuperadminSlice';
 import { FaRegEye, FaSearch } from 'react-icons/fa';
 import { MdOutlineDeleteOutline } from 'react-icons/md';
 import axiosInstance from '../../axiosConfig';
+import { auth } from '../../firebase/firebaseConfig';
+import { deleteUser, signInWithEmailAndPassword } from 'firebase/auth';
 
 // Memoized Search Component
 const SearchBar = memo(({ onSearch }) => {
@@ -91,15 +93,15 @@ const TableRow = memo(({ event, onDelete, onView, deleteLoading }) => {
 const EventgroupsSuperadminTable = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { 
-    events, 
-    loading, 
-    error, 
-    deleteLoading, 
-    deleteError 
-  } = useSelector((state) => state.eventGroups);
-  
-  const [statusMessage, setStatusMessage] = useState({ show: false, message: '', isError: false });
+  const { events, loading, error, deleteLoading, deleteError } = useSelector(
+    (state) => state.eventGroups
+  );
+
+  const [statusMessage, setStatusMessage] = useState({
+    show: false,
+    message: '',
+    isError: false,
+  });
   const [displayData, setDisplayData] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
@@ -112,51 +114,60 @@ const EventgroupsSuperadminTable = () => {
 
   // Update display data when events change
   useEffect(() => {
-    setDisplayData(events);
+    setDisplayData(Array.isArray(events) ? events : []);
   }, [events]);
 
   // Debounced search handler
-  const handleSearch = React.useCallback(async (searchTerm) => {
-    // If search term is empty, reset to show all events
-    if (!searchTerm.trim()) {
-      setDisplayData(events);
-      setTableLoading(false);
-      setSearchError(null);
-      return;
-    }
-
-    try {
-      setTableLoading(true);
-      setSearchError(null);
-
-      const response = await axiosInstance.get(`/search-eventgroup/${searchTerm}`);
-      
-      if (response.status === 200) {
-        setDisplayData(response.data?.data || []);
-      }
-    } catch (err) {
-      console.error("Search error:", err);
-      setSearchError('Failed to fetch search results');
-      setDisplayData([]);
-    } finally {
-      setTableLoading(false);
-    }
-  }, [events]);
-
-  // Debounced search implementation
-  const debouncedSearch = React.useCallback((searchTerm) => {
-    setTableLoading(true);
-    const timeoutId = setTimeout(() => {
-      handleSearch(searchTerm);
-    }, 300);
-
-    return () => {
-      clearTimeout(timeoutId);
+  const handleSearch = React.useCallback(
+    async (searchTerm) => {
+      // If search term is empty, reset to show all events
       if (!searchTerm.trim()) {
+        dispatch(fetchEvents());
+        setTableLoading(false);
+        setSearchError(null);
+        return;
+      }
+
+      try {
+        setTableLoading(true);
+        setSearchError(null);
+
+        const response = await axiosInstance.get(
+          `/search-eventgroup/${searchTerm}`
+        );
+
+        if (response.status === 200) {
+          const searchResults = response.data?.data || [];
+          setDisplayData(Array.isArray(searchResults) ? searchResults : []);
+        }
+      } catch (err) {
+        console.error('Search error:', err);
+        setSearchError('Failed to fetch search results');
+        setDisplayData([]);
+      } finally {
         setTableLoading(false);
       }
-    };
-  }, [handleSearch]);
+    },
+    [dispatch]
+  );
+
+  // Debounced search implementation
+  const debouncedSearch = React.useCallback(
+    (searchTerm) => {
+      setTableLoading(true);
+      const timeoutId = setTimeout(() => {
+        handleSearch(searchTerm);
+      }, 300);
+
+      return () => {
+        clearTimeout(timeoutId);
+        if (!searchTerm.trim()) {
+          setTableLoading(false);
+        }
+      };
+    },
+    [handleSearch]
+  );
 
   // Handle delete
   const handleDelete = async (id) => {
@@ -165,44 +176,92 @@ const EventgroupsSuperadminTable = () => {
     }
 
     try {
-      setStatusMessage({ show: true, message: 'Deleting event group...', isError: false });
-      
+      setStatusMessage({
+        show: true,
+        message: 'Deleting event group...',
+        isError: false,
+      });
+
+      // First, get the event group details to access the Firebase UID
+      const eventGroup = displayData.find((event) => event.id === id);
+      if (!eventGroup) {
+        throw new Error('Event group not found');
+      }
+
+      // Delete from backend first
       const resultAction = await dispatch(deleteEvent(id));
-      
+
       if (deleteEvent.fulfilled.match(resultAction)) {
-        setStatusMessage({
-          show: true,
-          message: 'Event group deleted successfully',
-          isError: false
-        });
-        dispatch(fetchEvents());
+        try {
+          // Delete the user from Firebase
+          if (eventGroup.firebase_uid) {
+            // Note: Deleting a user requires recent authentication
+            // You might need to implement admin SDK for this operation
+            // or handle it through your backend
+
+            const response = await axiosInstance.post(
+              '/delete-firebase-user/',
+              {
+                firebase_uid: eventGroup.firebase_uid,
+              }
+            );
+
+            if (response.status === 200) {
+              console.log('✅ Firebase user deleted successfully');
+            } else {
+              console.warn('⚠️ Firebase user deletion may have failed');
+            }
+          }
+
+          setStatusMessage({
+            show: true,
+            message: 'Event group deleted successfully',
+            isError: false,
+          });
+
+          // Refresh the events list
+          dispatch(fetchEvents());
+        } catch (firebaseError) {
+          console.error('Firebase deletion error:', firebaseError);
+          // Even if Firebase deletion fails, the event group was removed from your backend
+          setStatusMessage({
+            show: true,
+            message:
+              'Event group deleted, but Firebase cleanup may have failed',
+            isError: true,
+          });
+        }
       }
     } catch (err) {
       console.error('Delete operation failed:', err);
       setStatusMessage({
         show: true,
         message: 'Failed to delete event group. Please try again.',
-        isError: true
+        isError: true,
       });
     }
   };
 
   // Status message effect
-useEffect(() => {
-  if (statusMessage.show) {
-    const timer = setTimeout(() => {
-      setStatusMessage({ show: false, message: '', isError: false });
-    }, 2000); // Set timeout to 2 seconds
+  useEffect(() => {
+    if (statusMessage.show) {
+      const timer = setTimeout(() => {
+        setStatusMessage({ show: false, message: '', isError: false });
+      }, 2000); // Set timeout to 2 seconds
 
-    // Clear timeout on cleanup
-    return () => clearTimeout(timer);
-  }
-}, [statusMessage]);
+      // Clear timeout on cleanup
+      return () => clearTimeout(timer);
+    }
+  }, [statusMessage]);
 
-
-  const handleView = useCallback((event) => {
-    navigate(`/superadmin/eventgroup-profile`, { state: { eventData: event } });
-  }, [navigate]);
+  const handleView = useCallback(
+    (event) => {
+      navigate(`/superadmin/eventgroup-profile`, {
+        state: { eventData: event },
+      });
+    },
+    [navigate]
+  );
 
   // Status message effect
   useEffect(() => {
@@ -237,9 +296,13 @@ useEffect(() => {
 
       {/* Status Message */}
       {statusMessage.show && (
-        <div className={`mb-4 p-3 rounded ${
-          statusMessage.isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-        }`}>
+        <div
+          className={`mb-4 p-3 rounded ${
+            statusMessage.isError
+              ? 'bg-red-100 text-red-700'
+              : 'bg-green-100 text-green-700'
+          }`}
+        >
           {statusMessage.message}
         </div>
       )}
@@ -252,9 +315,7 @@ useEffect(() => {
           </div>
         ) : !displayData || displayData.length === 0 ? (
           <div className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <p className="text-gray-500 text-center">
-              No event groups found.
-            </p>
+            <p className="text-gray-500 text-center">No event groups found.</p>
           </div>
         ) : (
           <div className="relative overflow-x-auto">
@@ -262,11 +323,21 @@ useEffect(() => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-800 text-white">
-                    <th className="px-6 py-3 text-left whitespace-nowrap">Company Name</th>
-                    <th className="px-6 py-3 text-left whitespace-nowrap">Owner's Name</th>
-                    <th className="px-6 py-3 text-left whitespace-nowrap">Email</th>
-                    <th className="px-6 py-3 text-left whitespace-nowrap">Phone</th>
-                    <th className="px-6 py-3 text-left whitespace-nowrap">Actions</th>
+                    <th className="px-6 py-3 text-left whitespace-nowrap">
+                      Company Name
+                    </th>
+                    <th className="px-6 py-3 text-left whitespace-nowrap">
+                      Owner's Name
+                    </th>
+                    <th className="px-6 py-3 text-left whitespace-nowrap">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left whitespace-nowrap">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-left whitespace-nowrap">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">

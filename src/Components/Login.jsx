@@ -113,28 +113,51 @@ const Login = () => {
 
   const handleGoogleSignIn = async () => {
     try {
-      const result = await loginWithGoogle();
-      if (result.success) {
-        const { firebaseToken } = result;
+      setError(''); // Clear any previous errors
+      console.log('Starting Google sign-in process...');
 
+      // First ensure Firebase is initialized
+      if (!auth) {
+        throw new Error('Firebase authentication not initialized');
+      }
+
+      const result = await loginWithGoogle();
+      console.log('Google sign-in result:', {
+        success: result.success,
+        userEmail: result.user?.email,
+        tokenReceived: !!result.firebaseToken,
+      });
+
+      if (result.success && result.firebaseToken) {
         try {
+          // Verify Firebase auth state
+          const currentUser = auth.currentUser;
+          if (!currentUser) {
+            throw new Error('Firebase user not found after sign-in');
+          }
+
           const backendResponse = await authenticateWithBackend({
-            firebase_token: firebaseToken,
+            firebase_token: result.firebaseToken,
+            email: result.user.email,
           });
+
+          console.log('Backend authentication successful:', backendResponse);
 
           const { access, refresh, role } = backendResponse;
 
           // Store tokens and user data
-          tokenService.setTokens(access, refresh, firebaseToken);
-          tokenService.setUserData({
+          tokenService.setTokens(access, refresh, result.firebaseToken);
+          const userData = {
             email: result.user.email,
             role,
-          });
+            uid: result.user.uid,
+          };
+          tokenService.setUserData(userData);
 
           dispatch(
             loginSuccess({
               token: access,
-              user: { email: result.user.email, role },
+              user: userData,
             })
           );
 
@@ -150,18 +173,27 @@ const Login = () => {
               navigate('/employee/scanner');
               break;
             default:
-              setError(`Unauthorized role: ${role}`);
+              throw new Error(`Unauthorized role: ${role}`);
           }
         } catch (backendError) {
           console.error('Backend authentication error:', backendError);
-          setError('Failed to authenticate with the server. Please try again.');
+
+          // Clear any partial authentication state
+          await auth.signOut();
+          tokenService.clearTokens();
+
+          throw new Error(
+            backendError.response?.data?.message ||
+              'Failed to authenticate with the server. Please try again.'
+          );
         }
       } else {
-        setError(result.error);
+        throw new Error(result.error || 'Google sign-in failed');
       }
     } catch (error) {
-      console.error('Google sign-in error:', error);
-      setError('Google sign-in failed. Please try again.');
+      console.error('Authentication error:', error);
+      setError(error.message);
+      tokenService.clearTokens();
     }
   };
 

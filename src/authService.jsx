@@ -102,92 +102,126 @@ export const loginWithEmail = async (email, password) => {
 
 export const loginWithGoogle = async () => {
   const provider = new GoogleAuthProvider();
+  provider.addScope('email');
+  
   try {
+    console.log('Initiating Google sign-in...');
+    
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+
     const userCredential = await signInWithPopup(auth, provider);
-    const firebaseToken = await userCredential.user.getIdToken();
+    const user = userCredential.user;
     
-    console.log('Firebase Token generated:', firebaseToken ? 'Token generated successfully' : 'Token generation failed');
-    
+    console.log('Google sign-in successful:', {
+      email: user.email,
+      emailVerified: user.emailVerified,
+      uid: user.uid
+    });
+
+    const firebaseToken = await user.getIdToken(true);
+    console.log('Firebase token details:', {
+      tokenExists: !!firebaseToken,
+      tokenLength: firebaseToken?.length,
+      tokenPrefix: firebaseToken?.substring(0, 10) + '...'
+    });
+
+    if (!firebaseToken) {
+      throw new Error('Failed to generate Firebase token');
+    }
+
+    const decodedToken = await auth.currentUser?.getIdTokenResult();
+    console.log('Token verification:', {
+      issuedAt: decodedToken?.issuedAtTime,
+      expirationTime: decodedToken?.expirationTime,
+      signInProvider: decodedToken?.signInProvider
+    });
+
     tokenService.setFirebaseToken(firebaseToken);
 
     return {
       success: true,
       firebaseToken,
       user: {
-        email: userCredential.user.email,
-        uid: userCredential.user.uid,
-        displayName: userCredential.user.displayName,
+        email: user.email,
+        uid: user.uid,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
       },
     };
   } catch (error) {
-    console.error('Google login error:', error);
-    let errorMessage = 'Google sign-in failed';
-    switch (error.code) {
-      case 'auth/popup-closed-by-user':
-        errorMessage = 'Sign-in popup was closed';
-        break;
-      case 'auth/popup-blocked':
-        errorMessage = 'Sign-in popup was blocked. Please allow popups for this site.';
-        break;
-      default:
-        errorMessage = error.message;
+    console.error('Google sign-in error:', {
+      code: error.code,
+      message: error.message,
+      credential: error.credential
+    });
+    
+    if (error.code === 'auth/popup-closed-by-user') {
+      throw new Error('Sign-in cancelled. Please try again.');
+    } else if (error.code === 'auth/popup-blocked') {
+      throw new Error('Pop-up blocked. Please allow pop-ups for this site.');
+    } else if (error.code === 'auth/unauthorized-domain') {
+      throw new Error('This domain is not authorized for Google sign-in.');
     }
-    return { success: false, error: errorMessage };
+    
+    throw error;
   }
 };
 
 export const authenticateWithBackend = async (credentials) => {
   try {
-    console.log('Firebase Token:', credentials.firebase_token);
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error('No Firebase user found. Please sign in again.');
+    }
+
+    await auth.currentUser.reload();
+    const freshToken = await currentUser.getIdToken(true);
     
-    console.log('Calling API endpoint:', `${axiosInstance.defaults.baseURL}/unified-login/`);
-    
-    console.log('Request payload:', {
-      firebase_token: credentials.firebase_token
+    if (!freshToken) {
+      throw new Error('Failed to generate Firebase token');
+    }
+
+    console.log('Backend authentication attempt:', {
+      url: `${axiosInstance.defaults.baseURL}/unified-login/`,
+      tokenLength: freshToken.length,
+      email: currentUser.email,
+      emailVerified: currentUser.emailVerified,
+      uid: currentUser.uid
     });
 
     const response = await axiosInstance.post(
-      '/unified-login',
+      '/unified-login/',
       {
-        firebase_token: credentials.firebase_token,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        firebase_token: freshToken,
+        email: currentUser.email,
+        provider: 'google',
+        uid: currentUser.uid
       }
     );
 
-    if (response.data && response.data.status === "Success") {
+    if (response.data?.status === 'Success') {
       const { access, refresh, role } = response.data.data;
-
-      tokenService.setTokens(access, refresh);
-      tokenService.setUserData({
-        role: role,
+      
+      console.log('Backend authentication successful:', {
+        role,
+        accessTokenReceived: !!access,
+        refreshTokenReceived: !!refresh
       });
-
-      return {
-        success: true,
-        ...response.data.data,
-      };
-    } else {
-      throw new Error(response.data?.message || 'Backend authentication failed');
+      
+      return { access, refresh, role };
     }
+
+    console.error('Unexpected backend response:', response.data);
+    throw new Error(response.data?.message || 'Invalid response from server');
   } catch (error) {
-    console.error('Backend authentication error details:', {
+    console.error('Authentication error details:', {
       message: error.message,
       status: error.response?.status,
-      statusText: error.response?.statusText,
-      url: error.config?.url,
-      method: error.config?.method,
-      firebaseToken: credentials.firebase_token ? 'Present' : 'Missing',
+      data: error.response?.data,
+      config: error.config
     });
-
-    if (error.response?.status === 404) {
-      console.error('Full URL attempted:', `${axiosInstance.defaults.baseURL}${error.config?.url}`);
-      throw new Error('Authentication endpoint not found. Please check the API URL configuration.');
-    }
-
     throw error;
   }
 };

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Camera } from 'lucide-react';
 import axiosInstance from '../../axiosConfig';
+import { createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
 
 const AddEmployee = () => {
   const [formData, setFormData] = useState({
@@ -108,63 +110,103 @@ const AddEmployee = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setError('');
+    setLoading(true);
+
     try {
-      // Find the selected position object
-      const selectedPosition = positions.find(p => 
-        p.value === formData.position || p.id === formData.position
-      );
+      // First create Firebase user
+      console.log('Creating Firebase user for:', formData.email);
+      const defaultPassword = `${formData.name.replace(/\s+/g, '').toLowerCase()}@123`;
       
-      // Get the position label/name (e.g., "Cleaner", "Manager")
-      const positionName = selectedPosition ? 
-        (selectedPosition.label || selectedPosition.name || selectedPosition.value) : 
-        positions.find(p => p.id === formData.position)?.name || formData.position;
-      
+      let firebaseUser;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          defaultPassword
+        );
+        firebaseUser = userCredential.user;
+        console.log('✅ Firebase user created successfully:', {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email
+        });
+      } catch (firebaseError) {
+        console.error('Firebase registration error:', {
+          code: firebaseError.code,
+          message: firebaseError.message
+        });
+
+        // Handle specific Firebase errors
+        if (firebaseError.code === 'auth/email-already-in-use') {
+          throw new Error('An account with this email already exists.');
+        } else if (firebaseError.code === 'auth/invalid-email') {
+          throw new Error('The email address is not valid.');
+        } else if (firebaseError.code === 'auth/operation-not-allowed') {
+          throw new Error('Email/password accounts are not enabled. Please contact support.');
+        } else if (firebaseError.code === 'auth/weak-password') {
+          throw new Error('The password is too weak.');
+        }
+        throw firebaseError;
+      }
+
+      // Prepare and send data to backend
       const payload = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
         address: formData.address,
-        position: positionName, // Send the position name instead of ID
-        extra_fields: formData.extra_fields
+        position: formData.position,
+        extra_fields: formData.extra_fields,
+        firebase_uid: firebaseUser.uid
       };
 
-      console.log('Sending payload:', payload); 
-      
+      console.log('Sending employee data to backend:', payload);
       const response = await axiosInstance.post('/register-employee/', payload);
-      console.log('Success Response:', response.data);
       
-      // Clear form and show success message
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        position: '',
-        extra_fields: {}
-      });
-      setError(null);
+      if (response.data?.status === "Success") {
+        console.log('✅ Employee registered successfully in backend');
+        
+        // Clear form and show success message
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+          position: '',
+          extra_fields: {}
+        });
+        setError(null);
+        alert('Employee registered successfully! A password reset email has been sent.');
+      } else {
+        // If backend registration fails, delete the Firebase user
+        if (firebaseUser) {
+          try {
+            await firebaseUser.delete();
+            console.log('🗑️ Firebase user deleted due to backend registration failure');
+          } catch (deleteError) {
+            console.error('Error deleting Firebase user:', deleteError);
+          }
+        }
+        throw new Error(response.data?.message || 'Failed to register employee');
+      }
       
     } catch (error) {
       console.error('Error registering employee:', error);
+
+      // Set appropriate error message
       if (error.response) {
-        if (error.response.data.message) {
-          setError(error.response.data.message);
-        } else if (error.response.data.error) {
-          setError(error.response.data.error);
-        } else if (error.response.data.position) {
-          setError(`Position error: ${error.response.data.position[0]}`);
-        } else {
-          setError('Failed to register employee. Please check all fields and try again.');
-        }
+        console.error('Backend error response:', error.response.data);
+        setError(error.response.data.error || error.response.data.message || 'Failed to register employee');
       } else if (error.request) {
         setError('Network error. Please check your connection and try again.');
       } else {
-        setError('An unexpected error occurred. Please try again.');
+        setError(error.message || 'An unexpected error occurred. Please try again.');
       }
+
+    } finally {
+      setLoading(false);
     }
   };
-
 
   const renderExtraField = (field) => {
     const commonInputClasses = "w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500";
