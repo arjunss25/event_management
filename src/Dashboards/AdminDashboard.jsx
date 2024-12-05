@@ -14,9 +14,7 @@ import RegisteredUserTable from '../Components/Admin/RegisteredUserTable';
 import { websocketService } from '../services/websocketService';
 
 const AdminDashboard = () => {
-  const [mealData, setMealData] = useState([]);
-
-  // Helper function to get icon based on meal type
+  // Move getMealIcon function before the state initialization
   const getMealIcon = (mealType) => {
     const type = mealType.toLowerCase();
     if (type.includes('breakfast')) {
@@ -36,48 +34,54 @@ const AdminDashboard = () => {
     return <MdOutlineFoodBank />;
   };
 
+  // Remove defaultMealTypes and initialize mealData as empty array
+  const [mealData, setMealData] = useState([]);
+
   useEffect(() => {
-    // Fetch initial meal counts
-    const fetchMealData = async () => {
+    // Fetch unique meal types and current counts
+    const initializeDashboard = async () => {
       try {
-        const response = await axiosInstance.get('/mealcount-currentdate/');
-        if (response.data?.data) {
-          const transformedData = response.data.data.map(meal => ({
-            eventType: meal.meal_type_name,
-            number: meal.count,
-            icon: getMealIcon(meal.meal_type_name),
-          }));
-          setMealData(transformedData);
-        }
+        // Fetch unique meal types
+        const uniqueMealsResponse = await axiosInstance.get('/unique-meals-list/');
+        const mealTypes = uniqueMealsResponse.data?.data || [];
+
+        // Fetch current counts
+        const countsResponse = await axiosInstance.get('/mealcount-currentdate/');
+        const currentCounts = countsResponse.data?.data?.reduce((acc, meal) => {
+          acc[meal.meal_type_name.toLowerCase()] = meal.count;
+          return acc;
+        }, {}) || {};
+
+        // Create meal data array with counts
+        const initialMealData = mealTypes.map(mealType => ({
+          eventType: mealType,
+          number: currentCounts[mealType.toLowerCase()] || 0,
+          icon: getMealIcon(mealType)
+        }));
+
+        setMealData(initialMealData);
       } catch (error) {
-        console.error('Error fetching meal counts:', error);
+        console.error('Error initializing dashboard:', error);
       }
     };
 
-    fetchMealData();
+    initializeDashboard();
 
-    // Subscribe to WebSocket updates
+    // WebSocket subscription
     const unsubscribe = websocketService.subscribe((data) => {
       console.log('🔵 WebSocket message received:', data);
       
-      // Match the backend consumer message format
       if (data.meal_type) {
-        setMealData(prevData => {
-          const updatedData = prevData.map(meal => {
-            if (meal.eventType.toLowerCase() === data.meal_type.toLowerCase()) {
-              console.log(`🎯 Updating count for ${meal.eventType} to ${data.count}`);
-              return { ...meal, number: data.count };
-            }
-            return meal;
-          });
-          return updatedData;
-        });
+        setMealData(prevData => prevData.map(meal => 
+          meal.eventType.toLowerCase() === data.meal_type.toLowerCase()
+            ? { ...meal, number: data.new_count }
+            : meal
+        ));
       }
     });
 
     websocketService.connect();
 
-    // Cleanup subscription on unmount
     return () => {
       unsubscribe();
       websocketService.disconnect();
