@@ -42,41 +42,66 @@ const AdminDashboard = () => {
     const initializeDashboard = async () => {
       try {
         // Fetch unique meal types
-        const uniqueMealsResponse = await axiosInstance.get('/unique-meals-list/');
+        const uniqueMealsResponse = await axiosInstance.get(
+          '/unique-meals-list/'
+        );
         const mealTypes = uniqueMealsResponse.data?.data || [];
 
-        // Fetch current counts
-        const countsResponse = await axiosInstance.get('/mealcount-currentdate/');
-        const currentCounts = countsResponse.data?.data?.reduce((acc, meal) => {
-          acc[meal.meal_type_name.toLowerCase()] = meal.count;
-          return acc;
-        }, {}) || {};
-
-        // Create meal data array with counts
-        const initialMealData = mealTypes.map(mealType => ({
+        // Initialize with zero counts if meal count endpoint fails
+        const initialMealData = mealTypes.map((mealType) => ({
           eventType: mealType,
-          number: currentCounts[mealType.toLowerCase()] || 0,
-          icon: getMealIcon(mealType)
+          number: 0, // Default to 0
+          icon: getMealIcon(mealType),
         }));
 
         setMealData(initialMealData);
+
+        try {
+          // Attempt to fetch current counts
+          const countsResponse = await axiosInstance.get(
+            '/mealcount-currentdate/'
+          );
+          const currentCounts =
+            countsResponse.data?.data?.reduce((acc, meal) => {
+              acc[meal.meal_type_name.toLowerCase()] = meal.count;
+              return acc;
+            }, {}) || {};
+
+          // Update counts if available
+          setMealData((prevData) =>
+            prevData.map((meal) => ({
+              ...meal,
+              number:
+                currentCounts[meal.eventType.toLowerCase()] || meal.number,
+            }))
+          );
+        } catch (countError) {
+          console.warn('Could not fetch meal counts:', countError.message);
+          // Continue with zero counts if meal count endpoint fails
+        }
       } catch (error) {
         console.error('Error initializing dashboard:', error);
+        // Set empty array if both requests fail
+        setMealData([]);
       }
     };
 
     initializeDashboard();
 
-    // WebSocket subscription
+    // Updated WebSocket subscription handler
     const unsubscribe = websocketService.subscribe((data) => {
       console.log('🔵 WebSocket message received:', data);
-      
-      if (data.meal_type) {
-        setMealData(prevData => prevData.map(meal => 
-          meal.eventType.toLowerCase() === data.meal_type.toLowerCase()
-            ? { ...meal, number: data.new_count }
-            : meal
-        ));
+
+      if (data.meal_type && typeof data.new_count === 'number') {
+        setMealData((prevData) => {
+          const updatedData = prevData.map((meal) =>
+            meal.eventType.toLowerCase() === data.meal_type.toLowerCase()
+              ? { ...meal, number: data.new_count }
+              : meal
+          );
+          console.log('Updating meal data:', updatedData);
+          return updatedData;
+        });
       }
     });
 
