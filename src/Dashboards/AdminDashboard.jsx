@@ -37,25 +37,60 @@ const AdminDashboard = () => {
   const event_id = useSelector((state) => state.auth.event_id);
   const [roomStatus, setRoomStatus] = useState({ joined: false, members: [] });
 
-  // Load initial data
+  // Modified loadInitialData function
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        const response = await axiosInstance.get('/mealcount-currentdate/');
-        const initialData = response.data.data.map((meal) => ({
-          eventType: meal.meal_type_name,
-          number: meal.count,
-          icon: getMealIcon(meal.meal_type_name),
+        // First, fetch all possible meal types
+        const mealTypesResponse = await axiosInstance.get(
+          '/unique-meals-list/'
+        );
+        const allMealTypes = mealTypesResponse.data.data;
+
+        // Then fetch current counts
+        const countResponse = await axiosInstance.get(
+          '/mealcount-currentdate/'
+        );
+        const currentCounts = countResponse.data.data || [];
+
+        // Create a map of current counts
+        const countsMap = {};
+        // Add check to ensure currentCounts is an array
+        if (Array.isArray(currentCounts)) {
+          currentCounts.forEach((meal) => {
+            countsMap[meal.meal_type_name.toLowerCase()] = meal.count;
+          });
+        } else {
+          console.warn('Current counts is not an array:', currentCounts);
+        }
+
+        // Create final data array with all meal types
+        const initialData = allMealTypes.map((mealType) => ({
+          eventType: mealType,
+          number: countsMap[mealType.toLowerCase()] || 0,
+          icon: getMealIcon(mealType),
         }));
+
         console.log('Initial meal data loaded:', initialData);
         setMealData(initialData);
 
-        if (response.data.event?.id) {
-          console.log('AdminDashboard: Got event_id:', response.data.event.id);
-          setEventId(response.data.event.id);
+        if (countResponse.data.event?.id) {
+          console.log(
+            'AdminDashboard: Got event_id:',
+            countResponse.data.event.id
+          );
+          setEventId(countResponse.data.event.id);
         }
       } catch (error) {
         console.error('Error loading initial data:', error);
+        // Set default data with 0 counts if there's an error
+        const defaultData =
+          allMealTypes?.map((mealType) => ({
+            eventType: mealType,
+            number: 0,
+            icon: getMealIcon(mealType),
+          })) || [];
+        setMealData(defaultData);
       }
     };
 
