@@ -6,15 +6,9 @@ export const fetchEvents = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/list-all-eventgroups/');
-      console.log('Full API Response:', response);
       const eventData = response.data?.data || response.data || [];
       return eventData;
     } catch (error) {
-      console.error('Fetch Error Details:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-      });
       return rejectWithValue(
         error.response?.data?.message ||
         error.response?.data ||
@@ -32,7 +26,7 @@ export const deleteEvent = createAsyncThunk(
   'eventgroups/deleteEvent',
   async (id, { rejectWithValue }) => {
     try {
-      console.log('Attempting to delete event with ID:', id);
+
 
    
       const response = await axiosInstance.delete('/list-all-eventgroups/', {
@@ -44,7 +38,7 @@ export const deleteEvent = createAsyncThunk(
         },
       });
 
-      console.log('Delete Response:', response);
+
 
       if (response.status === 204 || response.status === 200) {
         return id;
@@ -52,11 +46,6 @@ export const deleteEvent = createAsyncThunk(
         throw new Error('Unexpected response status: ' + response.status);
       }
     } catch (error) {
-      console.error('Delete Error Details:', {
-        message: error.message,
-        response: error.response,
-        status: error.response?.status,
-      });
 
      
       if (error.response?.data?.message) {

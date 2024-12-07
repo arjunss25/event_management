@@ -11,7 +11,6 @@ const AdminEventsList = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const eventGroupId = useSelector((state) => state.auth.event_group_id);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -45,16 +44,17 @@ const AdminEventsList = () => {
         // Store new tokens
         tokenService.setTokens(access, refresh);
 
-        // Update Redux state with the correct event_group_id from the response
+        // Store both event_id and event_group_id
         dispatch(
           loginSuccess({
             token: access,
             user: tokenService.getUserData(),
             event_group_id: event_group_id,
+            event_id: eventId,
           })
         );
 
-        // Navigate to dashboard or next page
+        // Navigate to dashboard
         navigate('/admin/dashboard');
       } else {
         throw new Error(response.data.message || 'Failed to generate tokens');

@@ -272,8 +272,8 @@ const EventgroupProfile = () => {
 
         <div className="flex flex-col items-center">
           <img
-            className="w-20 h-20 rounded-full border-2 border-black"
-            src="/profile_pic.svg"
+            className="w-20 h-20 rounded-full"
+            src="/profile-avatar.png"
             alt="Profile"
           />
           <h2 className="mt-4 text-lg font-semibold text-center break-words w-full px-2">

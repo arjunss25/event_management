@@ -1,8 +1,18 @@
 // src/Redux/Slices/Employee/mealScannerSlice.js
 import { createSlice, createAsyncThunk, createAction } from '@reduxjs/toolkit';
-import axios from 'axios';
 import axiosInstance from '../../../axiosConfig';
 import { websocketService } from '../../../services/websocketService';
+
+const initialState = {
+  mealCounts: {},
+  days: [],
+  status: 'idle',
+  error: null,
+  selectedMeals: {},
+  scannerOpen: false,
+  currentScanningMeal: null,
+  scanStatus: 'idle',
+};
 
 export const getDays = createAsyncThunk(
   'mealScanner/getDays',
@@ -40,11 +50,7 @@ export const getDays = createAsyncThunk(
         days: transformedDays,
       };
     } catch (error) {
-      console.error('API Error:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
+      console.error('API Error:', error);
       return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
@@ -52,45 +58,47 @@ export const getDays = createAsyncThunk(
 
 export const scanMeal = createAsyncThunk(
   'mealScanner/scanMeal',
-  async (scanData, { rejectWithValue }) => {
+  async (scanData, { dispatch }) => {
     try {
-      // Assuming you have an API endpoint for recording scans
+      console.log('📍 Scanning meal:', scanData);
+      
       const response = await axiosInstance.post('/scan-meal/', {
         meal_type: scanData.mealCategory,
         date: scanData.date,
-        // Add any other required data
       });
 
-      // Send WebSocket message to update dashboard
-      const wsMessage = {
-        type: 'meal_scanned',
-        meal_type: scanData.mealCategory,
-      };
-
-      // Notify all WebSocket subscribers (including dashboard)
-      websocketService.notifySubscribers(wsMessage);
+      if (response.data?.success) {
+        // Create WebSocket message
+        const wsMessage = {
+          type: 'meal_scanned',
+          meal_type: scanData.mealCategory,
+          new_count: response.data?.data?.count || 0,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Send through WebSocket
+        if (websocketService.ws && websocketService.ws.readyState === WebSocket.OPEN) {
+          console.log('📤 Sending WebSocket message:', wsMessage);
+          websocketService.ws.send(JSON.stringify(wsMessage));
+        }
+      }
 
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      console.error('❌ Scan error:', error);
+      throw error;
     }
   }
 );
-
-const initialState = {
-  days: [],
-  selectedMeals: {},
-  status: 'idle',
-  error: null,
-  scannerOpen: false,
-  currentScanningMeal: null,
-  scanStatus: 'idle',
-};
 
 const mealScannerSlice = createSlice({
   name: 'mealScanner',
   initialState,
   reducers: {
+    updateMealCount: (state, action) => {
+      const { meal_type, new_count } = action.payload;
+      state.mealCounts[meal_type.toLowerCase()] = new_count;
+    },
     toggleDay: (state, action) => {
       const dayId = action.payload;
       if (state.days && Array.isArray(state.days)) {
@@ -100,14 +108,14 @@ const mealScannerSlice = createSlice({
         }));
       }
     },
-    selectMeal: (state, action) => {
-      const { dayId, selectedCategories } = action.payload;
-      state.selectedMeals[dayId] = selectedCategories;
-    },
     toggleScanner: (state, action) => {
       const { isOpen, mealInfo } = action.payload;
       state.scannerOpen = isOpen;
       state.currentScanningMeal = mealInfo;
+    },
+    selectMeal: (state, action) => {
+      const { dayId, selectedCategories } = action.payload;
+      state.selectedMeals[dayId] = selectedCategories;
     },
   },
   extraReducers: (builder) => {
@@ -127,20 +135,10 @@ const mealScannerSlice = createSlice({
         state.error = action.payload || 'Failed to fetch meal data';
         state.days = [];
         state.eventName = null;
-      })
-      .addCase(scanMeal.pending, (state) => {
-        state.scanStatus = 'loading';
-      })
-      .addCase(scanMeal.fulfilled, (state) => {
-        state.scanStatus = 'succeeded';
-      })
-      .addCase(scanMeal.rejected, (state, action) => {
-        state.scanStatus = 'failed';
-        state.error = action.payload;
       });
   },
 });
 
-export const { toggleDay, selectMeal, toggleScanner } =
+export const { updateMealCount, toggleDay, toggleScanner, selectMeal } =
   mealScannerSlice.actions;
 export default mealScannerSlice.reducer;

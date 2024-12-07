@@ -67,7 +67,6 @@ const EventgroupsSuperadmin = () => {
       setAccessToken(token);
       setFirebaseToken(fbToken);
       setUserRole(role);
-      console.log('Tokens and role loaded successfully');
     }
   }, []);
 
@@ -89,7 +88,7 @@ const EventgroupsSuperadmin = () => {
       setError(null);
 
       // First create Firebase user
-      console.log('Creating Firebase user for:', eventGroupData.email);
+
       const defaultPassword = `${eventGroupData.eventGroupName
         .replace(/\s+/g, '')
         .toLowerCase()}@123`;
@@ -102,15 +101,8 @@ const EventgroupsSuperadmin = () => {
           defaultPassword
         );
         firebaseUser = userCredential.user;
-        console.log('✅ Firebase user created successfully:', {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-        });
       } catch (firebaseError) {
-        console.error('Firebase registration error:', {
-          code: firebaseError.code,
-          message: firebaseError.message,
-        });
+
 
         // Handle specific Firebase errors
         if (firebaseError.code === 'auth/email-already-in-use') {
@@ -132,17 +124,15 @@ const EventgroupsSuperadmin = () => {
         owner_name: eventGroupData.ownerName,
         email: eventGroupData.email,
         phone: eventGroupData.phone,
-        firebase_uid: firebaseUser.uid, // Include Firebase UID in the payload
+        firebase_uid: firebaseUser.uid, 
       };
 
-      console.log('Sending request with data:', requestData);
 
       const response = await axiosInstance.post(
         '/register-eventgroup/',
         requestData
       );
 
-      console.log('API Response:', response);
 
       if (response.status === 200 || response.status === 201) {
         alert(
@@ -154,11 +144,7 @@ const EventgroupsSuperadmin = () => {
         if (firebaseUser) {
           try {
             await firebaseUser.delete();
-            console.log(
-              '🗑️ Firebase user deleted due to backend registration failure'
-            );
           } catch (deleteError) {
-            console.error('Error deleting Firebase user:', deleteError);
           }
         }
         throw new Error(
@@ -166,11 +152,7 @@ const EventgroupsSuperadmin = () => {
         );
       }
     } catch (err) {
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-      });
+
 
       let errorMessage = 'Failed to add event group';
 
@@ -219,7 +201,6 @@ const EventgroupsSuperadmin = () => {
       setError(null);
 
       const response = await axiosInstance.get(`/search-eventgroup/${name}`);
-      console.log('Search API Response:', response);
 
       if (response.status === 200) {
         setSearchResults(response.data?.data || []);
@@ -227,11 +208,7 @@ const EventgroupsSuperadmin = () => {
         setSearchResults([]);
       }
     } catch (err) {
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-      });
+
       setError('Failed to fetch search results');
       setSearchResults([]);
     } finally {

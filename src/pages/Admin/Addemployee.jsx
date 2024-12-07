@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Camera } from 'lucide-react';
 import axiosInstance from '../../axiosConfig';
-import { createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
+import { useNavigate } from 'react-router-dom';
 
 const AddEmployee = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     address: '',
     position: '',
-    extra_fields: {}
+    extra_fields: {},
   });
   const [positions, setPositions] = useState([]);
   const [extraFields, setExtraFields] = useState([]);
@@ -23,35 +28,38 @@ const AddEmployee = () => {
       try {
         const [positionsResponse, extraFieldsResponse] = await Promise.all([
           axiosInstance.get('/position-choices/'),
-          axiosInstance.get('/add-employee-extrafields/')
+          axiosInstance.get('/add-employee-extrafields/'),
         ]);
 
         const positionsData = positionsResponse.data;
         if (positionsData) {
-          const formattedPositions = Array.isArray(positionsData.data) 
-            ? positionsData.data 
-            : Array.isArray(positionsData) 
-              ? positionsData
-              : Object.entries(positionsData).map(([value, label]) => ({
-                  value: value,
-                  label: label
-                }));
+          const formattedPositions = Array.isArray(positionsData.data)
+            ? positionsData.data
+            : Array.isArray(positionsData)
+            ? positionsData
+            : Object.entries(positionsData).map(([value, label]) => ({
+                value: value,
+                label: label,
+              }));
           setPositions(formattedPositions);
         }
 
         const extraFieldsData = extraFieldsResponse.data;
-        if (extraFieldsData?.status === "Success" && extraFieldsData?.data?.extra_fields) {
+        if (
+          extraFieldsData?.status === 'Success' &&
+          extraFieldsData?.data?.extra_fields
+        ) {
           setExtraFields(extraFieldsData.data.extra_fields);
-          
+
           const initialExtraFields = {};
-          extraFieldsData.data.extra_fields.forEach(field => {
+          extraFieldsData.data.extra_fields.forEach((field) => {
             // Initialize with empty string instead of array for all field types
             initialExtraFields[field.field_name] = '';
           });
-          
-          setFormData(prev => ({
+
+          setFormData((prev) => ({
             ...prev,
-            extra_fields: initialExtraFields
+            extra_fields: initialExtraFields,
           }));
         }
       } catch (error) {
@@ -66,45 +74,47 @@ const AddEmployee = () => {
   }, []);
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'position') {
       // Find the selected position
-      const selectedPosition = positions.find(p => 
-        p.value === value || p.id === value
+      const selectedPosition = positions.find(
+        (p) => p.value === value || p.id === value
       );
-      
+
       // Get the position name/label
-      const positionName = selectedPosition ? 
-        (selectedPosition.label || selectedPosition.name || selectedPosition.value) : 
-        value;
-      
-      setFormData(prev => ({
+      const positionName = selectedPosition
+        ? selectedPosition.label ||
+          selectedPosition.name ||
+          selectedPosition.value
+        : value;
+
+      setFormData((prev) => ({
         ...prev,
-        [name]: positionName // Store the position name instead of ID
+        [name]: positionName, // Store the position name instead of ID
       }));
-    } else if (extraFields.some(field => field.field_name === name)) {
-      setFormData(prev => ({
+    } else if (extraFields.some((field) => field.field_name === name)) {
+      setFormData((prev) => ({
         ...prev,
         extra_fields: {
           ...prev.extra_fields,
-          [name]: value
-        }
+          [name]: value,
+        },
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
   // Modified to store single value instead of array
   const handleCheckboxChange = (fieldName, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       extra_fields: {
         ...prev.extra_fields,
-        [fieldName]: value // Store only the latest selected value
-      }
+        [fieldName]: value, // Store only the latest selected value
+      },
     }));
   };
 
@@ -116,8 +126,10 @@ const AddEmployee = () => {
     try {
       // First create Firebase user
       console.log('Creating Firebase user for:', formData.email);
-      const defaultPassword = `${formData.name.replace(/\s+/g, '').toLowerCase()}@123`;
-      
+      const defaultPassword = `${formData.name
+        .replace(/\s+/g, '')
+        .toLowerCase()}@123`;
+
       let firebaseUser;
       try {
         const userCredential = await createUserWithEmailAndPassword(
@@ -128,12 +140,12 @@ const AddEmployee = () => {
         firebaseUser = userCredential.user;
         console.log('✅ Firebase user created successfully:', {
           uid: firebaseUser.uid,
-          email: firebaseUser.email
+          email: firebaseUser.email,
         });
       } catch (firebaseError) {
         console.error('Firebase registration error:', {
           code: firebaseError.code,
-          message: firebaseError.message
+          message: firebaseError.message,
         });
 
         // Handle specific Firebase errors
@@ -142,7 +154,9 @@ const AddEmployee = () => {
         } else if (firebaseError.code === 'auth/invalid-email') {
           throw new Error('The email address is not valid.');
         } else if (firebaseError.code === 'auth/operation-not-allowed') {
-          throw new Error('Email/password accounts are not enabled. Please contact support.');
+          throw new Error(
+            'Email/password accounts are not enabled. Please contact support.'
+          );
         } else if (firebaseError.code === 'auth/weak-password') {
           throw new Error('The password is too weak.');
         }
@@ -157,60 +171,58 @@ const AddEmployee = () => {
         address: formData.address,
         position: formData.position,
         extra_fields: formData.extra_fields,
-        firebase_uid: firebaseUser.uid
+        firebase_uid: firebaseUser.uid,
       };
 
       console.log('Sending employee data to backend:', payload);
       const response = await axiosInstance.post('/register-employee/', payload);
-      
-      if (response.data?.status === "Success") {
+
+      if (response.data?.status === 'Success') {
         console.log('✅ Employee registered successfully in backend');
-        
-        // Clear form and show success message
-        setFormData({
-          name: '',
-          email: '',
-          phone: '',
-          address: '',
-          position: '',
-          extra_fields: {}
-        });
-        setError(null);
-        alert('Employee registered successfully! A password reset email has been sent.');
+        navigate('/admin/employee-details');
       } else {
         // If backend registration fails, delete the Firebase user
         if (firebaseUser) {
           try {
             await firebaseUser.delete();
-            console.log('🗑️ Firebase user deleted due to backend registration failure');
+            console.log(
+              '🗑️ Firebase user deleted due to backend registration failure'
+            );
           } catch (deleteError) {
             console.error('Error deleting Firebase user:', deleteError);
           }
         }
-        throw new Error(response.data?.message || 'Failed to register employee');
+        throw new Error(
+          response.data?.message || 'Failed to register employee'
+        );
       }
-      
     } catch (error) {
       console.error('Error registering employee:', error);
 
       // Set appropriate error message
       if (error.response) {
         console.error('Backend error response:', error.response.data);
-        setError(error.response.data.error || error.response.data.message || 'Failed to register employee');
+        setError(
+          error.response.data.error ||
+            error.response.data.message ||
+            'Failed to register employee'
+        );
       } else if (error.request) {
         setError('Network error. Please check your connection and try again.');
       } else {
-        setError(error.message || 'An unexpected error occurred. Please try again.');
+        setError(
+          error.message || 'An unexpected error occurred. Please try again.'
+        );
       }
-
     } finally {
       setLoading(false);
     }
   };
 
   const renderExtraField = (field) => {
-    const commonInputClasses = "w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500";
-    
+    const commonInputClasses =
+      'w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500';
+
     switch (field.field_type?.toLowerCase()) {
       case 'text':
         return (
@@ -268,7 +280,7 @@ const AddEmployee = () => {
             ))}
           </select>
         );
-      
+
       case 'radio':
         return (
           <div className="space-y-3">
@@ -288,13 +300,16 @@ const AddEmployee = () => {
                     className="sr-only"
                   />
                   <div className="w-5 h-5 border-2 border-gray-300 rounded-full group-hover:border-purple-500 transition-colors">
-                    <div className={`
+                    <div
+                      className={`
                       w-3 h-3 m-0.5 rounded-full transition-all
-                      ${formData.extra_fields[field.field_name] === value 
-                        ? 'bg-purple-600 scale-100' 
-                        : 'bg-transparent scale-0'
+                      ${
+                        formData.extra_fields[field.field_name] === value
+                          ? 'bg-purple-600 scale-100'
+                          : 'bg-transparent scale-0'
                       }
-                    `} />
+                    `}
+                    />
                   </div>
                 </div>
                 <span className="ml-2 text-sm text-gray-700 group-hover:text-gray-900">
@@ -305,41 +320,46 @@ const AddEmployee = () => {
           </div>
         );
 
-        case 'checkbox':
-            return (
-              <div className="space-y-3">
-                {Object.entries(field.field_option || {}).map(([key, value]) => (
-                  <label
-                    key={key}
-                    className="flex items-center group cursor-pointer"
-                  >
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        id={`${field.field_name}-${key}`}
-                        name={field.field_name}
-                        value={value}
-                        checked={formData.extra_fields[field.field_name] === value}
-                        onChange={() => handleCheckboxChange(field.field_name, value)}
-                        className="sr-only"
-                      />
-                      <div className="w-5 h-5 border-2 border-gray-300 rounded group-hover:border-purple-500 transition-colors">
-                        <div className={`
+      case 'checkbox':
+        return (
+          <div className="space-y-3">
+            {Object.entries(field.field_option || {}).map(([key, value]) => (
+              <label
+                key={key}
+                className="flex items-center group cursor-pointer"
+              >
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id={`${field.field_name}-${key}`}
+                    name={field.field_name}
+                    value={value}
+                    checked={formData.extra_fields[field.field_name] === value}
+                    onChange={() =>
+                      handleCheckboxChange(field.field_name, value)
+                    }
+                    className="sr-only"
+                  />
+                  <div className="w-5 h-5 border-2 border-gray-300 rounded group-hover:border-purple-500 transition-colors">
+                    <div
+                      className={`
                           w-3 h-3 m-0.5 rounded transition-all
-                          ${formData.extra_fields[field.field_name] === value
-                            ? 'bg-purple-600 scale-100' 
-                            : 'bg-transparent scale-0'
+                          ${
+                            formData.extra_fields[field.field_name] === value
+                              ? 'bg-purple-600 scale-100'
+                              : 'bg-transparent scale-0'
                           }
-                        `} />
-                      </div>
-                    </div>
-                    <span className="ml-2 text-sm text-gray-700 group-hover:text-gray-900">
-                      {value}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            );
+                        `}
+                    />
+                  </div>
+                </div>
+                <span className="ml-2 text-sm text-gray-700 group-hover:text-gray-900">
+                  {value}
+                </span>
+              </label>
+            ))}
+          </div>
+        );
 
       default:
         return null;
@@ -347,7 +367,11 @@ const AddEmployee = () => {
   };
 
   if (loading) {
-    return <div className="w-full p-6">Loading...</div>;
+    return (
+      <div className="w-full  flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   if (error) {
@@ -372,7 +396,10 @@ const AddEmployee = () => {
           {/* Form fields remain the same */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-5">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-5"
+              >
                 Name
               </label>
               <input
@@ -388,7 +415,10 @@ const AddEmployee = () => {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-5">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-5"
+              >
                 e-mail
               </label>
               <input
@@ -404,7 +434,10 @@ const AddEmployee = () => {
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-5">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700 mb-5"
+              >
                 Phone
               </label>
               <input
@@ -420,7 +453,10 @@ const AddEmployee = () => {
             </div>
 
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-5">
+              <label
+                htmlFor="address"
+                className="block text-sm font-medium text-gray-700 mb-5"
+              >
                 Address
               </label>
               <input
@@ -436,38 +472,43 @@ const AddEmployee = () => {
             </div>
 
             <div>
-              <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-5">
+              <label
+                htmlFor="position"
+                className="block text-sm font-medium text-gray-700 mb-5"
+              >
                 Position
               </label>
               <select
-        id="position"
-        name="position"
-        value={formData.position}
-        onChange={handleChange}
-        className="w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
-        required
-      >
-        <option value="">Select Position</option>
-        {positions.map((position) => (
-          <option 
-            key={position.value || position.id} 
-            value={position.label || position.name || position.value}  
-          >
-            {position.label || position.name}
-          </option>
-        ))}
-      </select>
+                id="position"
+                name="position"
+                value={formData.position}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                required
+              >
+                <option value="">Select Position</option>
+                {positions.map((position) => (
+                  <option
+                    key={position.value || position.id}
+                    value={position.label || position.name || position.value}
+                  >
+                    {position.label || position.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Extra fields */}
             {extraFields.map((field) => (
               <div key={field.field_name}>
-                <label 
-                  htmlFor={field.field_name} 
+                <label
+                  htmlFor={field.field_name}
                   className="block text-sm font-medium text-gray-700 mb-5"
                 >
                   {field.field_name}
-                  {field.is_required && <span className="text-red-500 ml-1">*</span>}
+                  {field.is_required && (
+                    <span className="text-red-500 ml-1">*</span>
+                  )}
                 </label>
                 {renderExtraField(field)}
               </div>
@@ -479,15 +520,7 @@ const AddEmployee = () => {
               type="button"
               className="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-colors"
               onClick={() => {
-                setFormData({
-                  name: '',
-                  email: '',
-                  phone: '',
-                  address: '',
-                  position: '',
-                  extra_fields: {}
-                });
-                setError(null);
+                navigate('/admin/employee-details');
               }}
             >
               Cancel

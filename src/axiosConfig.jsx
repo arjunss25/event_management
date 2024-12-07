@@ -26,12 +26,6 @@ const axiosInstance = axios.create({
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    console.log('Making request to:', {
-      url: config.url,
-      method: config.method,
-      baseURL: config.baseURL,
-      fullUrl: `${config.baseURL}${config.url}`,
-    });
     const token = tokenService.getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

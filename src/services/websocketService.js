@@ -2,131 +2,240 @@ class WebSocketService {
   constructor() {
     this.ws = null;
     this.subscribers = new Set();
-    this.isConnected = false;
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 3000;
+    this.connected = false;
+    this.url = 'ws://185.170.196.16:8001/ws/admin/meal_updates/';
+    this.currentRoom = null;
+    this.roomMembers = new Set();
+    this.connectionQueue = [];
+    this.roomJoinConfirmed = false;
   }
 
-  connect() {
-    if (this.isConnected) return;
+  connectWithAuth(eventId) {
+    eventId = Number(eventId);
+    
+    const token = localStorage.getItem('accessToken');
 
-    // const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // const host = window.location.host;
-    const WEBSOCKET_URL = `ws://185.170.196.16:8001/ws/admin/meal_updates/`;
+    console.log('🔄 WebSocketService: Connecting with auth', {
+      eventId,
+      hasToken: !!token,
+      currentState: this.ws?.readyState,
+    });
+
+    if (!token || !eventId) {
+      console.error('❌ WebSocketService: Missing token or event ID');
+      return;
+    }
 
     try {
-      console.log('Attempting WebSocket connection to:', WEBSOCKET_URL);
-      this.ws = new WebSocket(WEBSOCKET_URL);
+      const wsUrl = `${this.url}?token=${token}&event_id=${eventId}`;
+      console.log('🔌 WebSocketService: Connecting to:', wsUrl);
+
+      if (this.ws) {
+        console.log('🔄 Closing existing connection');
+        this.ws.close();
+      }
+
+      this.ws = new WebSocket(wsUrl);
 
       this.ws.onopen = () => {
-        console.log('WebSocket Connected');
-        this.isConnected = true;
-        this.reconnectAttempts = 0;
+        console.log('✅ WebSocketService: Connection established for event:', eventId);
+        this.connected = true;
+        
+        // Wait a short moment before joining the room
+        setTimeout(() => {
+          if (this.ws.readyState === WebSocket.OPEN) {
+            this.joinRoom(eventId);
+          }
+        }, 500);
       };
 
       this.ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('WebSocket message received:', data);
-          if (
-            data.type === 'meal_scanned' &&
-            data.meal_type &&
-            typeof data.new_count === 'number'
-          ) {
-            this.notifySubscribers(data);
-          } else {
-            console.warn(
-              'Received WebSocket message in unexpected format:',
-              data
-            );
+          console.log('��� WebSocket message received:', data);
+
+          if (data.type === 'ROOM_JOIN_SUCCESS') {
+            console.log('✅ Room join confirmed:', data);
+            this.roomJoinConfirmed = true;
+            this.currentRoom = eventId;
           }
+
+          this.subscribers.forEach(callback => callback(data));
         } catch (error) {
-          console.error('WebSocket message parsing error:', error);
+          console.error('❌ Error processing message:', error);
         }
       };
 
       this.ws.onclose = (event) => {
-        this.isConnected = false;
-        console.log(
-          `WebSocket Closed - Code: ${event.code}, Reason: ${event.reason}`
-        );
-
-        switch (event.code) {
-          case 1000:
-            console.log('Normal closure');
-            break;
-          case 1006:
-            console.log(
-              'Abnormal closure - Server might be down or unreachable'
-            );
-            break;
-          case 1015:
-            console.log('TLS handshake failure');
-            break;
-          default:
-            console.log(`Unknown close code: ${event.code}`);
-        }
-
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          console.log(
-            `Reconnecting... Attempt ${this.reconnectAttempts + 1} of ${
-              this.maxReconnectAttempts
-            }`
-          );
-          this.reconnectAttempts++;
-          setTimeout(() => this.connect(), this.reconnectDelay);
-        } else {
-          console.error(
-            'Max reconnection attempts reached. Please refresh the page.'
-          );
-        }
+        console.log('❌ WebSocketService: Connection closed:', event.code, event.reason);
+        this.connected = false;
+        this.currentRoom = null;
+        this.roomJoinConfirmed = false;
       };
 
       this.ws.onerror = (error) => {
-        console.error('WebSocket Error:', error);
-        console.log('Connection Details:', {
-          url: WEBSOCKET_URL,
-          readyState: this.ws?.readyState,
-          protocol: window.location.protocol,
-          host: window.location.host,
-          origin: window.location.origin,
-        });
+        console.error('❌ WebSocketService: WebSocket error:', error);
       };
+
     } catch (error) {
-      console.error('WebSocket Connection Error:', error);
+      console.error('❌ WebSocketService: Setup error:', error);
     }
   }
 
-  disconnect() {
-    if (this.ws) {
-      this.ws.close();
-      this.isConnected = false;
+  joinRoom(eventId) {
+    eventId = Number(eventId);
+
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.error(
+        '❌ WebSocketService: Cannot join room - WebSocket not connected'
+      );
+      return;
     }
+
+    console.log('🔄 WebSocketService: Attempting to join room:', {
+      currentRoom: this.currentRoom,
+      joiningRoom: eventId,
+      connectionState: this.ws.readyState,
+      clientType: this.getClientType(),
+      readyState: this.ws.readyState,
+    });
+
+    const joinMessage = {
+      type: 'JOIN_ROOM',
+      event_id: eventId,
+      client_type: this.getClientType(),
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      this.ws.send(JSON.stringify(joinMessage));
+      console.log('📤 Room join request sent:', joinMessage);
+    } catch (error) {
+      console.error('❌ Error sending room join request:', error);
+    }
+  }
+
+  getClientType() {
+    return window.location.pathname.includes('/admin') ? 'admin' : 'employee';
+  }
+
+  handleRoomJoinResponse(data) {
+    if (data.type === 'ROOM_JOIN_SUCCESS') {
+      this.roomJoinConfirmed = true;
+      this.currentRoom = Number(data.event_id);
+      this.roomMembers = new Set(data.members || []);
+
+      console.log('✅ Room join confirmed:', {
+        room: this.currentRoom,
+        clientType: this.getClientType(),
+        members: Array.from(this.roomMembers),
+        timestamp: new Date().toISOString(),
+      });
+
+      this.subscribers.forEach((callback) => {
+        callback({
+          type: 'ROOM_JOIN_STATUS',
+          success: true,
+          event_id: Number(data.event_id),
+          members: Array.from(this.roomMembers),
+        });
+      });
+    } else if (data.type === 'ROOM_JOIN_ERROR') {
+      console.error('❌ Room join failed:', data.message);
+      this.roomJoinConfirmed = false;
+      this.currentRoom = null;
+    }
+  }
+
+  isInRoom(eventId) {
+    return this.connected && 
+           this.currentRoom === Number(eventId) && 
+           this.roomJoinConfirmed;
   }
 
   subscribe(callback) {
+    console.log(' WebSocketService: Adding subscriber');
     this.subscribers.add(callback);
-    return () => this.subscribers.delete(callback);
+    return () => {
+      console.log(' WebSocketService: Removing subscriber');
+      this.subscribers.delete(callback);
+    };
   }
 
-  notifySubscribers(data) {
-    console.log('Broadcasting to subscribers:', data);
-    this.subscribers.forEach((callback) => {
-      try {
-        callback(data);
-      } catch (error) {
-        console.error('Error in subscriber callback:', error);
-      }
-    });
-  }
-
-  sendMessage(data) {
-    if (this.ws && this.isConnected) {
-      this.ws.send(JSON.stringify(data));
-    } else {
-      console.error('WebSocket is not connected');
+  sendMessage(message) {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.error('WebSocketService: WebSocket not ready');
+      return;
     }
+
+    try {
+      const messageWithEventId = {
+        ...message,
+        event_id: Number(this.currentRoom),
+      };
+
+      console.log('🚀 WebSocketService: Sending message with event_id:', {
+        message: messageWithEventId,
+        currentRoom: this.currentRoom,
+        readyState: this.ws.readyState,
+      });
+
+      this.ws.send(JSON.stringify(messageWithEventId));
+      console.log('✅ WebSocketService: Message sent successfully');
+    } catch (error) {
+      console.error('❌ WebSocketService: Send error:', error);
+    }
+  }
+
+  onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+
+      console.log('📥 WebSocketService received message:', {
+        type: data.type,
+        room: this.currentRoom,
+        data: data,
+      });
+
+      // Handle different message types
+      switch (data.type) {
+        case 'ROOM_JOIN_SUCCESS':
+        case 'ROOM_JOIN_ERROR':
+        case 'MEMBER_JOINED':
+        case 'MEMBER_LEFT':
+          this.handleRoomJoinResponse(data);
+          break;
+
+        case 'MEAL_SCANNED':
+          console.log('📊 Meal scan update received:', {
+            mealType: data.meal_type,
+            newCount: data.new_count,
+            eventId: data.event_id,
+            currentRoom: this.currentRoom,
+            joinConfirmed: this.roomJoinConfirmed,
+          });
+          break;
+
+        default:
+          console.log('ℹ️ Other message received:', data.type);
+      }
+
+      // Notify subscribers
+      this.subscribers.forEach((callback) => {
+        try {
+          callback(data);
+        } catch (err) {
+          console.error('❌ Error in subscriber callback:', err);
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error parsing WebSocket message:', error);
+    }
+  };
+
+  // Add method to check room join status
+  isRoomJoinConfirmed() {
+    return this.roomJoinConfirmed;
   }
 }
 

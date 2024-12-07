@@ -24,7 +24,6 @@ export const checkServerConnection = async () => {
     clearTimeout(timeoutId);
     return response.ok;
   } catch (error) {
-    console.error('Server connection check failed:', error);
     return false;
   }
 };
@@ -55,7 +54,6 @@ export const refreshAccessToken = async () => {
       throw new Error('Token refresh failed');
     }
   } catch (error) {
-    console.error('Token refresh failed:', error);
     tokenService.clearTokens();
     throw error;
   }
@@ -81,7 +79,6 @@ export const loginWithEmail = async (email, password) => {
       },
     };
   } catch (error) {
-    console.error('Firebase login error:', error);
     let errorMessage = 'Login failed';
     switch (error.code) {
       case 'auth/invalid-credential':
@@ -105,7 +102,6 @@ export const loginWithGoogle = async () => {
   provider.addScope('email');
   
   try {
-    console.log('Initiating Google sign-in...');
     
     provider.setCustomParameters({
       prompt: 'select_account'
@@ -114,29 +110,14 @@ export const loginWithGoogle = async () => {
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
     
-    console.log('Google sign-in successful:', {
-      email: user.email,
-      emailVerified: user.emailVerified,
-      uid: user.uid
-    });
 
     const firebaseToken = await user.getIdToken(true);
-    console.log('Firebase token details:', {
-      tokenExists: !!firebaseToken,
-      tokenLength: firebaseToken?.length,
-      tokenPrefix: firebaseToken?.substring(0, 10) + '...'
-    });
 
     if (!firebaseToken) {
       throw new Error('Failed to generate Firebase token');
     }
 
     const decodedToken = await auth.currentUser?.getIdTokenResult();
-    console.log('Token verification:', {
-      issuedAt: decodedToken?.issuedAtTime,
-      expirationTime: decodedToken?.expirationTime,
-      signInProvider: decodedToken?.signInProvider
-    });
 
     tokenService.setFirebaseToken(firebaseToken);
 
@@ -151,11 +132,6 @@ export const loginWithGoogle = async () => {
       },
     };
   } catch (error) {
-    console.error('Google sign-in error:', {
-      code: error.code,
-      message: error.message,
-      credential: error.credential
-    });
     
     if (error.code === 'auth/popup-closed-by-user') {
       throw new Error('Sign-in cancelled. Please try again.');
@@ -183,13 +159,6 @@ export const authenticateWithBackend = async (credentials) => {
       throw new Error('Failed to generate Firebase token');
     }
 
-    console.log('Backend authentication attempt:', {
-      url: `${axiosInstance.defaults.baseURL}/unified-login/`,
-      tokenLength: freshToken.length,
-      email: currentUser.email,
-      emailVerified: currentUser.emailVerified,
-      uid: currentUser.uid
-    });
 
     const response = await axiosInstance.post(
       '/unified-login/',
@@ -204,24 +173,12 @@ export const authenticateWithBackend = async (credentials) => {
     if (response.data?.status === 'Success') {
       const { access, refresh, role } = response.data.data;
       
-      console.log('Backend authentication successful:', {
-        role,
-        accessTokenReceived: !!access,
-        refreshTokenReceived: !!refresh
-      });
       
       return { access, refresh, role };
     }
 
-    console.error('Unexpected backend response:', response.data);
     throw new Error(response.data?.message || 'Invalid response from server');
   } catch (error) {
-    console.error('Authentication error details:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      config: error.config
-    });
     throw error;
   }
 };

@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import QrScanner from 'react-qr-scanner';
 import { X, Camera } from 'lucide-react';
 import axiosInstance from '../../axiosConfig';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { scanMeal } from '../../Redux/Slices/Employee/mealScannerSlice';
+import { websocketService } from '../../services/websocketService';
 
 const originalConsoleError = console.error;
 console.error = (...args) => {
@@ -22,6 +23,52 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [scanResult, setScanResult] = useState({ success: false, message: '' });
   const [pauseScanning, setPauseScanning] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
+  const [eventId, setEventId] = useState(null);
+  const [roomStatus, setRoomStatus] = useState({ joined: false, members: [] });
+
+  // Add new effect to fetch event_id
+  useEffect(() => {
+    const fetchEventId = async () => {
+      try {
+        const response = await axiosInstance.get('/no-event-days-emp/');
+        if (
+          response.data.status === 'Success' &&
+          response.data.data.length > 0
+        ) {
+          const event_id = response.data.data[0].event_id;
+          console.log('Fetched event_id:', event_id);
+          setEventId(event_id);
+
+          // Only connect if not already in the correct room
+          if (!websocketService.isInRoom(event_id)) {
+            websocketService.connectWithAuth(event_id);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching event data:', error);
+      }
+    };
+
+    fetchEventId();
+
+    // Subscribe to WebSocket status updates
+    const unsubscribe = websocketService.subscribe((data) => {
+      if (data.type === 'ROOM_JOIN_STATUS') {
+        setRoomStatus({
+          joined: data.success,
+          members: data.members,
+        });
+        console.log('Scanner Room Status:', {
+          joined: data.success,
+          members: data.members,
+          eventId: data.event_id,
+        });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Reset scanner state completely
   const resetScannerState = () => {
@@ -31,8 +78,10 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
   };
 
   const handleScan = async (data) => {
-    if (data?.text && mealInfo && !pauseScanning) {
+    if (data?.text && mealInfo && !pauseScanning && eventId) {
       setPauseScanning(true);
+      console.log('QR Code detected:', data.text);
+
       try {
         const uniqueIdMatch = data.text.match(/Unique ID: (\w+)/);
         const uniqueId = uniqueIdMatch ? uniqueIdMatch[1] : null;
@@ -50,8 +99,28 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
           meal_date: formattedDate,
         };
 
+        console.log('Sending scan request:', payload);
         const response = await axiosInstance.post('/scan-meals/', payload);
-        console.log('Scan successful:', response.data);
+        console.log('Scan API response:', response.data);
+
+        // Send WebSocket update with the correct count from the API response
+        if (response.data.status === 'Success') {
+          console.log(
+            'Scan successful, preparing WebSocket message with event_id:',
+            eventId
+          );
+
+          const wsMessage = {
+            type: 'MEAL_SCANNED',
+            meal_type: mealInfo.mealCategory,
+            new_count: response.data.data.count,
+            event_id: eventId, // Use the fetched event_id
+            timestamp: new Date().toISOString(),
+          };
+
+          console.log('🚀 Sending WebSocket message:', wsMessage);
+          websocketService.sendMessage(wsMessage);
+        }
 
         setScanResult({
           success: true,
@@ -60,6 +129,11 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
         setShowStatusModal(true);
       } catch (error) {
         console.error('Scan Error:', error);
+        console.error('WebSocket state during error:', {
+          connected: websocketService.connected,
+          readyState: websocketService.ws?.readyState,
+          eventId: eventId,
+        });
         setScanResult({
           success: false,
           message: error.response?.data?.message || 'Failed to process scan',
@@ -133,7 +207,7 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
         scanMeal({
           mealCategory: mealInfo.mealCategory,
           date: mealInfo.date,
-          scannedData: scannedData, // QR code data or whatever was scanned
+          scannedData: scannedData,
         })
       ).unwrap();
 
@@ -146,6 +220,11 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      {/* Add WebSocket status indicator */}
+      {/* <div className="absolute top-4 right-4 text-white text-sm">
+        WebSocket: {wsConnected ? '🟢 Connected' : '🔴 Disconnected'}
+      </div> */}
+
       {scanning ? (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl relative max-w-md w-full">

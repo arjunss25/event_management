@@ -100,6 +100,7 @@ const EmployeeTable = () => {
   const [assignmentFilter, setAssignmentFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
 
   const searchEmployees = async (searchTerm) => {
@@ -217,9 +218,9 @@ const EmployeeTable = () => {
   };
 
   const handleDelete = async () => {
+    setIsDeleting(true);
     try {
-      // First get the employee details to access the Firebase UID
-      const employee = employees.find(emp => emp.id === selectedEmployee);
+      const employee = employees.find((emp) => emp.id === selectedEmployee);
       if (!employee) {
         throw new Error('Employee not found');
       }
@@ -227,79 +228,73 @@ const EmployeeTable = () => {
       console.log('Deleting employee:', {
         id: employee.id,
         email: employee.email,
-        firebase_uid: employee.firebase_uid
+        firebase_uid: employee.firebase_uid,
       });
 
-      // Delete from backend first
-      const response = await axiosInstance.delete(`/employee-details/${selectedEmployee}`);
-      
+      const response = await axiosInstance.delete(
+        `/employee-details/${selectedEmployee}`
+      );
+
       if (response.status === 200 || response.status === 204) {
         try {
-          // Delete the user from Firebase if firebase_uid exists
           if (employee.firebase_uid) {
-            console.log('Attempting to delete Firebase user:', employee.firebase_uid);
-            
-            // First attempt using the backend endpoint
-            const firebaseResponse = await axiosInstance.post('/delete-firebase-user/', {
-              firebase_uid: employee.firebase_uid,
-              email: employee.email // Adding email for additional verification
-            });
+            console.log(
+              'Attempting to delete Firebase user:',
+              employee.firebase_uid
+            );
+
+            const firebaseResponse = await axiosInstance.post(
+              '/delete-firebase-user/',
+              {
+                firebase_uid: employee.firebase_uid,
+                email: employee.email,
+              }
+            );
 
             if (firebaseResponse.status === 200) {
               console.log('✅ Firebase user deleted successfully via backend');
             } else {
-              // If backend deletion fails, try alternative deletion method
-              console.warn('⚠️ Backend Firebase deletion failed, attempting alternative method');
-              
-              // Alternative: Delete through Firebase Admin SDK (handled by backend)
-              const alternativeResponse = await axiosInstance.delete('/delete-firebase-user-alternative/', {
-                data: {
-                  firebase_uid: employee.firebase_uid,
-                  email: employee.email
+              console.warn(
+                '⚠️ Backend Firebase deletion failed, attempting alternative method'
+              );
+
+              const alternativeResponse = await axiosInstance.delete(
+                '/delete-firebase-user-alternative/',
+                {
+                  data: {
+                    firebase_uid: employee.firebase_uid,
+                    email: employee.email,
+                  },
                 }
-              });
+              );
 
               if (alternativeResponse.status === 200) {
-                console.log('✅ Firebase user deleted successfully via alternative method');
-              } else {
-                throw new Error('Failed to delete Firebase user through both methods');
+                console.log(
+                  '✅ Firebase user deleted successfully via alternative method'
+                );
               }
             }
           } else {
             console.warn('⚠️ No Firebase UID found for employee:', employee.id);
           }
 
-          // Update local state
           setEmployees(employees.filter((emp) => emp.id !== selectedEmployee));
           setShowModal(false);
-          
-          // Show success message
-          alert('Employee deleted successfully');
         } catch (firebaseError) {
           console.error('Firebase deletion error:', {
             error: firebaseError,
             employee: employee.id,
-            firebase_uid: employee.firebase_uid
+            firebase_uid: employee.firebase_uid,
           });
-          
-          // Log additional details for debugging
-          if (firebaseError.response) {
-            console.error('Firebase deletion response:', {
-              status: firebaseError.response.status,
-              data: firebaseError.response.data
-            });
-          }
-
-          // Even if Firebase deletion fails, the employee was removed from your backend
-          alert('Employee deleted from system, but Firebase account cleanup may have failed. Please contact support.');
         }
       }
     } catch (err) {
       console.error('Error deleting employee:', {
         error: err,
-        employee: selectedEmployee
+        employee: selectedEmployee,
       });
-      alert('Failed to delete employee. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -362,27 +357,45 @@ const EmployeeTable = () => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] md:w-[400px] text-center">
-            <h3 className="text-xl font-semibold mb-4">Confirm Deletion</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this employee? This action cannot
-              be undone.
-            </p>
-            <div className="flex justify-between">
-              <button
-                className="px-4 py-2 bg-gray-200 rounded-full hover:bg-gray-300"
-                onClick={() => setShowModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600"
-                onClick={handleDelete}
-              >
-                Delete
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 w-[90%] md:w-[400px] transform transition-all">
+            {isDeleting ? (
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
+                <p className="text-gray-600">Deleting employee...</p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <div className="w-12 h-12 rounded-full bg-red-100 mx-auto flex items-center justify-center">
+                    <MdOutlineDeleteOutline className="text-red-500 text-2xl" />
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 text-center mb-4">
+                  Delete Employee
+                </h3>
+                <p className="text-gray-500 text-center mb-8">
+                  This action cannot be undone. Are you sure you want to delete
+                  this employee?
+                </p>
+                <div className="flex gap-4">
+                  <button
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                    onClick={() => setShowModal(false)}
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

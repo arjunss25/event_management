@@ -25,8 +25,6 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         ],
       };
 
-      console.log('Payload being sent:', payload);
-
       const response = await axiosInstance.delete('/employee-allocation/', {
         data: payload,
       });
@@ -38,8 +36,6 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         alert('Failed to remove employee from event');
       }
     } catch (err) {
-      console.error('Error removing employee from event:', err);
-      console.log('Full error details:', err.response?.data);
       alert('Error removing employee from event');
     }
   };
@@ -56,7 +52,6 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         setEventDays(daysArray);
       }
     } catch (error) {
-      console.error('Error fetching event days:', error);
     }
   };
 
@@ -67,7 +62,6 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         setMealTypes(response.data.data);
       }
     } catch (error) {
-      console.error('Error fetching meal types:', error);
     }
   };
 
@@ -85,8 +79,6 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         await fetchMealTypes();
       }
     } catch (error) {
-      console.error('Error fetching scan report:', error);
-      alert('Error fetching scan report');
       setScanReportData([]);
       setFilteredScanData([]);
     } finally {
@@ -99,8 +91,7 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     if (selectedDate === '') {
       setFilteredScanData(scanReportData);
     } else {
-      console.log('Selected date:', selectedDate);
-      console.log('Sample scan date:', scanReportData[0]?.meal_date);
+
 
       const filtered = scanReportData.filter((scan) => {
         const scanDate = scan.meal_date
@@ -111,7 +102,6 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         return scanDate === selectedDate;
       });
 
-      console.log('Filtered data:', filtered);
       setFilteredScanData(filtered);
     }
   };

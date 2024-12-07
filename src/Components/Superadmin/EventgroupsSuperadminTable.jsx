@@ -49,9 +49,9 @@ const TableRow = memo(({ event, onDelete, onView, deleteLoading }) => {
           <div className="w-10 h-10 flex-shrink-0 items-center justify-center">
             {event.image ? (
               <img
-                src={event.image}
+                src='/eventgroup profile.png'
                 alt={`${event.company_name} logo`}
-                className="w-10 h-10 rounded-lg object-cover"
+                className="w-8 h-8 rounded-lg object-cover"
                 onError={handleImageError}
               />
             ) : (

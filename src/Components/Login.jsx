@@ -275,12 +275,12 @@ const Login = () => {
               Sign In
             </button>
 
-            <div className="form-field w-full lg:w-[70%] text-center">
+            {/* <div className="form-field w-full lg:w-[70%] text-center">
               <p className="text-[0.8rem]">
                 Don't have an Account?{' '}
                 <span className="font-bold">Sign up</span>
               </p>
-            </div>
+            </div> */}
 
             <div className="form-field flex items-center justify-center w-full lg:w-[73%] gap-[10%] border-black">
               <hr className="w-[45%]" />

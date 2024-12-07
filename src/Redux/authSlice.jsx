@@ -7,6 +7,7 @@ const initialState = {
   error: null,
   loading: false,
   event_group_id: localStorage.getItem('event_group_id') || null,
+  event_id: localStorage.getItem('event_id') || null,
 };
 
 const authSlice = createSlice({
@@ -18,7 +19,7 @@ const authSlice = createSlice({
       state.error = null;
     },
     loginSuccess(state, action) {
-      const { token, user, event_group_id } = action.payload;
+      const { token, user, event_group_id, event_id } = action.payload;
 
       // Store in Redux state
       state.token = token;
@@ -27,11 +28,13 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = null;
       state.event_group_id = event_group_id;
+      state.event_id = event_id;
 
       // Store in localStorage
       localStorage.setItem('accessToken', token);
       localStorage.setItem('userData', JSON.stringify(user));
       localStorage.setItem('event_group_id', event_group_id);
+      localStorage.setItem('event_id', event_id);
     },
     loginFailure(state, action) {
       state.error = action.payload;
@@ -52,11 +55,13 @@ const authSlice = createSlice({
       state.error = null;
       state.loading = false;
       state.event_group_id = null;
+      state.event_id = null;
 
       // Clear localStorage
       localStorage.removeItem('accessToken');
       localStorage.removeItem('userData');
       localStorage.removeItem('event_group_id');
+      localStorage.removeItem('event_id');
     },
     updateUserData(state, action) {
       // Update Redux state
@@ -84,6 +89,7 @@ export const selectUser = (state) => state.auth.user;
 export const selectAuthError = (state) => state.auth.error;
 export const selectAuthLoading = (state) => state.auth.loading;
 export const selectEventGroupId = (state) => state.auth.event_group_id;
+export const selectEventId = (state) => state.auth.event_id;
 
 // Auth slice reducer
 export default authSlice.reducer;

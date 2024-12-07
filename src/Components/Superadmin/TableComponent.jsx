@@ -182,33 +182,33 @@ const PaymentDetailsModal = ({ onClose, eventData }) => {
   return (
     <>
       <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-lg w-[60vw] h-[80vh] overflow-y-scroll py-10 px-10">
+        <div className="bg-white rounded-lg w-[95%] md:w-[80%] lg:w-[60vw] h-[90vh] md:h-[80vh] overflow-y-scroll py-6 md:py-10 px-4 md:px-10">
           {/* Top section */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold">Payment Details</h1>
+          <div className="flex justify-between items-center mb-4 md:mb-6">
+            <h1 className="text-xl md:text-2xl font-semibold">Payment Details</h1>
             <IoClose 
-              className="text-3xl cursor-pointer hover:text-gray-700" 
+              className="text-2xl md:text-3xl cursor-pointer hover:text-gray-700" 
               onClick={onClose} 
             />
           </div>
 
-          {/* Box section */}
-          <div className="box-section w-full h-[22vh] flex gap-5">
+          {/* Box section - make it responsive */}
+          <div className="box-section w-full h-auto md:h-[22vh] flex flex-col md:flex-row gap-3 md:gap-5">
             {/* Total Amount Box */}
-            <div className="box-main w-[25rem] border-[2px] border-black rounded-[1.2rem]">
+            <div className="box-main w-full md:w-[25rem] border-[2px] border-black rounded-[1.2rem]">
               <div className="top w-full p-2 flex justify-end">
                 <div className="icon-bg p-2 bg-[#f0f3f5] w-fit rounded-[0.5rem]">
-                  <IoCashOutline className="text-[1.5rem]" />
+                  <IoCashOutline className="text-[1.2rem] md:text-[1.5rem]" />
                 </div>
               </div>
               <div className="btm-section w-full p-3 flex flex-col">
-                <h2 className="text-[1rem]">Total Amount</h2>
+                <h2 className="text-[0.9rem] md:text-[1rem]">Total Amount</h2>
                 {totalAmountLoading ? (
-                  <div className="text-[2rem] font-bold">Loading...</div>
+                  <div className="text-[1.5rem] md:text-[2rem] font-bold">Loading...</div>
                 ) : totalAmountError ? (
                   <div className="text-red-500">Error loading amount</div>
                 ) : (
-                  <h2 className="text-[2rem] font-bold">
+                  <h2 className="text-[1.5rem] md:text-[2rem] font-bold">
                     {totalAmount?.total_amount || '0'}
                   </h2>
                 )}
@@ -216,91 +216,88 @@ const PaymentDetailsModal = ({ onClose, eventData }) => {
             </div>
 
             {/* Remaining Amount Box */}
-            <div className="box-main w-[25rem] border-[2px] border-black rounded-[1.2rem]">
+            <div className="box-main w-full md:w-[25rem] border-[2px] border-black rounded-[1.2rem]">
               <div className="top w-full p-2 flex justify-end">
                 <div className="icon-bg p-2 bg-[#f0f3f5] w-fit rounded-[0.5rem]">
-                  <IoCashOutline className="text-[1.5rem]" />
+                  <IoCashOutline className="text-[1.2rem] md:text-[1.5rem]" />
                 </div>
               </div>
               <div className="btm-section w-full p-3 flex flex-col">
-                <h2 className="text-[1rem]">Remaining Amount</h2>
-                <h2 className="text-[2rem] font-bold">
+                <h2 className="text-[0.9rem] md:text-[1rem]">Remaining Amount</h2>
+                <h2 className="text-[1.5rem] md:text-[2rem] font-bold">
                   {totalAmount?.remaining_payment_amount || '0'}
                 </h2>
               </div>
             </div>
 
-
-
-
-            {/* Remaining Amount Box */}
-            <div className="box-main w-[25rem] border-[2px] border-black rounded-[1.2rem]">
+            {/* Amount Paid Box */}
+            <div className="box-main w-full md:w-[25rem] border-[2px] border-black rounded-[1.2rem]">
               <div className="top w-full p-2 flex justify-end">
                 <div className="icon-bg p-2 bg-[#f0f3f5] w-fit rounded-[0.5rem]">
-                  <IoCashOutline className="text-[1.5rem]" />
+                  <IoCashOutline className="text-[1.2rem] md:text-[1.5rem]" />
                 </div>
               </div>
               <div className="btm-section w-full p-3 flex flex-col">
-                <h2 className="text-[1rem]">Amount Paid</h2>
-                <h2 className="text-[2rem] font-bold">
+                <h2 className="text-[0.9rem] md:text-[1rem]">Amount Paid</h2>
+                <h2 className="text-[1.5rem] md:text-[2rem] font-bold">
                   {totalAmount?.total_paid_amount || '0'}
                 </h2>
               </div>
             </div>
-
-
-
-
           </div>
 
-          {/* Payment History section remains the same */}
-          <div className="mt-8">
-        <div className="top-section flex justify-between items-center w-full mb-5">
-          <h2 className="font-medium text-[1.2rem]">Payment History</h2>
-          <button 
-            className="bg-black text-white px-4 py-2 rounded-md text-[0.9rem] hover:bg-gray-800 transition-colors"
-            onClick={() => {
-              console.log('Add Payment Button Clicked');
-              setIsAddPaymentOpen(true);
-            }}
-          >
-            Add Payment
-          </button>
-        </div>
-        <div className="border-t border-gray-200">
-          {paymentDetailsLoading ? (
-            <div className="text-center py-4">Loading payment history...</div>
-          ) : paymentDetailsError ? (
-            <div className="text-red-500 text-center py-4">{paymentDetailsError}</div>
-          ) : paymentDetails?.payment_details?.length > 0 ? (
-            (() => {
-              console.log('Rendering Payment Details:', paymentDetails.payment_details);
-              return paymentDetails.payment_details.map((payment, index) => (
-                <div 
-                  key={index} 
-                  className="flex justify-start gap-32 items-center p-5 border-b-[1px] border-gray-200"
-                >
-                  <FaCheckCircle className="text-green-600" />
-                  <div className="date-sec">
-                    <h1>Date</h1>
-                    <p className="text-gray-500">{payment.payment_date}</p>
-                  </div>
-                  <div className="payment-section">
-                    <h1>Amount</h1>
-                    <p>{payment.paid_amount}</p>
-                  </div>
-                  <div className="payment-status">
-                    <h1>Status</h1>
-                    <p>{payment.payment_status}</p>
-                  </div>
+          {/* Payment History section */}
+          <div className="mt-6 md:mt-8">
+            <div className="top-section flex flex-col md:flex-row justify-between items-start md:items-center w-full mb-4 md:mb-5">
+              <h2 className="font-medium text-[1.1rem] md:text-[1.2rem] mb-2 md:mb-0">Payment History</h2>
+              <button 
+                className="bg-black text-white px-3 md:px-4 py-2 rounded-md text-[0.8rem] md:text-[0.9rem] hover:bg-gray-800 transition-colors"
+                onClick={() => {
+                  console.log('Add Payment Button Clicked');
+                  setIsAddPaymentOpen(true);
+                }}
+              >
+                Add Payment
+              </button>
+            </div>
+            <div className="border-t border-gray-200 overflow-x-auto">
+              {paymentDetailsLoading ? (
+                <div className="text-center py-4">Loading payment history...</div>
+              ) : paymentDetailsError ? (
+                <div className="text-red-500 text-center py-4">{paymentDetailsError}</div>
+              ) : paymentDetails?.payment_details?.length > 0 ? (
+                <div className="min-w-[600px]">
+                  {paymentDetails.payment_details.map((payment, index) => (
+                    <div 
+                      key={index} 
+                      className="flex justify-start items-center p-3 md:p-5 border-b-[1px] border-gray-200"
+                    >
+                      <div className="w-[40px] flex justify-center">
+                        <FaCheckCircle className="text-green-600 text-lg" />
+                      </div>
+                      
+                      <div className="flex-1 flex justify-between items-center gap-4 md:gap-32">
+                        <div className="date-sec">
+                          <h1 className="text-[0.8rem] md:text-base">Date</h1>
+                          <p className="text-gray-500 text-[0.8rem] md:text-base">{payment.payment_date}</p>
+                        </div>
+                        <div className="payment-section">
+                          <h1 className="text-[0.8rem] md:text-base">Amount</h1>
+                          <p className="text-[0.8rem] md:text-base">{payment.paid_amount}</p>
+                        </div>
+                        <div className="payment-status">
+                          <h1 className="text-[0.8rem] md:text-base">Status</h1>
+                          <p className="text-[0.8rem] md:text-base">{payment.payment_status}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ));
-            })()
-          ) : (
-            <div className="text-center py-4">No payment history available</div>
-          )}
-        </div>
-      </div>
+              ) : (
+                <div className="text-center py-4">No payment history available</div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -308,8 +305,7 @@ const PaymentDetailsModal = ({ onClose, eventData }) => {
         <AddPaymentModal 
           onClose={() => setIsAddPaymentOpen(false)} 
           eventId={eventData.id}
-          // Make sure to pass the correct event_group property name
-          eventGroupId={eventData.event_group} // This should match the property name from your API
+          eventGroupId={eventData.event_group}
         />
       )}
     </>
