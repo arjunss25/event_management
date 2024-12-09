@@ -47,13 +47,12 @@ const EmployeeProfile = () => {
       }
     } catch (err) {
       setError('Error fetching employee data');
-      console.error('Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Add this new function to fetch assigned events
+  
   const fetchAssignedEvents = async () => {
     try {
       setEventsLoading(true);
@@ -67,7 +66,6 @@ const EmployeeProfile = () => {
       }
     } catch (err) {
       setEventsError('Error fetching assigned events');
-      console.error('Error:', err);
     } finally {
       setEventsLoading(false);
     }
@@ -75,7 +73,7 @@ const EmployeeProfile = () => {
 
   useEffect(() => {
     fetchEmployeeData();
-    fetchAssignedEvents(); // Add this line to fetch events
+    fetchAssignedEvents();
   }, []);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
@@ -329,7 +327,7 @@ const EmployeeProfile = () => {
                           src={idCardData.qr_code_image}
                           alt="QR Code"
                           className="w-16 h-16"
-                          onError={(e) => console.log('Image failed to load:', e)}
+                          onError={(e) => console.log()}
                         />
                       </div>
                     </div>

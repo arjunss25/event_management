@@ -91,7 +91,6 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
         onClose();
       })
       .catch((error) => {
-        console.error('Failed to add employees to event:', error);
       });
   };
 
@@ -329,7 +328,6 @@ const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => 
   );
 };
 
-// Add this new component near your other component definitions
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, loading }) => {
   if (!isOpen) return null;
 
@@ -401,7 +399,6 @@ const AdminEmployeeAllocation = () => {
       dispatch(addEmployeeToAllocation(employee))
         .unwrap()
         .catch((error) => {
-          console.error('Failed to add employee:', error);
         });
     }
   };
@@ -410,7 +407,6 @@ const AdminEmployeeAllocation = () => {
     dispatch(removeEmployeeFromAllocation({ employeeId, positionName, employeeName }))
       .unwrap()
       .catch((error) => {
-        console.error('Failed to remove employee:', error);
       });
   };
 
@@ -424,7 +420,6 @@ const AdminEmployeeAllocation = () => {
   const handleConfirmRemove = async () => {
     const positionName = confirmationModal.positionToRemove;
     try {
-      // Find the section with the position we want to remove
       const sectionToRemove = allocatedSections.find(
         section => section.position === positionName
       );
@@ -433,15 +428,13 @@ const AdminEmployeeAllocation = () => {
         throw new Error('Position not found');
       }
 
-      // If no employees are allocated, just update the state locally
+
       if (sectionToRemove.employees.length === 0) {
-        // Dispatch a success action directly to update the state
         dispatch(removeEmployeePosition.fulfilled(positionName));
         setConfirmationModal({ isOpen: false, positionToRemove: null });
         return;
       }
 
-      // Otherwise, proceed with API call for positions with employees
       await dispatch(removeEmployeePosition({
         positionName,
         employees: sectionToRemove.employees
@@ -449,7 +442,6 @@ const AdminEmployeeAllocation = () => {
 
       setConfirmationModal({ isOpen: false, positionToRemove: null });
     } catch (error) {
-      console.error('Failed to remove position:', error);
       setConfirmationModal({ isOpen: false, positionToRemove: null });
     }
   };
@@ -474,7 +466,6 @@ const AdminEmployeeAllocation = () => {
         handleCloseImportModal();
       })
       .catch((error) => {
-        console.error('Failed to import allocations:', error);
       });
   };
 

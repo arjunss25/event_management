@@ -18,7 +18,6 @@ const AdminWelcomePage = () => {
           response.data?.data?.event_group_name || 'Event Group'
         );
       } catch (error) {
-        console.error('Error fetching event group name:', error);
       }
     };
 
@@ -31,7 +30,6 @@ const AdminWelcomePage = () => {
         const response = await axiosInstance.get('/welcome-eventgroup-name/');
         setEventName(response.data?.data?.event_name || 'Event');
       } catch (error) {
-        console.error('Error fetching event group name:', error);
       }
     };
 

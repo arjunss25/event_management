@@ -26,6 +26,12 @@ const EventgroupsSuperadmin = () => {
     phone: '',
   });
 
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notificationContent, setNotificationContent] = useState({
+    message: '',
+    type: '', // 'success' or 'error'
+  });
+
   const validateForm = (data) => {
     const errors = {};
 
@@ -72,7 +78,7 @@ const EventgroupsSuperadmin = () => {
 
   const toggleDrawer = () => {
     setDrawerOpen(!isDrawerOpen);
-    setError(null); // Clear any existing errors
+    setError(null);
   };
 
   const handleAddEventGroup = async (eventGroupData) => {
@@ -85,38 +91,27 @@ const EventgroupsSuperadmin = () => {
 
     try {
       setLoading(true);
-      setError(null);
-
-      // First create Firebase user
-
-      const defaultPassword = `${eventGroupData.eventGroupName
-        .replace(/\s+/g, '')
-        .toLowerCase()}@123`;
 
       let firebaseUser;
       try {
+        // Generate a random password for the user
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           eventGroupData.email,
-          defaultPassword
+          Math.random().toString(36).slice(-8) // Random password that won't be shown to user
         );
         firebaseUser = userCredential.user;
       } catch (firebaseError) {
-
-
-        // Handle specific Firebase errors
+        let errorMessage = 'Failed to create user account';
         if (firebaseError.code === 'auth/email-already-in-use') {
-          throw new Error('An account with this email already exists.');
-        } else if (firebaseError.code === 'auth/invalid-email') {
-          throw new Error('The email address is not valid.');
-        } else if (firebaseError.code === 'auth/operation-not-allowed') {
-          throw new Error(
-            'Email/password accounts are not enabled. Please contact support.'
-          );
-        } else if (firebaseError.code === 'auth/weak-password') {
-          throw new Error('The password is too weak.');
+          errorMessage = 'An account with this email already exists.';
         }
-        throw firebaseError;
+        setNotificationContent({
+          message: errorMessage,
+          type: 'error',
+        });
+        setShowNotificationModal(true);
+        throw new Error(errorMessage);
       }
 
       const requestData = {
@@ -124,72 +119,34 @@ const EventgroupsSuperadmin = () => {
         owner_name: eventGroupData.ownerName,
         email: eventGroupData.email,
         phone: eventGroupData.phone,
-        firebase_uid: firebaseUser.uid, 
+        firebase_uid: firebaseUser.uid,
       };
-
 
       const response = await axiosInstance.post(
         '/register-eventgroup/',
         requestData
       );
 
-
       if (response.status === 200 || response.status === 201) {
-        alert(
-          `Event group added successfully! Default password is: ${defaultPassword}`
-        );
+        setNotificationContent({
+          message: 'Event group added successfully!',
+          type: 'success',
+        });
+        setShowNotificationModal(true);
         toggleDrawer();
-      } else {
-        // If backend registration fails, delete the Firebase user
-        if (firebaseUser) {
-          try {
-            await firebaseUser.delete();
-          } catch (deleteError) {
-          }
-        }
-        throw new Error(
-          response.data?.message || 'Failed to register event group'
-        );
       }
     } catch (err) {
-
-
-      let errorMessage = 'Failed to add event group';
-
-      if (err.response) {
-        switch (err.response.status) {
-          case 400:
-            errorMessage =
-              err.response.data?.message || 'Invalid data provided';
-            break;
-          case 401:
-            errorMessage = 'Please log in again to continue';
-            tokenService.clearTokens();
-            window.location.href = '/login';
-            break;
-          case 403:
-            errorMessage = 'You do not have permission to perform this action';
-            break;
-          case 404:
-            errorMessage =
-              'Service endpoint not found. Please contact support.';
-            break;
-          case 422:
-            errorMessage =
-              err.response.data?.message || 'Invalid event group data';
-            break;
-          default:
-            errorMessage =
-              err.response.data?.message || 'An unexpected error occurred';
-        }
-      } else if (err.request) {
-        errorMessage =
-          'Unable to reach the server. Please check your connection.';
-      } else {
-        errorMessage = err.message;
+      if (firebaseUser) {
+        try {
+          await firebaseUser.delete();
+        } catch (deleteError) {}
       }
 
-      setError(errorMessage);
+      setNotificationContent({
+        message: 'Unable to add event group. Please try again later.',
+        type: 'error',
+      });
+      setShowNotificationModal(true);
     } finally {
       setLoading(false);
     }
@@ -200,7 +157,9 @@ const EventgroupsSuperadmin = () => {
       setLoading(true);
       setError(null);
 
-      const response = await axiosInstance.get(`/search-eventgroup/${name}`);
+      const response = await axiosInstance.get(
+        `/search-eventgroup-name/${name}`
+      );
 
       if (response.status === 200) {
         setSearchResults(response.data?.data || []);
@@ -208,7 +167,6 @@ const EventgroupsSuperadmin = () => {
         setSearchResults([]);
       }
     } catch (err) {
-
       setError('Failed to fetch search results');
       setSearchResults([]);
     } finally {
@@ -281,12 +239,6 @@ const EventgroupsSuperadmin = () => {
               </button>
             </div>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
-            )}
-
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -298,7 +250,6 @@ const EventgroupsSuperadmin = () => {
                   phone: formData.get('phone'),
                 });
               }}
-              className="w-full flex flex-col items-center justify-center"
             >
               <div className="w-full max-w-6xl px-4 md:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-16">
@@ -373,11 +324,89 @@ const EventgroupsSuperadmin = () => {
                     className="bg-black text-white px-10 py-2 rounded hover:bg-gray-800 transition-colors duration-200"
                     disabled={loading}
                   >
-                    {loading ? 'Adding...' : 'Add Event Group'}
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                        <span>Adding...</span>
+                      </div>
+                    ) : (
+                      'Add Event Group'
+                    )}
                   </button>
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Modal */}
+      {showNotificationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 w-[90%] md:w-[400px] transform transition-all">
+            <div className="mb-6">
+              <div
+                className={`w-12 h-12 rounded-full mx-auto flex items-center justify-center ${
+                  notificationContent.type === 'success'
+                    ? 'bg-green-100'
+                    : 'bg-red-100'
+                }`}
+              >
+                {notificationContent.type === 'success' ? (
+                  <svg
+                    className="w-6 h-6 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-6 h-6 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                  </svg>
+                )}
+              </div>
+            </div>
+            <h3
+              className={`text-2xl font-bold text-center mb-4 ${
+                notificationContent.type === 'success'
+                  ? 'text-green-600'
+                  : 'text-red-600'
+              }`}
+            >
+              {notificationContent.type === 'success' ? 'Success!' : 'Error!'}
+            </h3>
+            <p className="text-gray-500 text-center mb-8">
+              {notificationContent.message}
+            </p>
+            <div className="flex justify-center">
+              <button
+                className={`px-6 py-3 rounded-lg font-medium text-white ${
+                  notificationContent.type === 'success'
+                    ? 'bg-green-500 hover:bg-green-600'
+                    : 'bg-red-500 hover:bg-red-600'
+                } transition-colors`}
+                onClick={() => setShowNotificationModal(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

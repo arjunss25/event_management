@@ -9,16 +9,16 @@ const EmployeeCheckinDetails = ({
   setShowScanner,
 }) => {
   const handleCheckin = () => {
-    onClose(); // Close the modal first
+    onClose(); 
     setTimeout(() => {
-      onCheckin(); // Then perform the check-in
+      onCheckin(); 
     }, 100);
   };
 
   const handleCheckout = () => {
-    onClose(); // Close the modal first
+    onClose(); 
     setTimeout(() => {
-      onCheckout(); // Then perform the check-out
+      onCheckout(); 
     }, 100);
   };
 

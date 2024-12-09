@@ -10,12 +10,12 @@ import EmployeeCheckinDetails from './EmployeeCheckinDetails';
 import imageCompression from 'browser-image-compression';
 import { ImagePlus, Camera } from 'lucide-react';
 
-const originalConsoleError = console.error;
-console.error = (...args) => {
-  if (args[0]?.includes('defaultProps')) return;
-  if (args[0]?.includes('willReadFrequently')) return;
-  originalConsoleError(...args);
-};
+// const originalConsoleError = console.error;
+// console.error = (...args) => {
+//   if (args[0]?.includes('defaultProps')) return;
+//   if (args[0]?.includes('willReadFrequently')) return;
+//   originalConsoleError(...args);
+// };
 
 // Create a simple event bus
 const eventBus = {
@@ -60,8 +60,6 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
           setLogoImage(imageUrl);
         }
       } catch (error) {
-        console.error('Failed to fetch event logo', error);
-        // Keep default logo on error
       }
     };
 
@@ -122,7 +120,6 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
           message: 'Scan failed. Please try again.',
         });
         setShowStatusModal(true);
-        console.error('Scan error:', error);
       }
     }
   };
@@ -204,8 +201,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
   };
 
   const handleError = (error) => {
-    console.warn('QR Scanner Error:', error?.message);
-    // You can add user notification here if needed
+
   };
 
   const previewStyle = {
@@ -253,15 +249,8 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
 
     try {
       const compressedFile = await imageCompression(file, options);
-      console.log('Original file size:', file.size / 1024 / 1024, 'MB');
-      console.log(
-        'Compressed file size:',
-        compressedFile.size / 1024 / 1024,
-        'MB'
-      );
       return compressedFile;
     } catch (error) {
-      console.error('Image compression failed', error);
       throw error;
     }
   };
@@ -303,7 +292,6 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
       setRefreshKey(prevKey => prevKey + 1);
       eventBus.emit(); // Notify other components to refresh
     } catch (error) {
-      console.error('Upload error:', error);
       setUploadError(error.response?.data?.message || 'Upload failed. Please try again.');
     } finally {
       setIsUploading(false);

@@ -9,12 +9,12 @@ const SuperadminLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   
-  // Get auth state from Redux store
+
   const auth = useSelector((state) => state.auth);
 
-  // Check if the user is authenticated and has the 'superadmin' role
+
   if (!auth.token || auth.user?.role?.toLowerCase() !== 'superadmin') {
-    // If not authenticated or not a superadmin, redirect to login
+
     return <Navigate to="/login" replace />;
   }
 

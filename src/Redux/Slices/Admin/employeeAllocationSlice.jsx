@@ -75,7 +75,7 @@ export const fetchAllocatedEmployees = createAsyncThunk(
   }
 );
 
-// Existing thunks
+
 export const removeEmployeePosition = createAsyncThunk(
   'employeeAllocation/removeEmployeePosition',
   async ({ positionName, employees }, { rejectWithValue, dispatch }) => {
@@ -89,8 +89,7 @@ export const removeEmployeePosition = createAsyncThunk(
       };
 
       await axiosInstance.delete('/deallocate-position/', { data: payload });
-      
-      // Only refresh allocated employees, not positions
+   
       await dispatch(fetchAllocatedEmployees());
       
       return positionName;
@@ -192,7 +191,6 @@ export const fetchEmployeesByEvent = createAsyncThunk(
   async (eventId, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/list-employees-by-event/${eventId}/`);
-      // If data is null or empty array, return empty array explicitly
       return response.data?.data || [];
     } catch (error) {
       return rejectWithValue({
@@ -391,7 +389,6 @@ const employeeAllocationSlice = createSlice({
       .addCase(removeEmployeePosition.rejected, (state, action) => {
         state.removingPosition = false;
         state.error = action.payload?.message;
-        console.error('Failed to remove position:', action.payload);
       })
 
       // Fetch Allocated Employees cases

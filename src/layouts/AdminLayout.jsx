@@ -8,16 +8,14 @@ const AdminLayout = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
-  // Get auth state from Redux store
+
   const auth = useSelector((state) => state.auth);
 
-  // Check if the user is authenticated and has the 'admin' role
   if (!auth.token || auth.user?.role?.toLowerCase() !== 'admin') {
-    // If not authenticated or not an admin, redirect to login
+
     return <Navigate to="/login" replace />;
   }
 
-  // Hide sidebar and navbar for welcome and profile photo pages
   const hideChrome = 
     location.pathname === '/admin/welcomepage' || 
     location.pathname === '/admin/profile-photo';

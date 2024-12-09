@@ -1,13 +1,14 @@
 import React, { useEffect, useState, memo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RiEditLine } from 'react-icons/ri';
+import { FaTimes } from 'react-icons/fa';
 import './TableComponent.css';
 import {
   fetchEventsByGroupId,
   updateEvent,
 } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
 
-// Update the STATUS_STYLES configuration to match TableComponent colors
+
 const STATUS_STYLES = {
   event: {
     upcoming: 'bg-[#E6F3FF] text-[#0066CC]',
@@ -36,14 +37,23 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Edit Event</h2>
-        <form onSubmit={onSubmit}>
-          <div className="mb-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Edit Event</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <FaTimes size={24} />
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-6">
+          <div>
             <label
               htmlFor="event_name"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
               Event Name
             </label>
@@ -53,13 +63,14 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
               type="text"
               value={formData.event_name}
               onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
             />
           </div>
-          <div className="mb-4">
+
+          <div>
             <label
               htmlFor="start_date"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
               Start Date
             </label>
@@ -69,13 +80,14 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
               type="date"
               value={formData.start_date}
               onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
             />
           </div>
-          <div className="mb-4">
+
+          <div>
             <label
               htmlFor="end_date"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 mb-2"
             >
               End Date
             </label>
@@ -85,39 +97,21 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
               type="date"
               value={formData.end_date}
               onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
             />
           </div>
-          <div className="mb-4">
-            <label
-              htmlFor="event_status"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Event Status
-            </label>
-            <select
-              id="event_status"
-              name="event_status"
-              value={formData.event_status}
-              onChange={onChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            >
-              <option value="upcoming">Upcoming</option>
-              <option value="ongoing">Ongoing</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-          <div className="flex justify-end gap-4 mt-6">
+
+          <div className="flex justify-end gap-4 mt-8">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              className="px-6 py-2 text-sm font-medium text-black bg-white border border-black rounded-full hover:bg-gray-50 transition-colors duration-200"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              className="px-6 py-2 text-sm font-medium text-white bg-black rounded-full hover:bg-gray-800 transition-colors duration-200"
             >
               Save Changes
             </button>
@@ -184,7 +178,6 @@ const EventgroupEventsList = ({ eventGroupId }) => {
       setIsModalOpen(false);
       dispatch(fetchEventsByGroupId(eventGroupId));
     } catch (error) {
-      console.error('Failed to update event:', error);
     }
   };
 

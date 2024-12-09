@@ -6,12 +6,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { scanMeal } from '../../Redux/Slices/Employee/mealScannerSlice';
 import { websocketService } from '../../services/websocketService';
 
-const originalConsoleError = console.error;
-console.error = (...args) => {
-  if (args[0]?.includes('defaultProps')) return;
-  if (args[0]?.includes('willReadFrequently')) return;
-  originalConsoleError(...args);
-};
+// const originalConsoleError = console.error;
+// console.error = (...args) => {
+//   if (args[0]?.includes('defaultProps')) return;
+//   if (args[0]?.includes('willReadFrequently')) return;
+//   originalConsoleError(...args);
+// };
 
 const EmployeeScanner = ({ onClose, mealInfo }) => {
   const dispatch = useDispatch();
@@ -27,7 +27,7 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
   const [eventId, setEventId] = useState(null);
   const [roomStatus, setRoomStatus] = useState({ joined: false, members: [] });
 
-  // Add new effect to fetch event_id
+
   useEffect(() => {
     const fetchEventId = async () => {
       try {
@@ -37,16 +37,14 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
           response.data.data.length > 0
         ) {
           const event_id = response.data.data[0].event_id;
-          console.log('Fetched event_id:', event_id);
           setEventId(event_id);
 
-          // Only connect if not already in the correct room
+          
           if (!websocketService.isInRoom(event_id)) {
             websocketService.connectWithAuth(event_id);
           }
         }
       } catch (error) {
-        console.error('Error fetching event data:', error);
       }
     };
 
@@ -59,18 +57,13 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
           joined: data.success,
           members: data.members,
         });
-        console.log('Scanner Room Status:', {
-          joined: data.success,
-          members: data.members,
-          eventId: data.event_id,
-        });
       }
     });
 
     return () => unsubscribe();
   }, []);
 
-  // Reset scanner state completely
+ 
   const resetScannerState = () => {
     setPauseScanning(false);
     setScannedData(null);
@@ -80,7 +73,6 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
   const handleScan = async (data) => {
     if (data?.text && mealInfo && !pauseScanning && eventId) {
       setPauseScanning(true);
-      console.log('QR Code detected:', data.text);
 
       try {
         const uniqueIdMatch = data.text.match(/Unique ID: (\w+)/);
@@ -99,26 +91,21 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
           meal_date: formattedDate,
         };
 
-        console.log('Sending scan request:', payload);
         const response = await axiosInstance.post('/scan-meals/', payload);
-        console.log('Scan API response:', response.data);
 
-        // Send WebSocket update with the correct count from the API response
+
+       
         if (response.data.status === 'Success') {
-          console.log(
-            'Scan successful, preparing WebSocket message with event_id:',
-            eventId
-          );
+
 
           const wsMessage = {
             type: 'MEAL_SCANNED',
             meal_type: mealInfo.mealCategory,
             new_count: response.data.data.count,
-            event_id: eventId, // Use the fetched event_id
+            event_id: eventId, 
             timestamp: new Date().toISOString(),
           };
 
-          console.log('🚀 Sending WebSocket message:', wsMessage);
           websocketService.sendMessage(wsMessage);
         }
 
@@ -128,12 +115,6 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
         });
         setShowStatusModal(true);
       } catch (error) {
-        console.error('Scan Error:', error);
-        console.error('WebSocket state during error:', {
-          connected: websocketService.connected,
-          readyState: websocketService.ws?.readyState,
-          eventId: eventId,
-        });
         setScanResult({
           success: false,
           message: error.response?.data?.message || 'Failed to process scan',
@@ -145,7 +126,7 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
 
   const handleError = (err) => {
     if (err instanceof Error) {
-      console.error('Scanner Error:', err.message);
+
     }
   };
 
@@ -181,7 +162,7 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
     setShowStatusModal(false);
     resetScannerState();
 
-    // Small delay to ensure clean state before next scan
+    // Small delay before next scan
     setTimeout(() => {
       setPauseScanning(false);
     }, 100);
@@ -214,16 +195,12 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
       // Close scanner on success
       onClose();
     } catch (error) {
-      console.error('Scan failed:', error);
+
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      {/* Add WebSocket status indicator */}
-      {/* <div className="absolute top-4 right-4 text-white text-sm">
-        WebSocket: {wsConnected ? '🟢 Connected' : '🔴 Disconnected'}
-      </div> */}
 
       {scanning ? (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
@@ -247,7 +224,7 @@ const EmployeeScanner = ({ onClose, mealInfo }) => {
             <div className="p-6">
               <div className="relative w-full aspect-square max-w-[400px] mx-auto rounded-lg overflow-hidden bg-gray-900">
                 <QrScanner
-                  key={`scanner-${pauseScanning}`} // Force re-render when scanning state changes
+                  key={`scanner-${pauseScanning}`} 
                   delay={300}
                   onError={handleError}
                   onScan={handleScan}

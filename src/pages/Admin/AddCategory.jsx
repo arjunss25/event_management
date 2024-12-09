@@ -26,16 +26,14 @@ const AddCategory = () => {
   const [editedRoleName, setEditedRoleName] = useState('');
 
 
-  // Add console.log to debug
   useEffect(() => {
-    console.log('Current event_group_id:', event_group_id);
   }, [event_group_id]);
 
-  // Fetch initial categories and position choices
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // Fetch existing employee fields with event_group_id
+
         const fieldsResponse = await axiosInstance.get(`/add-employee-extrafields/?event_group=${event_group_id}`);
         const additionalFields = fieldsResponse.data.data.extra_fields.map(field => ({
           id: field.field_name,
@@ -48,8 +46,7 @@ const AddCategory = () => {
             ? Object.values(field.field_option).filter(Boolean)
             : []
         }));
-    
-        // Fetch position choices with event_group_id
+
         const positionResponse = await axiosInstance.get(`/position-choices/?event_group=${event_group_id}`);
         const positionOptions = positionResponse.data.data.map(pos => pos.name);
         
@@ -59,7 +56,6 @@ const AddCategory = () => {
           ...additionalFields
         ]);
       } catch (error) {
-        console.error('Error fetching initial data:', error);
         setErrorMessage('Failed to fetch categories');
         setShowError(true);
       }
@@ -79,7 +75,6 @@ const AddCategory = () => {
         .map(role => role.trim())
         .filter(role => role !== '');
   
-      console.log('Current event_group_id from Redux:', event_group_id);
       
       if (!event_group_id || event_group_id === 'undefined') {
         setErrorMessage('Event group ID is missing or invalid');
@@ -93,18 +88,17 @@ const AddCategory = () => {
         return;
       }
   
-      // If you want to send multiple roles, you might need to make multiple requests
-      // or check with your backend how they want to receive multiple roles
+
       for (const role of validRoles) {
         const payload = {
           event_group: event_group_id,
           name: role
         };
   
-        console.log('Position payload:', payload);
+
   
         const response = await axiosInstance.post('/position-choices/', payload);
-        console.log('Server response:', response);
+
       }
   
       // Refresh the positions after saving
@@ -118,10 +112,9 @@ const AddCategory = () => {
       setIsEditModalOpen(false);
   
     } catch (error) {
-      console.error('Complete error object:', error);
+
       
       if (error.response) {
-        console.error('Detailed error response:', JSON.stringify(error.response.data, null, 2));
         setErrorMessage(error.response.data.non_field_errors?.[0] || 'Failed to save position choices');
       } else {
         setErrorMessage('Network error or unexpected issue');
@@ -143,7 +136,7 @@ const AddCategory = () => {
           return;
         }
 
-        // Check for duplicate category
+
         const isDuplicate = categories.some(
           cat => cat.label.toLowerCase() === newCategoryLabel.toLowerCase()
         );
@@ -156,14 +149,14 @@ const AddCategory = () => {
 
         let payload;
         
-        // Special handling for Role/Position
+
         if (newCategoryLabel.toLowerCase() === 'role' || 
             newCategoryLabel.toLowerCase() === 'position') {
           payload = {
             name: newCategoryLabel,
             event_group: event_group_id
           };
-          console.log('Role payload:', payload);
+
           await axiosInstance.post('/position-choices/', payload);
         } else {
           // Regular category payload
@@ -176,15 +169,13 @@ const AddCategory = () => {
             event_group: event_group_id
           };
 
-          // Add options for dropdown, radio, and checkbox
+
           if (['select', 'radio', 'checkbox'].includes(newFieldType)) {
             payload.field_option = newOptions.reduce((acc, option, index) => {
               acc[`option${index + 1}`] = option;
               return acc;
             }, {});
           }
-
-          console.log('Category payload:', payload);
           await axiosInstance.post('/add-employee-extrafields/', payload);
         }
 
@@ -200,7 +191,6 @@ const AddCategory = () => {
         setNewFieldType('');
         setNewOptions(['']);
       } catch (error) {
-        console.error('Error adding category:', error);
         setErrorMessage(error.response?.data?.message || 'Failed to add category');
         setShowError(true);
       }
@@ -234,7 +224,6 @@ const AddCategory = () => {
       // Update local state
       setCategories(categories.filter(category => category.id !== categoryId));
     } catch (error) {
-      console.error('Error deleting category:', error);
     }
   };
 
@@ -288,7 +277,7 @@ const AddCategory = () => {
         // Update tempRoles state
         setTempRoles(tempRoles.filter((_, i) => i !== index));
     } catch (error) {
-        console.error('Error removing position:', error);
+
         setErrorMessage('Failed to remove position. Please try again.');
         setShowError(true);
     }

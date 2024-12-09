@@ -30,8 +30,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
           setLogoImage(imageUrl);
         }
       } catch (error) {
-        console.error('Failed to fetch event logo', error);
-        // Keep default logo on error
+
       }
     };
 
@@ -39,12 +38,12 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   }, [refreshKey]);
 
   useEffect(() => {
-    // Subscribe to image update events
+    
     const unsubscribe = eventBus.subscribe(() => {
       setRefreshKey((prev) => prev + 1);
     });
 
-    return () => unsubscribe(); // Cleanup subscription
+    return () => unsubscribe();
   }, []);
 
   const isActive = (path) => location.pathname === `/admin${path}`;
@@ -72,7 +71,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
           } lg:translate-x-0`}
       >
         <div className="w-full relative">
-          {/* Updated Close button position to match SuperAdmin */}
+    
           <div
             className="absolute top-4 right-4 lg:hidden cursor-pointer"
             onClick={toggleSidebar}
@@ -170,7 +169,6 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
         </div>
       </div>
 
-      {/* Overlay for small screens when sidebar is open */}
       {isSidebarOpen && (
         <div
           onClick={toggleSidebar}

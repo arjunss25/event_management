@@ -21,7 +21,6 @@ export const getDays = createAsyncThunk(
       const response = await axiosInstance.get('/no-event-days-emp');
 
       if (!response?.data?.data?.[0]?.event_dates_with_meals) {
-        console.error('Invalid API response structure:', response);
         return rejectWithValue('Invalid or missing data structure');
       }
 
@@ -50,7 +49,6 @@ export const getDays = createAsyncThunk(
         days: transformedDays,
       };
     } catch (error) {
-      console.error('API Error:', error);
       return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
@@ -60,7 +58,6 @@ export const scanMeal = createAsyncThunk(
   'mealScanner/scanMeal',
   async (scanData, { dispatch }) => {
     try {
-      console.log('📍 Scanning meal:', scanData);
       
       const response = await axiosInstance.post('/scan-meal/', {
         meal_type: scanData.mealCategory,
@@ -68,7 +65,7 @@ export const scanMeal = createAsyncThunk(
       });
 
       if (response.data?.success) {
-        // Create WebSocket message
+
         const wsMessage = {
           type: 'meal_scanned',
           meal_type: scanData.mealCategory,
@@ -76,16 +73,14 @@ export const scanMeal = createAsyncThunk(
           timestamp: new Date().toISOString()
         };
         
-        // Send through WebSocket
+
         if (websocketService.ws && websocketService.ws.readyState === WebSocket.OPEN) {
-          console.log('📤 Sending WebSocket message:', wsMessage);
           websocketService.ws.send(JSON.stringify(wsMessage));
         }
       }
 
       return response.data;
     } catch (error) {
-      console.error('❌ Scan error:', error);
       throw error;
     }
   }

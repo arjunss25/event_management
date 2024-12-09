@@ -53,7 +53,6 @@ const AddEmployee = () => {
 
           const initialExtraFields = {};
           extraFieldsData.data.extra_fields.forEach((field) => {
-            // Initialize with empty string instead of array for all field types
             initialExtraFields[field.field_name] = '';
           });
 
@@ -63,7 +62,6 @@ const AddEmployee = () => {
           }));
         }
       } catch (error) {
-        console.error('Error fetching form data:', error);
         setError('Failed to load form data. Please try again later.');
       } finally {
         setLoading(false);
@@ -113,7 +111,7 @@ const AddEmployee = () => {
       ...prev,
       extra_fields: {
         ...prev.extra_fields,
-        [fieldName]: value, // Store only the latest selected value
+        [fieldName]: value,
       },
     }));
   };
@@ -124,8 +122,6 @@ const AddEmployee = () => {
     setLoading(true);
 
     try {
-      // First create Firebase user
-      console.log('Creating Firebase user for:', formData.email);
       const defaultPassword = `${formData.name
         .replace(/\s+/g, '')
         .toLowerCase()}@123`;
@@ -138,15 +134,7 @@ const AddEmployee = () => {
           defaultPassword
         );
         firebaseUser = userCredential.user;
-        console.log('✅ Firebase user created successfully:', {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-        });
       } catch (firebaseError) {
-        console.error('Firebase registration error:', {
-          code: firebaseError.code,
-          message: firebaseError.message,
-        });
 
         // Handle specific Firebase errors
         if (firebaseError.code === 'auth/email-already-in-use') {
@@ -174,22 +162,18 @@ const AddEmployee = () => {
         firebase_uid: firebaseUser.uid,
       };
 
-      console.log('Sending employee data to backend:', payload);
+
       const response = await axiosInstance.post('/register-employee/', payload);
 
       if (response.data?.status === 'Success') {
-        console.log('✅ Employee registered successfully in backend');
         navigate('/admin/employee-details');
       } else {
         // If backend registration fails, delete the Firebase user
         if (firebaseUser) {
           try {
             await firebaseUser.delete();
-            console.log(
-              '🗑️ Firebase user deleted due to backend registration failure'
-            );
           } catch (deleteError) {
-            console.error('Error deleting Firebase user:', deleteError);
+
           }
         }
         throw new Error(
@@ -197,11 +181,10 @@ const AddEmployee = () => {
         );
       }
     } catch (error) {
-      console.error('Error registering employee:', error);
+
 
       // Set appropriate error message
       if (error.response) {
-        console.error('Backend error response:', error.response.data);
         setError(
           error.response.data.error ||
             error.response.data.message ||

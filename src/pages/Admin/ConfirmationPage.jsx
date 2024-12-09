@@ -26,7 +26,6 @@ const ConfirmationPage = () => {
         const fieldsData = response.data?.data?.extra_fields || [];
 
         if (!Array.isArray(fieldsData)) {
-          console.error("fieldsData is not an array:", fieldsData);
           return;
         }
 

@@ -14,14 +14,12 @@ const EventProfilePhotoPage = () => {
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Fetch existing event profile picture
+
   useEffect(() => {
     const fetchEventProfilePicture = async () => {
       try {
         const response = await axiosInstance.get('/update-event-dp/');
-        console.log('Full Response:', response.data);
 
-        // Get image URL from the data object
         let imageUrl = null;
         if (response.data.data && response.data.data.image) {
           imageUrl = response.data.data.image.startsWith('http')
@@ -30,24 +28,20 @@ const EventProfilePhotoPage = () => {
         }
 
         if (imageUrl) {
-          console.log('Attempting to load image URL:', imageUrl);
           const img = new Image();
           img.onload = () => {
             setExistingImage(imageUrl);
             setIsLoading(false);
           };
           img.onerror = () => {
-            console.log('Failed to load image');
             setExistingImage(null);
             setIsLoading(false);
           };
           img.src = imageUrl;
         } else {
-          console.log('No image URL found in the response');
           setIsLoading(false);
         }
       } catch (error) {
-        console.error('Failed to fetch event profile picture', error);
         setIsLoading(false);
       }
     };
@@ -67,7 +61,6 @@ const EventProfilePhotoPage = () => {
       const compressedFile = await imageCompression(file, options);
       return compressedFile;
     } catch (error) {
-      console.error('Image compression failed', error);
       throw error;
     }
   };
@@ -110,16 +103,14 @@ const EventProfilePhotoPage = () => {
             'Content-Type': 'multipart/form-data'
           }
         });
-        console.log('Upload successful', response.data);
+
       } catch (error) {
-        console.error('Upload failed', error);
         setUploadError(error.response?.data?.message || 'Upload failed. Please try again.');
         setIsUploading(false);
-        return; // Don't navigate if upload fails
+        return; 
       }
     }
 
-    // Navigate to next page regardless of whether we uploaded or not
     navigate('/admin/dashboard');
   };
 
@@ -165,7 +156,6 @@ const EventProfilePhotoPage = () => {
               alt="Existing Event Profile"
               className="w-full h-full object-cover"
               onError={(e) => {
-                console.log('Image load error');
                 setExistingImage(null);
               }}
             />

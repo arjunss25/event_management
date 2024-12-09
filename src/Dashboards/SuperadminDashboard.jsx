@@ -14,35 +14,33 @@ const SuperadminDashboard = () => {
     const fetchEventData = async () => {
       try {
         const response = await axios.get('/cards-event-details/');
-        const data = response.data.data; // Access the nested 'data' object
+        const data = response.data.data;
   
-        // Map the data to include the required icons and labels
         const mappedData = [
           {
             eventType: 'Total Events',
-            number: data.total_events, // Adjust to match API key
-            icon: <MdOutlineEventAvailable />,
+            number: data.total_events, 
+            icon: <MdOutlineEventAvailable className="text-blue-500" />,
           },
           {
             eventType: 'Completed Events',
-            number: data.completed_events, // Adjust to match API key
-            icon: <IoCheckmarkDoneCircleOutline />,
+            number: data.completed_events, 
+            icon: <IoCheckmarkDoneCircleOutline className="text-green-500" />,
           },
           {
             eventType: 'Upcoming Events',
-            number: data.upcoming_events, // Adjust to match API key
-            icon: <MdPendingActions />,
+            number: data.upcoming_events, 
+            icon: <MdPendingActions className="text-yellow-500" />,
           },
           {
             eventType: 'Cancelled Events',
-            number: data.cancelled_events, // Adjust to match API key
-            icon: <MdOutlineCancel />,
+            number: data.cancelled_events, 
+            icon: <MdOutlineCancel className="text-red-500" />,
           },
         ];
   
         setEventData(mappedData);
       } catch (error) {
-        console.error('Error fetching event data:', error);
       }
     };
   

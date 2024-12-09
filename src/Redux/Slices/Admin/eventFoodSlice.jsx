@@ -190,7 +190,7 @@ export const fetchMeals = () => async (dispatch) => {
     dispatch(fetchMealsStart());
     const response = await axiosInstance.get('/allocated-meals-list/');
     
-    console.log('API Response:', response.data.data); // Debug log
+
     
     const transformedData = response.data.data.map((day, index) => ({
       id: index + 1,
@@ -202,7 +202,7 @@ export const fetchMeals = () => async (dispatch) => {
       }))
     }));
     
-    console.log('Transformed Data:', transformedData); // Debug log
+
     
     dispatch(fetchMealsSuccess(transformedData));
   } catch (error) {
@@ -227,7 +227,7 @@ export const applyMealPlanToAllDays = () => async (dispatch) => {
     dispatch(applyToAllDaysStart());
     await axiosInstance.post('/apply-mealplan-to-all-dates/');
     dispatch(applyToAllDaysSuccess());
-    // Refresh the meals list after applying to all days
+
     dispatch(fetchMeals());
   } catch (error) {
     dispatch(applyToAllDaysFailure(error.message));
@@ -236,10 +236,10 @@ export const applyMealPlanToAllDays = () => async (dispatch) => {
 
 export const setApplyToAllDays = (value) => async (dispatch) => {
   if (value) {
-    // If turning on "Apply to All Days", call the API
+
     dispatch(applyMealPlanToAllDays());
   } else {
-    // If turning off, just update the local state
+
     dispatch(updateApplyToAllDays(false));
   }
 };

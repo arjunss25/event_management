@@ -44,26 +44,23 @@ const AdminEmployeeProfile = () => {
       }
     } catch (err) {
       setError('Error fetching employee data');
-      console.error('Error:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new function to fetch ID card data
+
   const fetchIdCardData = async () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(`/employees-id-card/${id}/`);
       if (response.data?.status_code === 200) {
-        console.log('ID Card Data:', response.data.data);
         setIdCardData(response.data.data);
       } else {
         setError('Failed to fetch ID card data');
       }
     } catch (err) {
       setError('Error fetching ID card data');
-      console.error('Error:', err);
     } finally {
       setLoading(false);
     }
@@ -81,7 +78,6 @@ const AdminEmployeeProfile = () => {
         setEventsData([]);
       }
     } catch (err) {
-      console.error('Error fetching events data:', err);
       setEventsData([]);
     }
   };
@@ -93,11 +89,9 @@ const AdminEmployeeProfile = () => {
       if (response.data?.status_code === 200 && Array.isArray(response.data.data)) {
         setCheckInOutData(response.data.data);
       } else {
-        console.warn('Check-in/out data is not in expected format:', response.data);
         setCheckInOutData([]);
       }
     } catch (err) {
-      console.error('Error fetching check-in/out data:', err);
       setCheckInOutData([]);
     }
   };
@@ -162,7 +156,6 @@ const AdminEmployeeProfile = () => {
       }
     } catch (err) {
       setError('Error updating employee data');
-      console.error('Error:', err);
     }
   };
 
@@ -460,7 +453,7 @@ const AdminEmployeeProfile = () => {
                           alt="QR Code"
                           className="w-16 h-16"
                           onError={(e) =>
-                            console.log('Image failed to load:', e)
+                            console.log()
                           }
                         />
                       </div>

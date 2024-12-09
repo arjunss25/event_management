@@ -26,7 +26,6 @@ const Login = () => {
     if (accessToken && userData) {
       if (firebaseToken) {
         signInWithCustomToken(auth, firebaseToken).catch((error) => {
-          console.error('Error syncing Firebase auth state:', error);
           tokenService.clearTokens();
         });
       }
@@ -62,13 +61,10 @@ const Login = () => {
       if (firebaseToken) {
         try {
           await signInWithCustomToken(auth, firebaseToken);
-          console.log('✅ Firebase authentication successful');
         } catch (firebaseError) {
-          console.error('Firebase authentication failed:', firebaseError);
           throw new Error('Firebase authentication failed');
         }
       } else {
-        console.warn('⚠️ No Firebase token received from backend');
       }
 
       tokenService.setTokens(access, refresh, firebaseToken);
@@ -101,7 +97,6 @@ const Login = () => {
           setError(`Unauthorized role: ${role}`);
       }
     } catch (error) {
-      console.error('Authentication error:', error);
       const errorMessage =
         error.response?.data?.message ||
         'Authentication failed. Please check your credentials.';
@@ -113,20 +108,13 @@ const Login = () => {
 
   const handleGoogleSignIn = async () => {
     try {
-      setError(''); // Clear any previous errors
-      console.log('Starting Google sign-in process...');
+      setError(''); 
 
-      // First ensure Firebase is initialized
       if (!auth) {
         throw new Error('Firebase authentication not initialized');
       }
 
       const result = await loginWithGoogle();
-      console.log('Google sign-in result:', {
-        success: result.success,
-        userEmail: result.user?.email,
-        tokenReceived: !!result.firebaseToken,
-      });
 
       if (result.success && result.firebaseToken) {
         try {
@@ -140,8 +128,6 @@ const Login = () => {
             firebase_token: result.firebaseToken,
             email: result.user.email,
           });
-
-          console.log('Backend authentication successful:', backendResponse);
 
           const { access, refresh, role } = backendResponse;
 
@@ -176,9 +162,7 @@ const Login = () => {
               throw new Error(`Unauthorized role: ${role}`);
           }
         } catch (backendError) {
-          console.error('Backend authentication error:', backendError);
 
-          // Clear any partial authentication state
           await auth.signOut();
           tokenService.clearTokens();
 
@@ -191,7 +175,6 @@ const Login = () => {
         throw new Error(result.error || 'Google sign-in failed');
       }
     } catch (error) {
-      console.error('Authentication error:', error);
       setError(error.message);
       tokenService.clearTokens();
     }

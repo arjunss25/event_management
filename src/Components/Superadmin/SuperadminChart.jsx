@@ -30,7 +30,7 @@ const SuperadminChart = () => {
   const [error, setError] = useState(null);
   const [availableYears, setAvailableYears] = useState([]);
 
-  // Handle mobile responsiveness
+  
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 640);
@@ -45,16 +45,14 @@ const SuperadminChart = () => {
   const fetchAvailableYears = async () => {
     try {
       const response = await axiosInstance.get('/year-list-database/');
-      console.log('Available years response:', response);
+
       
       if (response.data && response.data.data && response.data.data[0]) {
         // Extract years from the object and convert to array
         const yearsObj = response.data.data[0];
         const years = Object.values(yearsObj)
-          .filter(year => !isNaN(year)) // Filter out any non-numeric values
-          .sort((a, b) => b - a); // Sort in descending order
-        
-        console.log('Processed years:', years);
+          .filter(year => !isNaN(year)) 
+          .sort((a, b) => b - a); 
         setAvailableYears(years);
         
         // Set the most recent year as default
@@ -62,11 +60,9 @@ const SuperadminChart = () => {
           setSelectedYear(years[0]);
         }
       } else {
-        console.error('Invalid years data format:', response.data);
         setError('Failed to load available years');
       }
     } catch (error) {
-      console.error('Error fetching available years:', error);
       setError('Failed to load available years');
     }
   };
@@ -76,39 +72,29 @@ const SuperadminChart = () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching data for year:', year);
       const response = await axiosInstance.get(`/filter-events-by-year/${year}/`);
-      console.log('API Response:', response);
 
       if (!response.data) {
         throw new Error('No data received from API');
       }
 
       if (!response.data.data) {
-        console.error('Invalid response structure:', response.data);
         throw new Error('Invalid response structure - missing data property');
       }
 
       const monthlyData = response.data.data.monthly_event_counts;
-      console.log('Monthly data:', monthlyData);
 
       if (!monthlyData) {
         throw new Error('No monthly_event_counts in response');
       }
 
-      const formattedData = Object.entries(monthlyData).map(([month, count]) => ({
+      const formattedData = Object.entries(monthlyData).map(([month, count], index) => ({
         name: month,
-        events: count
+        events: count,
+        id: `${month}-${year}-${index}`
       }));
-
-      console.log('Formatted chart data:', formattedData);
       setChartData(formattedData);
     } catch (error) {
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response,
-        stack: error.stack
-      });
       setError(error.message);
       setChartData([]);
     } finally {
@@ -203,6 +189,7 @@ const SuperadminChart = () => {
               radius={[4, 4, 0, 0]}
               cursor={{ fill: 'rgba(45, 52, 54, 0.05)' }}
               background={{ fill: '#eaeef1' }}
+              key={`bar-${selectedYear}`}
             />
           </BarChart>
         </ResponsiveContainer>

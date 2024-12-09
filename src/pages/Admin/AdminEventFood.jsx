@@ -57,7 +57,6 @@ const AdminEventFood = () => {
 
     const selectedDay = days.find((day) => day.id === selectedDayId);
     if (!selectedDay?.date) {
-      console.error('No date available for selected day');
       return;
     }
 
@@ -74,7 +73,6 @@ const AdminEventFood = () => {
 
   const handleRemoveMealCategory = (dayId, mealId, date) => {
     if (!date) {
-      console.error('No date available for selected day');
       return;
     }
     dispatch(postRemoveMealCategory(mealId, date)).then(() =>

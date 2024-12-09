@@ -37,57 +37,68 @@ const SearchBar = memo(({ onSearch }) => {
 });
 
 // Memoized Table Row Component
-const TableRow = memo(({ event, onDelete, onView, deleteLoading }) => {
-  const handleImageError = (e) => {
-    e.target.src = '';
-  };
+const TableRow = memo(
+  ({
+    event,
+    onDelete,
+    onView,
+    deleteLoading,
+    setSelectedEventGroup,
+    setShowModal,
+  }) => {
+    const handleImageError = (e) => {
+      e.target.src = '';
+    };
 
-  return (
-    <tr className="hover:bg-gray-50">
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 flex-shrink-0 items-center justify-center">
-            {event.image ? (
-              <img
-                src='/eventgroup profile.png'
-                alt={`${event.company_name} logo`}
-                className="w-8 h-8 rounded-lg object-cover"
-                onError={handleImageError}
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-500 text-xs">No img</span>
-              </div>
-            )}
+    return (
+      <tr className="hover:bg-gray-50">
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 flex-shrink-0 items-center justify-center">
+              {event.image ? (
+                <img
+                  src="/eventgroup profile.png"
+                  alt={`${event.company_name} logo`}
+                  className="w-8 h-8 rounded-lg object-cover"
+                  onError={handleImageError}
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-500 text-xs">No img</span>
+                </div>
+              )}
+            </div>
+            <span className="font-medium">{event.company_name}</span>
           </div>
-          <span className="font-medium">{event.company_name}</span>
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">{event.owner_name}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{event.email}</td>
-      <td className="px-6 py-4 whitespace-nowrap">{event.phone}</td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex gap-3">
-          <button
-            className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center transition-colors duration-200"
-            onClick={() => onView(event)}
-            title="View Details"
-          >
-            <FaRegEye className="text-[1.2rem]" />
-          </button>
-          <button
-            className="text-gray-600 hover:text-red-600 w-10 h-10 flex items-center justify-center transition-colors duration-200"
-            onClick={() => onDelete(event.id)}
-            title="Delete Event Group"
-            disabled={deleteLoading}
-          >
-            <MdOutlineDeleteOutline className="text-[1.2rem]" />
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-});
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">{event.owner_name}</td>
+        <td className="px-6 py-4 whitespace-nowrap">{event.email}</td>
+        <td className="px-6 py-4 whitespace-nowrap">{event.phone}</td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          <div className="flex">
+            <button
+              className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center transition-colors duration-200"
+              onClick={() => onView(event)}
+              title="View Details"
+            >
+              <FaRegEye className="text-[1.2rem]" />
+            </button>
+            <button
+              className="text-gray-600 hover:text-red-600 w-10 h-10 flex items-center justify-center transition-colors duration-200"
+              onClick={() => {
+                setSelectedEventGroup(event.id);
+                setShowModal(true);
+              }}
+              title="Delete Event Group"
+            >
+              <MdOutlineDeleteOutline className="text-[1.2rem]" />
+            </button>
+          </div>
+        </td>
+      </tr>
+    );
+  }
+);
 
 // Main Component
 const EventgroupsSuperadminTable = () => {
@@ -105,6 +116,9 @@ const EventgroupsSuperadminTable = () => {
   const [displayData, setDisplayData] = useState([]);
   const [tableLoading, setTableLoading] = useState(false);
   const [searchError, setSearchError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedEventGroup, setSelectedEventGroup] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Initial data fetch
   useEffect(() => {
@@ -133,7 +147,7 @@ const EventgroupsSuperadminTable = () => {
         setSearchError(null);
 
         const response = await axiosInstance.get(
-          `/search-eventgroup/${searchTerm}`
+          `/search-eventgroup-name/${searchTerm}`
         );
 
         if (response.status === 200) {
@@ -141,7 +155,6 @@ const EventgroupsSuperadminTable = () => {
           setDisplayData(Array.isArray(searchResults) ? searchResults : []);
         }
       } catch (err) {
-        console.error('Search error:', err);
         setSearchError('Failed to fetch search results');
         setDisplayData([]);
       } finally {
@@ -169,36 +182,22 @@ const EventgroupsSuperadminTable = () => {
     [handleSearch]
   );
 
-  // Handle delete
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this event group?')) {
-      return;
-    }
-
+  // Update handleDelete to use the modal
+  const handleDelete = async () => {
+    setIsDeleting(true);
     try {
-      setStatusMessage({
-        show: true,
-        message: 'Deleting event group...',
-        isError: false,
-      });
-
-      // First, get the event group details to access the Firebase UID
-      const eventGroup = displayData.find((event) => event.id === id);
+      const eventGroup = displayData.find(
+        (event) => event.id === selectedEventGroup
+      );
       if (!eventGroup) {
         throw new Error('Event group not found');
       }
 
-      // Delete from backend first
-      const resultAction = await dispatch(deleteEvent(id));
+      const resultAction = await dispatch(deleteEvent(selectedEventGroup));
 
       if (deleteEvent.fulfilled.match(resultAction)) {
         try {
-          // Delete the user from Firebase
           if (eventGroup.firebase_uid) {
-            // Note: Deleting a user requires recent authentication
-            // You might need to implement admin SDK for this operation
-            // or handle it through your backend
-
             const response = await axiosInstance.post(
               '/delete-firebase-user/',
               {
@@ -207,23 +206,17 @@ const EventgroupsSuperadminTable = () => {
             );
 
             if (response.status === 200) {
-              console.log('✅ Firebase user deleted successfully');
-            } else {
-              console.warn('⚠️ Firebase user deletion may have failed');
+              setStatusMessage({
+                show: true,
+                message: 'Event group deleted successfully',
+                isError: false,
+              });
             }
           }
 
-          setStatusMessage({
-            show: true,
-            message: 'Event group deleted successfully',
-            isError: false,
-          });
-
-          // Refresh the events list
           dispatch(fetchEvents());
+          setShowModal(false);
         } catch (firebaseError) {
-          console.error('Firebase deletion error:', firebaseError);
-          // Even if Firebase deletion fails, the event group was removed from your backend
           setStatusMessage({
             show: true,
             message:
@@ -233,12 +226,13 @@ const EventgroupsSuperadminTable = () => {
         }
       }
     } catch (err) {
-      console.error('Delete operation failed:', err);
       setStatusMessage({
         show: true,
         message: 'Failed to delete event group. Please try again.',
         isError: true,
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -247,9 +241,8 @@ const EventgroupsSuperadminTable = () => {
     if (statusMessage.show) {
       const timer = setTimeout(() => {
         setStatusMessage({ show: false, message: '', isError: false });
-      }, 2000); // Set timeout to 2 seconds
+      }, 2000);
 
-      // Clear timeout on cleanup
       return () => clearTimeout(timer);
     }
   }, [statusMessage]);
@@ -348,6 +341,8 @@ const EventgroupsSuperadminTable = () => {
                       onDelete={handleDelete}
                       onView={handleView}
                       deleteLoading={deleteLoading}
+                      setSelectedEventGroup={setSelectedEventGroup}
+                      setShowModal={setShowModal}
                     />
                   ))}
                 </tbody>
@@ -356,6 +351,51 @@ const EventgroupsSuperadminTable = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 w-[90%] md:w-[400px] transform transition-all">
+            {isDeleting ? (
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
+                <p className="text-gray-600">Deleting event group...</p>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <div className="w-12 h-12 rounded-full bg-red-100 mx-auto flex items-center justify-center">
+                    <MdOutlineDeleteOutline className="text-red-500 text-2xl" />
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 text-center mb-4">
+                  Delete Event Group
+                </h3>
+                <p className="text-gray-500 text-center mb-8">
+                  This action cannot be undone. Are you sure you want to delete
+                  this event group?
+                </p>
+                <div className="flex gap-4">
+                  <button
+                    className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                    onClick={() => setShowModal(false)}
+                    disabled={isDeleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

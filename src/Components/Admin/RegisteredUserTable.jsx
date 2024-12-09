@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchRegisteredUsers } from '../../Redux/Slices/Admin/adminUserRegistrationSlice';
 import { FaRegEye } from 'react-icons/fa';
 
-// Add these new components
+
 const EmptyState = () => (
   <tr>
     <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
@@ -57,12 +57,12 @@ const TableContent = ({ users, navigate }) => (
   </table>
 );
 
-// Update the main component
+
 const RegisteredUserTable = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
-  // Get users from the Redux store
+
   const { users, loading, error } = useSelector((state) => state.adminUserRegistration);
 
   useEffect(() => {

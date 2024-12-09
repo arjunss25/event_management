@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 const Dashboardcards = ({ eventData }) => {
   const { icon, eventType, number } = eventData;
 
-  console.log(`Rendering card for ${eventType} with count:`, number);
 
   return (
     <div className="dashboard-card-main w-[15rem] h-[13rem] bg-white hover:bg-black rounded-[1rem] p-4 shadow-sm flex flex-col justify-between">

@@ -225,11 +225,6 @@ const EmployeeTable = () => {
         throw new Error('Employee not found');
       }
 
-      console.log('Deleting employee:', {
-        id: employee.id,
-        email: employee.email,
-        firebase_uid: employee.firebase_uid,
-      });
 
       const response = await axiosInstance.delete(
         `/employee-details/${selectedEmployee}`
@@ -238,10 +233,6 @@ const EmployeeTable = () => {
       if (response.status === 200 || response.status === 204) {
         try {
           if (employee.firebase_uid) {
-            console.log(
-              'Attempting to delete Firebase user:',
-              employee.firebase_uid
-            );
 
             const firebaseResponse = await axiosInstance.post(
               '/delete-firebase-user/',
@@ -252,11 +243,8 @@ const EmployeeTable = () => {
             );
 
             if (firebaseResponse.status === 200) {
-              console.log('✅ Firebase user deleted successfully via backend');
             } else {
-              console.warn(
-                '⚠️ Backend Firebase deletion failed, attempting alternative method'
-              );
+
 
               const alternativeResponse = await axiosInstance.delete(
                 '/delete-firebase-user-alternative/',
@@ -269,30 +257,17 @@ const EmployeeTable = () => {
               );
 
               if (alternativeResponse.status === 200) {
-                console.log(
-                  '✅ Firebase user deleted successfully via alternative method'
-                );
               }
             }
           } else {
-            console.warn('⚠️ No Firebase UID found for employee:', employee.id);
           }
 
           setEmployees(employees.filter((emp) => emp.id !== selectedEmployee));
           setShowModal(false);
         } catch (firebaseError) {
-          console.error('Firebase deletion error:', {
-            error: firebaseError,
-            employee: employee.id,
-            firebase_uid: employee.firebase_uid,
-          });
         }
       }
     } catch (err) {
-      console.error('Error deleting employee:', {
-        error: err,
-        employee: selectedEmployee,
-      });
     } finally {
       setIsDeleting(false);
     }

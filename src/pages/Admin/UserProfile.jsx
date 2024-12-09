@@ -26,11 +26,8 @@ const UserProfile = () => {
   const fetchUserData = async () => {
     try {
       setLoading(true);
-      console.log(`Fetching user data for ID: ${id}`);
       
       const response = await axiosInstance.get(`/user-details/${id}/`);
-      
-      console.log('Response:', response.data);
       
       if (response.data?.status_code === 200) {
         setUserData(response.data.data);
@@ -39,7 +36,6 @@ const UserProfile = () => {
       }
     } catch (err) {
       setError(`Error fetching user data: ${err.message}`);
-      console.error('Error:', err);
     } finally {
       setLoading(false);
     }
@@ -70,7 +66,6 @@ const UserProfile = () => {
         setAllocatedMeals(response.data.data || []);
       }
     } catch (err) {
-      console.error('Error fetching allocated meals:', err);
     }
   };
 
@@ -85,7 +80,6 @@ const UserProfile = () => {
         }));
       }
     } catch (err) {
-      console.error('Error fetching meal consumption:', err);
     }
   };
 
