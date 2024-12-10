@@ -78,7 +78,10 @@ const TableRow = memo(
           <div className="flex">
             <button
               className="text-gray-600 hover:text-gray-900 w-10 h-10 flex items-center justify-center transition-colors duration-200"
-              onClick={() => onView(event)}
+              onClick={() => {
+                console.log('View button clicked for event:', event);
+                onView(event);
+              }}
               title="View Details"
             >
               <FaRegEye className="text-[1.2rem]" />
@@ -247,9 +250,11 @@ const EventgroupsSuperadminTable = () => {
     }
   }, [statusMessage]);
 
+  // Define handleView inside the main component
   const handleView = useCallback(
     (event) => {
-      navigate(`/superadmin/eventgroup-profile`, {
+      console.log('Navigating to event group profile with ID:', event.id);
+      navigate(`/superadmin/eventgroup-profile/${event.id}`, {
         state: { eventData: event },
       });
     },

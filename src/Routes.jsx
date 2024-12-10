@@ -106,7 +106,7 @@ const AppRoutes = () => {
         <Route path="events" element={<EventsSuperadmin />} />
         <Route path="expired-events" element={<ExpiredeventsSuperadmin />} />
         <Route path="payment-history" element={<PaymenthistorySuperadmin />} />
-        <Route path="eventgroup-profile" element={<EventgroupProfile />} />
+        <Route path="eventgroup-profile/:id" element={<EventgroupProfile />} />
       </Route>
 
       {/* Admin Routes */}

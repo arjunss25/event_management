@@ -6,7 +6,10 @@ import TableComponent from '../../Components/Superadmin/EventgroupsSuperadminTab
 import axiosInstance from '../../axiosConfig';
 import EventgroupEventsList from '../../Components/Superadmin/EventgroupEventsList';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchEventGroupById, updateEventGroup } from '../../Redux/Slices/SuperAdmin/EventgroupssuperadminSlice';
+import {
+  fetchEventGroupById,
+  updateEventGroup,
+} from '../../Redux/Slices/SuperAdmin/EventgroupssuperadminSlice';
 
 const EventgroupProfile = () => {
   const { id } = useParams();
@@ -50,14 +53,42 @@ const EventgroupProfile = () => {
 
   const [isAddingEvent, setIsAddingEvent] = useState(false);
 
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   const dispatch = useDispatch();
-  const { 
-    currentEventGroup, 
-    loading: reduxLoading, 
-    updateLoading, 
-    error: reduxError, 
-    updateError 
+  const {
+    currentEventGroup,
+    loading: reduxLoading,
+    updateLoading,
+    error: reduxError,
+    updateError,
   } = useSelector((state) => state.eventGroups);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!id) {
+        console.error('No event group ID provided');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        await dispatch(fetchEventGroupById(id)).unwrap();
+      } catch (error) {
+        console.error('Error fetching event group:', error);
+        setNotification({
+          show: true,
+          type: 'error',
+          message: 'Failed to load event group details. Please try again.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, dispatch]);
 
   useEffect(() => {
     if (currentEventGroup) {
@@ -71,27 +102,8 @@ const EventgroupProfile = () => {
         phone: currentEventGroup.phone || '',
         address: currentEventGroup.address || '',
       });
-      setIsLoading(false);
     }
   }, [currentEventGroup]);
-
-  useEffect(() => {
-    if (eventData) {
-      setBasicInfo({
-        eventGroupName: eventData.company_name || '',
-        ownerName: eventData.owner_name || '',
-        id: eventData.id || '',
-      });
-      setContactInfo({
-        email: eventData.email || '',
-        phone: eventData.phone || '',
-        address: eventData.address || '',
-      });
-      setIsLoading(false);
-    } else {
-      dispatch(fetchEventGroupById(id));
-    }
-  }, [eventData, id, dispatch]);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
   const toggleDrawer = () => setDrawerOpen(!isDrawerOpen);
@@ -101,13 +113,13 @@ const EventgroupProfile = () => {
     if (section === 'basic-info') {
       setTempData({
         eventGroupName: basicInfo.eventGroupName || '',
-        ownerName: basicInfo.ownerName || ''
+        ownerName: basicInfo.ownerName || '',
       });
     } else if (section === 'contact-info') {
       setTempData({
         email: contactInfo.email || '',
         phone: contactInfo.phone || '',
-        address: contactInfo.address || ''
+        // address: contactInfo.address || ''
       });
     }
     setModalOpen(true);
@@ -115,9 +127,9 @@ const EventgroupProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setTempData(prev => ({
+    setTempData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -135,7 +147,7 @@ const EventgroupProfile = () => {
 
     try {
       let changedFields = {
-        id: eventId
+        id: eventId,
       };
 
       if (editSection === 'basic-info') {
@@ -145,7 +157,7 @@ const EventgroupProfile = () => {
           owner_name: tempData.ownerName,
           email: contactInfo.email,
           phone: contactInfo.phone,
-          address: contactInfo.address
+          address: contactInfo.address,
         };
       } else if (editSection === 'contact-info') {
         changedFields = {
@@ -154,20 +166,24 @@ const EventgroupProfile = () => {
           phone: tempData.phone,
           address: tempData.address,
           company_name: basicInfo.eventGroupName,
-          owner_name: basicInfo.ownerName
+          owner_name: basicInfo.ownerName,
         };
       }
 
-      await dispatch(updateEventGroup({ id: eventId, data: changedFields })).unwrap();
-      
+      // Update through Redux and get the response
+      const updatedData = await dispatch(
+        updateEventGroup({ id: eventId, data: changedFields })
+      ).unwrap();
+
+      // Update local state
       if (editSection === 'basic-info') {
-        setBasicInfo(prev => ({
+        setBasicInfo((prev) => ({
           ...prev,
           eventGroupName: tempData.eventGroupName,
           ownerName: tempData.ownerName,
         }));
       } else if (editSection === 'contact-info') {
-        setContactInfo(prev => ({
+        setContactInfo((prev) => ({
           ...prev,
           email: tempData.email,
           phone: tempData.phone,
@@ -175,8 +191,15 @@ const EventgroupProfile = () => {
         }));
       }
 
-      await dispatch(fetchEventGroupById(eventId));
-      
+      // Update Redux state directly instead of fetching
+      dispatch({
+        type: 'eventGroups/setCurrentEventGroup',
+        payload: {
+          ...currentEventGroup,
+          ...changedFields,
+        },
+      });
+
       setModalOpen(false);
       setNotification({
         show: true,
@@ -244,7 +267,7 @@ const EventgroupProfile = () => {
 
       if (response.status === 200 || response.status === 201) {
         await dispatch(fetchEventGroupById(basicInfo.id));
-        
+
         setNotification({
           show: true,
           type: 'success',
@@ -401,10 +424,10 @@ const EventgroupProfile = () => {
                     <p className="text-gray-500 w-52">Phone</p>
                     <p>{contactInfo.phone}</p>
                   </div>
-                  <div className="flex flex-col xl:flex-row">
+                  {/* <div className="flex flex-col xl:flex-row">
                     <p className="text-gray-500 w-52">Address</p>
                     <p>{contactInfo.address}</p>
-                  </div>
+                  </div> */}
                 </div>
                 <button
                   className="mt-4 px-4 py-2 text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"
@@ -437,7 +460,8 @@ const EventgroupProfile = () => {
             <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">
-                  Edit {editSection === 'basic-info' ? 'Basic Info' : 'Contact Info'}
+                  Edit{' '}
+                  {editSection === 'basic-info' ? 'Basic Info' : 'Contact Info'}
                 </h2>
                 <button
                   onClick={() => setModalOpen(false)}
@@ -493,7 +517,7 @@ const EventgroupProfile = () => {
                         className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </label>
-                    <label className="block mb-4">
+                    {/* <label className="block mb-4">
                       <span className="text-gray-700">Address</span>
                       <input
                         type="text"
@@ -502,7 +526,7 @@ const EventgroupProfile = () => {
                         onChange={handleInputChange}
                         className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
-                    </label>
+                    </label> */}
                   </>
                 )}
               </form>
