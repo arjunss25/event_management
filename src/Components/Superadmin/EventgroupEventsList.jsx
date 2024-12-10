@@ -8,7 +8,6 @@ import {
   updateEvent,
 } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
 
-
 const STATUS_STYLES = {
   event: {
     upcoming: 'bg-[#E6F3FF] text-[#0066CC]',
@@ -18,7 +17,7 @@ const STATUS_STYLES = {
     PENDING: 'bg-[#FFE6E6] text-[#CC0000]',
     Pending: 'bg-[#FFE6E6] text-[#CC0000]',
     cancelled: 'bg-[#FFE6E6] text-[#CC0000]',
-    canceled: 'bg-[#FFE6E6] text-[#CC0000]'
+    canceled: 'bg-[#FFE6E6] text-[#CC0000]',
   },
   payment: {
     pending: 'bg-[#FFE6E6] text-[#CC0000]',
@@ -28,13 +27,16 @@ const STATUS_STYLES = {
     'advance paid': 'bg-[#FFF3E6] text-[#CC7700]',
     advance: 'bg-[#FFF3E6] text-[#CC7700]',
     failed: 'bg-[#FFE6E6] text-[#CC0000]',
-    ongoing: 'bg-[#E6F3FF] text-[#0066CC]'
-  }
+    ongoing: 'bg-[#E6F3FF] text-[#0066CC]',
+  },
 };
 
 // Separate Modal component with memo
 const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
   if (!isOpen) return null;
+
+  // Get current date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -80,6 +82,7 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
               type="date"
               value={formData.start_date}
               onChange={onChange}
+              min={today}
               className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
             />
           </div>
@@ -97,6 +100,7 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
               type="date"
               value={formData.end_date}
               onChange={onChange}
+              min={formData.start_date || today}
               className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
             />
           </div>
@@ -177,8 +181,7 @@ const EventgroupEventsList = ({ eventGroupId }) => {
       ).unwrap();
       setIsModalOpen(false);
       dispatch(fetchEventsByGroupId(eventGroupId));
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   if (!eventGroupId) {
@@ -217,65 +220,63 @@ const EventgroupEventsList = ({ eventGroupId }) => {
   return (
     <div className="bg-white rounded-lg p-4 md:p-4 mt-8 events-table-main">
       <div className="relative overflow-x-auto">
-        <div className="min-w-[1000px]">
+        <div className="min-w-[800px]">
           <table className="w-full text-sm text-left text-gray-500">
             <thead className="text-xs text-white uppercase bg-[#2D3436]">
               <tr>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                <th className="px-4 py-3 font-medium whitespace-nowrap w-[30%]">
                   Event
                 </th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                <th className="px-4 py-3 font-medium whitespace-nowrap w-[20%]">
                   Start Date
                 </th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                <th className="px-4 py-3 font-medium whitespace-nowrap w-[20%]">
                   End Date
                 </th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                <th className="px-4 py-3 font-medium whitespace-nowrap w-[12%]">
                   Event Status
                 </th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap">
+                <th className="px-4 py-3 font-medium whitespace-nowrap w-[12%]">
                   Payment Status
                 </th>
-                <th className="px-4 py-3 font-medium whitespace-nowrap"></th>
+                <th className="px-4 py-3 font-medium whitespace-nowrap w-[6%]">
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {events.map((event) => (
                 <tr key={event.id} className="bg-white hover:bg-gray-50">
-                  <td className="px-4 py-4 text-black whitespace-nowrap">
+                  <td className="px-4 py-4 text-black whitespace-nowrap w-[30%]">
                     {event.event_name || 'N/A'}
                   </td>
-                  <td className="px-4 py-4 text-black whitespace-nowrap">
+                  <td className="px-4 py-4 text-black whitespace-nowrap w-[20%]">
                     {event.start_date || 'N/A'}
                   </td>
-                  <td className="px-4 py-4 text-black whitespace-nowrap">
+                  <td className="px-4 py-4 text-black whitespace-nowrap w-[20%]">
                     {event.end_date || 'N/A'}
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="w-28">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          STATUS_STYLES.event[event.event_status] ||
-                          'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {event.event_status || 'N/A'}
-                      </span>
-                    </div>
+                  <td className="px-4 py-4 whitespace-nowrap w-[12%]">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        STATUS_STYLES.event[event.event_status] ||
+                        'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {event.event_status || 'N/A'}
+                    </span>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="w-28">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          STATUS_STYLES.payment[event.payment_status] ||
-                          'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {event.payment_status || 'N/A'}
-                      </span>
-                    </div>
+                  <td className="px-4 py-4 whitespace-nowrap w-[12%]">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        STATUS_STYLES.payment[event.payment_status] ||
+                        'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {event.payment_status || 'N/A'}
+                    </span>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
+                  <td className="px-4 py-4 whitespace-nowrap w-[6%]">
                     {event.event_status === 'upcoming' && (
                       <button
                         onClick={() => handleEditClick(event)}

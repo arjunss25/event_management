@@ -122,6 +122,8 @@ const EventgroupsSuperadminTable = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedEventGroup, setSelectedEventGroup] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteSuccess, setIsDeleteSuccess] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState(null); // 'loading', 'success', 'error'
 
   // Initial data fetch
   useEffect(() => {
@@ -187,7 +189,7 @@ const EventgroupsSuperadminTable = () => {
 
   // Update handleDelete to use the modal
   const handleDelete = async () => {
-    setIsDeleting(true);
+    setDeleteStatus('loading');
     try {
       const eventGroup = displayData.find(
         (event) => event.id === selectedEventGroup
@@ -199,43 +201,24 @@ const EventgroupsSuperadminTable = () => {
       const resultAction = await dispatch(deleteEvent(selectedEventGroup));
 
       if (deleteEvent.fulfilled.match(resultAction)) {
-        try {
-          if (eventGroup.firebase_uid) {
-            const response = await axiosInstance.post(
-              '/delete-firebase-user/',
-              {
-                firebase_uid: eventGroup.firebase_uid,
-              }
-            );
-
-            if (response.status === 200) {
-              setStatusMessage({
-                show: true,
-                message: 'Event group deleted successfully',
-                isError: false,
-              });
-            }
-          }
-
-          dispatch(fetchEvents());
+        await dispatch(fetchEvents());
+        setDeleteStatus('success');
+        
+        setTimeout(() => {
           setShowModal(false);
-        } catch (firebaseError) {
-          setStatusMessage({
-            show: true,
-            message:
-              'Event group deleted, but Firebase cleanup may have failed',
-            isError: true,
-          });
-        }
+          setSelectedEventGroup(null);
+          setDeleteStatus(null);
+        }, 1500);
       }
     } catch (err) {
-      setStatusMessage({
-        show: true,
-        message: 'Failed to delete event group. Please try again.',
-        isError: true,
-      });
-    } finally {
-      setIsDeleting(false);
+      console.error('Delete failed:', err);
+      setDeleteStatus('error');
+      
+      setTimeout(() => {
+        setShowModal(false);
+        setSelectedEventGroup(null);
+        setDeleteStatus(null);
+      }, 1500);
     }
   };
 
@@ -361,12 +344,60 @@ const EventgroupsSuperadminTable = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-2xl p-8 w-[90%] md:w-[400px] transform transition-all">
-            {isDeleting ? (
+            {deleteStatus === 'loading' && (
               <div className="flex flex-col items-center justify-center py-4">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
                 <p className="text-gray-600">Deleting event group...</p>
               </div>
-            ) : (
+            )}
+
+            {deleteStatus === 'success' && (
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="w-12 h-12 rounded-full bg-green-100 mx-auto flex items-center justify-center mb-4">
+                  <svg
+                    className="w-6 h-6 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
+                  </svg>
+                </div>
+                <p className="text-gray-600 text-center font-medium">
+                  Event group deleted successfully!
+                </p>
+              </div>
+            )}
+
+            {deleteStatus === 'error' && (
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 mx-auto flex items-center justify-center mb-4">
+                  <svg
+                    className="w-6 h-6 text-red-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                  </svg>
+                </div>
+                <p className="text-red-600 text-center font-medium">
+                  Failed to delete event group
+                </p>
+              </div>
+            )}
+
+            {deleteStatus === null && (
               <>
                 <div className="mb-6">
                   <div className="w-12 h-12 rounded-full bg-red-100 mx-auto flex items-center justify-center">
@@ -384,14 +415,14 @@ const EventgroupsSuperadminTable = () => {
                   <button
                     className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                     onClick={() => setShowModal(false)}
-                    disabled={isDeleting}
+                    disabled={deleteStatus === 'loading'}
                   >
                     Cancel
                   </button>
                   <button
                     className="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
                     onClick={handleDelete}
-                    disabled={isDeleting}
+                    disabled={deleteStatus === 'loading'}
                   >
                     Delete
                   </button>

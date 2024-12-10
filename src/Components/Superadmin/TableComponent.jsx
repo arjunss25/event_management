@@ -40,7 +40,9 @@ const SearchBar = memo(({ onSearch }) => {
 // Add Payment Modal Component
 const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
   const dispatch = useDispatch();
-  const { paymentLoading, paymentError, totalAmount } = useSelector((state) => state.events);
+  const { paymentLoading, paymentError, totalAmount } = useSelector(
+    (state) => state.events
+  );
 
   const [formData, setFormData] = useState({
     date: '',
@@ -54,6 +56,15 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
     message: '',
   });
 
+  // Get current date in YYYY-MM-DD format
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,7 +74,7 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
       setNotification({
         show: true,
         type: 'error',
-        message: `Payment amount cannot exceed the remaining amount (${remainingAmount})`
+        message: `Payment amount cannot exceed the remaining amount (${remainingAmount})`,
       });
       return;
     }
@@ -80,13 +91,13 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
       setNotification({
         show: true,
         type: 'success',
-        message: 'Payment added successfully!'
+        message: 'Payment added successfully!',
       });
     } catch (error) {
       setNotification({
         show: true,
         type: 'error',
-        message: error.message || 'Failed to add payment. Please try again.'
+        message: error.message || 'Failed to add payment. Please try again.',
       });
     }
   };
@@ -235,6 +246,7 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
                     name="date"
                     value={formData.date}
                     onChange={handleChange}
+                    max={getCurrentDate()}
                     className="w-full px-3 py-2 border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -306,19 +318,59 @@ const PaymentDetailsModal = ({ onClose, eventData }) => {
     }
   }, [dispatch, eventData?.id]);
 
+  const formatPaymentDate = (dateString) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${day}-${month}-${year}`;
+  };
+
+  const getPaymentStatusStyle = (status) => {
+    const normalizedStatus = (status || '').toLowerCase().trim();
+    switch (normalizedStatus) {
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'advance paid':
+      case 'advance':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    const normalizedStatus = (status || '').toLowerCase().trim();
+    if (normalizedStatus === 'completed') {
+      return <FaCheckCircle className="mr-1.5 h-4 w-4 text-green-600" />;
+    }
+    return null;
+  };
+
   return (
     <>
       <div className="fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
         <div className="bg-white rounded-lg w-[95%] md:w-[80%] lg:w-[60vw] h-[90vh] md:h-[80vh] overflow-y-scroll py-6 md:py-10 px-4 md:px-10">
           {/* Top section */}
-          <div className="flex justify-between items-center mb-4 md:mb-6">
-            <h1 className="text-xl md:text-2xl font-semibold">
-              Payment Details
-            </h1>
-            <IoClose
-              className="text-2xl md:text-3xl cursor-pointer hover:text-gray-700"
+          <div className="flex justify-between items-start mb-6 md:mb-8">
+            <div className="flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                Payment Details
+              </h1>
+              <div className="mt-3 space-y-1">
+                <p className="text-gray-900 font-medium text-base md:text-lg">
+                  {eventData?.event_name || 'Event Name Not Available'}
+                </p>
+                <p className="text-gray-600 text-sm md:text-base">
+                  {eventData?.event_group_company_name ||
+                    'Group Name Not Available'}
+                </p>
+              </div>
+            </div>
+            <button
               onClick={onClose}
-            />
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <IoClose className="text-2xl md:text-3xl text-gray-600" />
+            </button>
           </div>
 
           {/* Box section - make it responsive */}
@@ -380,65 +432,76 @@ const PaymentDetailsModal = ({ onClose, eventData }) => {
           </div>
 
           {/* Payment History section */}
-          <div className="mt-6 md:mt-8">
-            <div className="top-section flex flex-col md:flex-row justify-between items-start md:items-center w-full mb-4 md:mb-5">
-              <h2 className="font-medium text-[1.1rem] md:text-[1.2rem] mb-2 md:mb-0">
+          <div className="mt-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
                 Payment History
               </h2>
               <button
-                className="bg-black text-white px-3 md:px-4 py-2 rounded-md text-[0.8rem] md:text-[0.9rem] hover:bg-gray-800 transition-colors"
-                onClick={() => {
-                  setIsAddPaymentOpen(true);
-                }}
+                className="bg-black text-white px-4 py-2 rounded-md text-sm hover:bg-gray-800 transition-colors"
+                onClick={() => setIsAddPaymentOpen(true)}
               >
                 Add Payment
               </button>
             </div>
-            <div className="border-t border-gray-200 overflow-x-auto">
+
+            <div className="border rounded-lg overflow-hidden">
               {paymentDetailsLoading ? (
-                <div className="text-center py-4">
-                  Loading payment history...
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">
+                    Loading payment history...
+                  </p>
                 </div>
               ) : paymentDetailsError ? (
-                <div className="text-red-500 text-center py-4">
+                <div className="text-red-500 text-center py-8">
                   {paymentDetailsError}
                 </div>
               ) : paymentDetails?.payment_details?.length > 0 ? (
-                <div className="min-w-[600px]">
-                  {paymentDetails.payment_details.map((payment, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-start items-center p-3 md:p-5 border-b-[1px] border-gray-200"
-                    >
-                      <div className="w-[40px] flex justify-center">
-                        <FaCheckCircle className="text-green-600 text-lg" />
+                <div className="min-w-full">
+                  {/* Header */}
+                  <div className="bg-gray-50 border-b">
+                    <div className="grid grid-cols-3 px-6 py-3">
+                      <div className="text-sm font-semibold text-gray-900">
+                        Date
                       </div>
-
-                      <div className="flex-1 flex justify-between items-center gap-4 md:gap-32">
-                        <div className="date-sec">
-                          <h1 className="text-[0.8rem] md:text-base">Date</h1>
-                          <p className="text-gray-500 text-[0.8rem] md:text-base">
-                            {payment.payment_date}
-                          </p>
-                        </div>
-                        <div className="payment-section">
-                          <h1 className="text-[0.8rem] md:text-base">Amount</h1>
-                          <p className="text-[0.8rem] md:text-base">
-                            {payment.paid_amount}
-                          </p>
-                        </div>
-                        <div className="payment-status">
-                          <h1 className="text-[0.8rem] md:text-base">Status</h1>
-                          <p className="text-[0.8rem] md:text-base">
-                            {payment.payment_status}
-                          </p>
-                        </div>
+                      <div className="text-sm font-semibold text-gray-900">
+                        Amount
+                      </div>
+                      <div className="text-sm font-semibold text-gray-900">
+                        Status
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  {/* Payment Rows */}
+                  <div className="divide-y divide-gray-200">
+                    {paymentDetails.payment_details.map((payment, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-3 px-6 py-4 hover:bg-gray-50"
+                      >
+                        <div className="text-sm text-gray-900">
+                          {formatPaymentDate(payment.payment_date)}
+                        </div>
+                        <div className="text-sm font-medium text-gray-900">
+                          ₹{payment.paid_amount}
+                        </div>
+                        <div className="text-sm">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded-full ${getPaymentStatusStyle(
+                              payment.payment_status
+                            )}`}
+                          >
+                            {getStatusIcon(payment.payment_status)}
+                            {payment.payment_status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ) : (
-                <div className="text-center py-4">
+                <div className="text-center py-8 text-gray-500">
                   No payment history available
                 </div>
               )}
@@ -458,6 +521,18 @@ const PaymentDetailsModal = ({ onClose, eventData }) => {
   );
 };
 
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date
+    .toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+    .replace(/\//g, '-');
+};
+
 // Main EventsTable Component
 const EventsTable = () => {
   const dispatch = useDispatch();
@@ -465,6 +540,9 @@ const EventsTable = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const { data: events, loading, error } = useSelector((state) => state.events);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [isCancelSuccessModalOpen, setIsCancelSuccessModalOpen] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState(null); // 'loading', 'success', 'error'
 
   // New states for search functionality
   const [displayData, setDisplayData] = useState([]);
@@ -583,31 +661,150 @@ const EventsTable = () => {
     }
   };
 
-  const handleCancelEvent = async (event) => {
-    if (!event.id || !event.event_group) {
+  const handleCancelEvent = async () => {
+    if (!selectedEvent.id || !selectedEvent.event_group) {
       return;
     }
 
-    if (window.confirm('Are you sure you want to cancel this event?')) {
-      setIsCanceling(true);
-      try {
-        await dispatch(
-          cancelEvent({
-            eventId: event.id,
-            eventGroupId: event.event_group,
-          })
-        ).unwrap();
-      } catch (error) {
-      } finally {
-        setIsCanceling(false);
-      }
+    setDeleteStatus('loading');
+    try {
+      await dispatch(
+        cancelEvent({
+          eventId: selectedEvent.id,
+          eventGroupId: selectedEvent.event_group,
+        })
+      ).unwrap();
+      setDeleteStatus('success');
+      
+      setTimeout(() => {
+        setShowConfirmationModal(false);
+        setSelectedEvent(null);
+        setDeleteStatus(null);
+      }, 1500);
+    } catch (error) {
+      setDeleteStatus('error');
+      
+      setTimeout(() => {
+        setShowConfirmationModal(false);
+        setSelectedEvent(null);
+        setDeleteStatus(null);
+      }, 1500);
     }
+  };
+
+  const handleCancelClick = (event) => {
+    setSelectedEvent(event);
+    setShowConfirmationModal(true);
   };
 
   const handlePaymentDetailsClick = (event) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
   };
+
+  // Updated Modal Component with better visuals
+  const CancellationModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-2xl p-8 w-[90%] md:w-[400px] transform transition-all">
+        {deleteStatus === 'loading' && (
+          <div className="flex flex-col items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
+            <p className="text-gray-600">Cancelling event...</p>
+          </div>
+        )}
+
+        {deleteStatus === 'success' && (
+          <div className="flex flex-col items-center justify-center py-4">
+            <div className="w-12 h-12 rounded-full bg-green-100 mx-auto flex items-center justify-center mb-4">
+              <svg
+                className="w-6 h-6 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+            </div>
+            <p className="text-gray-600 text-center font-medium">
+              Event cancelled successfully!
+            </p>
+          </div>
+        )}
+
+        {deleteStatus === 'error' && (
+          <div className="flex flex-col items-center justify-center py-4">
+            <div className="w-12 h-12 rounded-full bg-red-100 mx-auto flex items-center justify-center mb-4">
+              <svg
+                className="w-6 h-6 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </div>
+            <p className="text-red-600 text-center font-medium">
+              Failed to cancel event
+            </p>
+          </div>
+        )}
+
+        {deleteStatus === null && (
+          <>
+            <div className="mb-6">
+              <div className="w-12 h-12 rounded-full bg-red-100 mx-auto flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 text-center mb-4">
+              Cancel Event
+            </h3>
+            <p className="text-gray-500 text-center mb-8">
+              This action cannot be undone. Are you sure you want to cancel this event?
+            </p>
+            <div className="flex gap-4">
+              <button
+                className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                onClick={() => setShowConfirmationModal(false)}
+                disabled={deleteStatus === 'loading'}
+              >
+                No, keep it
+              </button>
+              <button
+                className="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                onClick={handleCancelEvent}
+                disabled={deleteStatus === 'loading'}
+              >
+                Yes, cancel it
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
 
   if (loading && !tableLoading) {
     return (
@@ -686,10 +883,10 @@ const EventsTable = () => {
                         {event.event_group_company_name}
                       </td>
                       <td className="px-6 py-6 text-black whitespace-nowrap">
-                        {event.start_date}
+                        {formatDate(event.start_date)}
                       </td>
                       <td className="px-6 py-6 text-black whitespace-nowrap">
-                        {event.end_date}
+                        {formatDate(event.end_date)}
                       </td>
                       <td className="px-6 py-6 whitespace-nowrap">
                         <div className="w-28">
@@ -725,7 +922,7 @@ const EventsTable = () => {
                                     ? 'opacity-50 cursor-not-allowed'
                                     : ''
                                 }`}
-                                onClick={() => handleCancelEvent(event)}
+                                onClick={() => handleCancelClick(event)}
                                 disabled={isCanceling}
                               >
                                 {isCanceling ? 'Canceling...' : 'Cancel'}
@@ -748,6 +945,12 @@ const EventsTable = () => {
           onClose={() => setIsModalOpen(false)}
           eventData={selectedEvent}
         />
+      )}
+
+      {showConfirmationModal && <CancellationModal />}
+
+      {isCancelSuccessModalOpen && (
+        <CancelSuccessModal onClose={() => setIsCancelSuccessModalOpen(false)} />
       )}
     </>
   );

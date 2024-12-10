@@ -613,6 +613,7 @@ const EventgroupProfile = () => {
                     <input
                       type="date"
                       name="startDate"
+                      min={new Date().toISOString().split('T')[0]}
                       className="w-full border p-2 rounded-3xl pl-6 pr-6 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -626,6 +627,7 @@ const EventgroupProfile = () => {
                     <input
                       type="date"
                       name="endDate"
+                      min={new Date().toISOString().split('T')[0]}
                       className="w-full border p-2 rounded-3xl pl-6 pr-6 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -640,6 +642,7 @@ const EventgroupProfile = () => {
                       type="number"
                       name="amount"
                       className="w-full border p-2 rounded-3xl pl-6 pr-6 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter amount"
                     />
                   </div>
                   <div className="flex justify-center">

@@ -10,8 +10,10 @@ const ExpiredeventsTableSuperadmin = () => {
     type: '',
     message: '',
   });
+  const [isSendingMail, setIsSendingMail] = useState(false);
 
   const handleSendMail = async (eventName, eventGroup, eventId) => {
+    setIsSendingMail(true);
     try {
       await axiosInstance.post(`/notifications-payment-delay/${eventId}/`);
       setNotification({
@@ -25,6 +27,8 @@ const ExpiredeventsTableSuperadmin = () => {
         type: 'error',
         message: 'Failed to send payment reminder email. Please try again.',
       });
+    } finally {
+      setIsSendingMail(false);
     }
   };
 
@@ -42,8 +46,8 @@ const ExpiredeventsTableSuperadmin = () => {
             eventId: event.event_id,
             eventName: event.event_name,
             eventGroup: event.event_group,
-            startDate: event.start_date,
-            endDate: event.end_date,
+            startDate: event.start_date.split('-').reverse().join('-'),
+            endDate: event.end_date.split('-').reverse().join('-'),
             status: event.event_status,
             paymentStatus: event.payment_status,
           }));
@@ -61,7 +65,7 @@ const ExpiredeventsTableSuperadmin = () => {
 
   const getStatusStyle = (status) => {
     if (status === 'Completed') {
-      return 'bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+      return 'bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
     }
     if (status === 'Cancelled') {
       return 'bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
@@ -179,21 +183,28 @@ const ExpiredeventsTableSuperadmin = () => {
                     </div>
                   </td>
                   <td className="px-6 py-6 whitespace-nowrap">
-                    {(event.paymentStatus === 'Pending' ||
-                      event.paymentStatus === 'Advance paid') && (
-                      <button
-                        onClick={() =>
-                          handleSendMail(
-                            event.eventName,
-                            event.eventGroup,
-                            event.eventId
-                          )
-                        }
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
-                      >
-                        Send Mail
-                      </button>
-                    )}
+                    {event.status === 'Completed' &&
+                      event.paymentStatus !== 'Complete' && (
+                        <button
+                          onClick={() =>
+                            handleSendMail(
+                              event.eventName,
+                              event.eventGroup,
+                              event.eventId
+                            )
+                          }
+                          className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm ${
+                            isSendingMail ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          disabled={isSendingMail}
+                        >
+                          {isSendingMail ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mx-auto"></div>
+                          ) : (
+                            'Send Mail'
+                          )}
+                        </button>
+                      )}
                   </td>
                 </tr>
               ))}

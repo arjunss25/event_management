@@ -41,10 +41,13 @@ const EventgroupsSuperadmin = () => {
       errors.eventGroupName = 'Event Group Name must be at least 2 characters';
     }
 
+    const nameRegex = /^[A-Za-z\s]+$/;
     if (!data.ownerName.trim()) {
       errors.ownerName = 'Owner Name is required';
     } else if (data.ownerName.length < 2) {
       errors.ownerName = 'Owner Name must be at least 2 characters';
+    } else if (!nameRegex.test(data.ownerName)) {
+      errors.ownerName = 'Owner Name should only contain letters and spaces';
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -251,70 +254,82 @@ const EventgroupsSuperadmin = () => {
                 });
               }}
             >
-              <div className="w-full max-w-6xl px-4 md:px-8">
+              <div className="w-full max-w-6xl mx-auto px-4 md:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-16">
-                  <div>
-                    <label className="block text-gray-700 mb-2">
+                  <div className="text-center">
+                    <label className="block text-gray-700 mb-2 text-left">
                       Event Group Name
                     </label>
-                    {formErrors.eventGroupName && (
-                      <div className="text-red-500 text-sm mb-1">
-                        {formErrors.eventGroupName}
-                      </div>
-                    )}
-                    <input
-                      type="text"
-                      name="eventGroupName"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter event group name"
-                    />
+                    <div className="h-[60px]">
+                      {formErrors.eventGroupName && (
+                        <div className="text-red-500 text-sm mb-1 text-left">
+                          {formErrors.eventGroupName}
+                        </div>
+                      )}
+                      <input
+                        type="text"
+                        name="eventGroupName"
+                        className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter event group name"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-gray-700 mb-2">
+                  <div className="text-center">
+                    <label className="block text-gray-700 mb-2 text-left">
                       Owner's Name
                     </label>
-                    {formErrors.ownerName && (
-                      <div className="text-red-500 text-sm mb-1">
-                        {formErrors.ownerName}
-                      </div>
-                    )}
-                    <input
-                      type="text"
-                      name="ownerName"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter owner's name"
-                    />
+                    <div className="h-[60px]">
+                      {formErrors.ownerName && (
+                        <div className="text-red-500 text-sm mb-1 text-left">
+                          {formErrors.ownerName}
+                        </div>
+                      )}
+                      <input
+                        type="text"
+                        name="ownerName"
+                        className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter owner's name"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-gray-700 mb-2">Email</label>
-                    {formErrors.email && (
-                      <div className="text-red-500 text-sm mb-1">
-                        {formErrors.email}
-                      </div>
-                    )}
-                    <input
-                      type="email"
-                      name="email"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter email address"
-                    />
+                  <div className="text-center">
+                    <label className="block text-gray-700 mb-2 text-left">
+                      Email
+                    </label>
+                    <div className="h-[60px]">
+                      {formErrors.email && (
+                        <div className="text-red-500 text-sm mb-1 text-left">
+                          {formErrors.email}
+                        </div>
+                      )}
+                      <input
+                        type="email"
+                        name="email"
+                        className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter email address"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-gray-700 mb-2">Phone</label>
-                    {formErrors.phone && (
-                      <div className="text-red-500 text-sm mb-1">
-                        {formErrors.phone}
-                      </div>
-                    )}
-                    <input
-                      type="tel"
-                      name="phone"
-                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Enter phone number"
-                    />
+                  <div className="text-center">
+                    <label className="block text-gray-700 mb-2 text-left">
+                      Phone
+                    </label>
+                    <div className="h-[60px]">
+                      {formErrors.phone && (
+                        <div className="text-red-500 text-sm mb-1 text-left">
+                          {formErrors.phone}
+                        </div>
+                      )}
+                      <input
+                        type="tel"
+                        name="phone"
+                        className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
                   </div>
                 </div>
 
