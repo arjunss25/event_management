@@ -31,6 +31,19 @@ const STATUS_STYLES = {
   },
 };
 
+// Add these utility functions at the top of the file
+const formatDateForDisplay = (dateString) => {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-');
+  return `${day}-${month}-${year}`;
+};
+
+const formatDateForInput = (dateString) => {
+  if (!dateString) return '';
+  const [day, month, year] = dateString.split('-');
+  return `${year}-${month}-${day}`;
+};
+
 // Separate Modal component with memo
 const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
   if (!isOpen) return null;
@@ -80,7 +93,7 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
               id="start_date"
               name="start_date"
               type="date"
-              value={formData.start_date}
+              value={formatDateForInput(formData.start_date)}
               onChange={onChange}
               min={today}
               className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
@@ -98,9 +111,9 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
               id="end_date"
               name="end_date"
               type="date"
-              value={formData.end_date}
+              value={formatDateForInput(formData.end_date)}
               onChange={onChange}
-              min={formData.start_date || today}
+              min={formData.start_date ? formatDateForInput(formData.start_date) : today}
               className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
             />
           </div>
@@ -149,8 +162,8 @@ const EventgroupEventsList = ({ eventGroupId }) => {
     setSelectedEvent(event);
     setFormData({
       event_name: event.event_name || '',
-      start_date: event.start_date || '',
-      end_date: event.end_date || '',
+      start_date: event.start_date ? formatDateForDisplay(event.start_date) : '',
+      end_date: event.end_date ? formatDateForDisplay(event.end_date) : '',
       event_status: event.event_status || '',
       payment_status: event.payment_status || '',
     });
@@ -159,10 +172,20 @@ const EventgroupEventsList = ({ eventGroupId }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    if (name === 'start_date' || name === 'end_date') {
+      // Convert from YYYY-MM-DD to DD-MM-YYYY
+      const [year, month, day] = value.split('-');
+      const formattedDate = `${day}-${month}-${year}`;
+      setFormData(prevData => ({
+        ...prevData,
+        [name]: formattedDate
+      }));
+    } else {
+      setFormData(prevData => ({
+        ...prevData,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -181,7 +204,23 @@ const EventgroupEventsList = ({ eventGroupId }) => {
       ).unwrap();
       setIsModalOpen(false);
       dispatch(fetchEventsByGroupId(eventGroupId));
-    } catch (error) {}
+    } catch (error) {
+      let errorMessage = 'Unable to add event. Please try again.';
+      
+      // Check for specific error responses
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.status === 400) {
+        errorMessage = 'An event already exists during these dates. Please choose different dates.';
+      }
+
+      setNotification({
+        show: true,
+        type: 'error',
+        message: errorMessage,
+      });
+      setDrawerOpen(false);
+    }
   };
 
   if (!eventGroupId) {
@@ -251,10 +290,10 @@ const EventgroupEventsList = ({ eventGroupId }) => {
                     {event.event_name || 'N/A'}
                   </td>
                   <td className="px-4 py-4 text-black whitespace-nowrap w-[20%]">
-                    {event.start_date || 'N/A'}
+                    {event.start_date ? formatDateForDisplay(event.start_date) : 'N/A'}
                   </td>
                   <td className="px-4 py-4 text-black whitespace-nowrap w-[20%]">
-                    {event.end_date || 'N/A'}
+                    {event.end_date ? formatDateForDisplay(event.end_date) : 'N/A'}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap w-[12%]">
                     <span
