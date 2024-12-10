@@ -1,10 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axiosInstance from '../../axiosConfig';
+import { FaSearch } from 'react-icons/fa';
+
+// Memoized Search Component
+const SearchBar = ({ onSearch }) => {
+  const [searchValue, setSearchValue] = useState('');
+
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchValue(value);
+    onSearch(value);
+  };
+
+  return (
+    <div className="mb-6 relative w-full md:w-[60%] lg:w-[30%]">
+      <input
+        type="text"
+        value={searchValue}
+        onChange={handleSearch}
+        placeholder="Search events..."
+        className="w-full px-4 py-2 pl-10 text-gray-600 border-2 rounded-full focus:outline-none focus:border-gray-400"
+      />
+      <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+    </div>
+  );
+};
 
 const ExpiredeventsTableSuperadmin = () => {
   const [events, setEvents] = useState([]);
+  const [displayData, setDisplayData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
   const [notification, setNotification] = useState({
     show: false,
     type: '',
@@ -32,6 +60,7 @@ const ExpiredeventsTableSuperadmin = () => {
     }
   };
 
+  // Fetch initial data
   useEffect(() => {
     axiosInstance
       .get('/list-expired-events/')
@@ -52,6 +81,7 @@ const ExpiredeventsTableSuperadmin = () => {
             paymentStatus: event.payment_status,
           }));
           setEvents(transformedData);
+          setDisplayData(transformedData);
         } else {
           setError('No events available');
         }
@@ -62,6 +92,54 @@ const ExpiredeventsTableSuperadmin = () => {
         setLoading(false);
       });
   }, []);
+
+  // Debounced search handler
+  const handleSearch = useCallback(
+    async (searchTerm) => {
+      if (!searchTerm.trim()) {
+        setDisplayData(events);
+        setTableLoading(false);
+        setSearchError(null);
+        return;
+      }
+
+      try {
+        setTableLoading(true);
+        setSearchError(null);
+
+        // Filter the existing events array by event name only
+        const filteredEvents = events.filter(event => 
+          event.eventName.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        setDisplayData(filteredEvents);
+      } catch (err) {
+        setSearchError('Failed to filter results');
+        setDisplayData([]);
+      } finally {
+        setTableLoading(false);
+      }
+    },
+    [events]
+  );
+
+  // Debounced search implementation
+  const debouncedSearch = useCallback(
+    (searchTerm) => {
+      setTableLoading(true);
+      const timeoutId = setTimeout(() => {
+        handleSearch(searchTerm);
+      }, 300);
+
+      return () => {
+        clearTimeout(timeoutId);
+        if (!searchTerm.trim()) {
+          setTableLoading(false);
+        }
+      };
+    },
+    [handleSearch]
+  );
 
   const getStatusStyle = (status) => {
     if (status === 'Completed') {
@@ -134,89 +212,109 @@ const ExpiredeventsTableSuperadmin = () => {
   }
 
   return (
-    <div className="w-full bg-white rounded-lg p-4 md:p-4 mt-10 events-table-main">
-      <div className="relative overflow-x-auto">
-        <div className="min-w-[1000px]">
-          <table className="w-full text-sm text-left text-gray-500">
-            <thead className="text-xs text-white uppercase bg-gray-800">
-              <tr>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">
-                  Event Name
-                </th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">
-                  Event Group
-                </th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">
-                  Start Date
-                </th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">
-                  End Date
-                </th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">
-                  Status
-                </th>
-                <th className="px-6 py-3 font-medium whitespace-nowrap">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {events.map((event) => (
-                <tr key={event.id} className="bg-white hover:bg-gray-50">
-                  <td className="px-6 py-6 text-black whitespace-nowrap">
-                    {event.eventName}
-                  </td>
-                  <td className="px-6 py-6 text-black whitespace-nowrap">
-                    {event.eventGroup}
-                  </td>
-                  <td className="px-6 py-6 text-black whitespace-nowrap">
-                    {event.startDate}
-                  </td>
-                  <td className="px-6 py-6 text-black whitespace-nowrap">
-                    {event.endDate}
-                  </td>
-                  <td className="px-6 py-6 whitespace-nowrap">
-                    <div className="w-28">
-                      <span className={getStatusStyle(event.status)}>
-                        {event.status}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-6 whitespace-nowrap">
-                    {event.status === 'Completed' &&
-                      event.paymentStatus !== 'Complete' && (
-                        <button
-                          onClick={() =>
-                            handleSendMail(
-                              event.eventName,
-                              event.eventGroup,
-                              event.eventId
-                            )
-                          }
-                          className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm ${
-                            isSendingMail ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                          disabled={isSendingMail}
-                        >
-                          {isSendingMail ? (
-                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mx-auto"></div>
-                          ) : (
-                            'Send Mail'
-                          )}
-                        </button>
-                      )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <>
+      <SearchBar onSearch={debouncedSearch} />
+
+      {searchError && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {searchError}
         </div>
+      )}
+
+      <div className="w-full bg-white rounded-lg p-4 md:p-4 mt-10 events-table-main">
+        <div className="relative overflow-x-auto">
+          <div className="min-w-[1000px]">
+            {tableLoading ? (
+              <div className="w-full p-4 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
+              </div>
+            ) : !Array.isArray(displayData) || displayData.length === 0 ? (
+              <div className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <p className="text-gray-500 text-center">No events found.</p>
+              </div>
+            ) : (
+              <table className="w-full text-sm text-left text-gray-500">
+                <thead className="text-xs text-white uppercase bg-gray-800">
+                  <tr>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">
+                      Event Name
+                    </th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">
+                      Event Group
+                    </th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">
+                      Start Date
+                    </th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">
+                      End Date
+                    </th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {displayData.map((event) => (
+                    <tr key={event.id} className="bg-white hover:bg-gray-50">
+                      <td className="px-6 py-6 text-black whitespace-nowrap">
+                        {event.eventName}
+                      </td>
+                      <td className="px-6 py-6 text-black whitespace-nowrap">
+                        {event.eventGroup}
+                      </td>
+                      <td className="px-6 py-6 text-black whitespace-nowrap">
+                        {event.startDate}
+                      </td>
+                      <td className="px-6 py-6 text-black whitespace-nowrap">
+                        {event.endDate}
+                      </td>
+                      <td className="px-6 py-6 whitespace-nowrap">
+                        <div className="w-28">
+                          <span className={getStatusStyle(event.status)}>
+                            {event.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6 whitespace-nowrap">
+                        {event.status === 'Completed' &&
+                          event.paymentStatus !== 'Complete' && (
+                            <button
+                              onClick={() =>
+                                handleSendMail(
+                                  event.eventName,
+                                  event.eventGroup,
+                                  event.eventId
+                                )
+                              }
+                              className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm ${
+                                isSendingMail ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
+                              disabled={isSendingMail}
+                            >
+                              {isSendingMail ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mx-auto"></div>
+                              ) : (
+                                'Send Mail'
+                              )}
+                            </button>
+                          )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+        <Notification
+          notification={notification}
+          setNotification={setNotification}
+        />
       </div>
-      <Notification
-        notification={notification}
-        setNotification={setNotification}
-      />
-    </div>
+    </>
   );
 };
 

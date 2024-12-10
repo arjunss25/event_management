@@ -17,13 +17,13 @@ const ExpiredeventsSuperadmin = () => {
         </div>
 
         {/* Search Component */}
-        <div className="search-component w-full flex justify-center md:justify-start mt-6">
+        {/* <div className="search-component w-full flex justify-center md:justify-start mt-6">
           <input
             type="text"
             placeholder="Search..."
             className="w-full md:w-[60%] lg:w-[30%] px-4 py-2 text-gray-600 border-2 rounded-full focus:outline-none"
           />
-        </div>
+        </div> */}
 
         {/* Table Section */}
         <div className="table-section mt-6 overflow-x-auto w-full ">
