@@ -9,7 +9,7 @@ import { deleteUser, signInWithEmailAndPassword } from 'firebase/auth';
 
 const EmptyState = () => (
   <tr>
-    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
       <div className="flex flex-col items-center justify-center">
         <p className="text-lg">No employees found</p>
         <p className="text-sm text-gray-400">
@@ -25,12 +25,16 @@ const TableContent = ({
   handleView,
   setSelectedEmployee,
   setShowModal,
+  loading,
 }) => {
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <table className="w-full text-sm text-left text-gray-500">
       <thead className="text-xs text-white uppercase bg-gray-800">
         <tr>
-          <th className="px-6 py-3">ID</th>
           <th className="px-6 py-3">Name</th>
           <th className="px-6 py-3">Position</th>
           <th className="px-6 py-3">Email</th>
@@ -43,7 +47,6 @@ const TableContent = ({
         {employees.length > 0 ? (
           employees.map((employee) => (
             <tr key={employee.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4">{employee.id}</td>
               <td className="px-6 py-4">{employee.name}</td>
               <td className="px-6 py-4">{employee.position}</td>
               <td className="px-6 py-4">{employee.email}</td>
@@ -52,11 +55,11 @@ const TableContent = ({
                 <span
                   className={`px-3 py-1 rounded-full text-xs ${
                     employee.currentlyAssigned
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-green-100 text-green-800'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
                   }`}
                 >
-                  {employee.currentlyAssigned ? 'No' : 'Yes'}
+                  {employee.currentlyAssigned ? 'Yes' : 'No'}
                 </span>
               </td>
               <td className="px-6 py-4 flex space-x-2">
@@ -84,10 +87,7 @@ const TableContent = ({
 
 const LoadingSpinner = () => (
   <div className="w-full h-48 flex items-center justify-center">
-    <div className="animate-pulse flex flex-col items-center">
-      <div className="h-8 w-8 mb-4 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-      <div className="text-gray-600">Loading employees...</div>
-    </div>
+    <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
   </div>
 );
 
@@ -115,7 +115,7 @@ const EmployeeTable = () => {
       setEmployees(
         response.data.data.map((emp) => ({
           ...emp,
-          currentlyAssigned: emp.is_available,
+          currentlyAssigned: !emp.is_available,
         }))
       );
     } catch (err) {
@@ -161,7 +161,7 @@ const EmployeeTable = () => {
         setEmployees(
           response.data.data.map((emp) => ({
             ...emp,
-            currentlyAssigned: emp.is_available,
+            currentlyAssigned: !emp.is_available,
           }))
         );
       } else {
@@ -184,15 +184,24 @@ const EmployeeTable = () => {
       }
       const employeeData = response.data.data.map((emp) => ({
         ...emp,
-        currentlyAssigned: emp.is_available,
+        currentlyAssigned: !emp.is_available,
       }));
       setEmployees(employeeData);
 
-      // Extract and store all unique positions
-      const positions = [...new Set(employeeData.map((emp) => emp.position))];
-      setAllPositions(positions);
+      // Fetch positions from the new endpoint
+      const positionsResponse = await axiosInstance.get(
+        '/list-positions-for-allocation/'
+      );
+      if (positionsResponse.data?.status_code === 200) {
+        const positionsData = positionsResponse.data.data;
+        const positions = Object.values(positionsData[0]); // Extract positions from the response
+        setAllPositions(positions);
+      } else {
+        setAllPositions([]); // Handle case where positions are not retrieved successfully
+      }
     } catch (err) {
       setEmployees([]);
+      setAllPositions([]); // Handle error case
     } finally {
       setLoading(false);
     }
@@ -225,7 +234,6 @@ const EmployeeTable = () => {
         throw new Error('Employee not found');
       }
 
-
       const response = await axiosInstance.delete(
         `/employee-details/${selectedEmployee}`
       );
@@ -233,7 +241,6 @@ const EmployeeTable = () => {
       if (response.status === 200 || response.status === 204) {
         try {
           if (employee.firebase_uid) {
-
             const firebaseResponse = await axiosInstance.post(
               '/delete-firebase-user/',
               {
@@ -244,8 +251,6 @@ const EmployeeTable = () => {
 
             if (firebaseResponse.status === 200) {
             } else {
-
-
               const alternativeResponse = await axiosInstance.delete(
                 '/delete-firebase-user-alternative/',
                 {
@@ -264,8 +269,7 @@ const EmployeeTable = () => {
 
           setEmployees(employees.filter((emp) => emp.id !== selectedEmployee));
           setShowModal(false);
-        } catch (firebaseError) {
-        }
+        } catch (firebaseError) {}
       }
     } catch (err) {
     } finally {
@@ -273,27 +277,19 @@ const EmployeeTable = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="w-full h-[400px] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full">
       <div className="mb-6 flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
         <input
           type="text"
-          className="block w-full md:w-[60%] lg:w-[30%] px-4 py-2 text-gray-600 border-2 rounded-full focus:outline-none"
+          className="block w-full md:w-[60%] lg:w-[30%] px-4 h-11 text-gray-600 border border-gray-300 rounded-full focus:outline-none"
           placeholder="Search"
           value={searchQuery}
           onChange={handleSearchChange}
         />
         <div className="relative w-full md:w-48">
           <select
-            className="block w-full px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none appearance-none"
+            className="block w-full px-4 h-11 border border-gray-300 rounded-full text-sm focus:outline-none appearance-none bg-white"
             value={positionFilter}
             onChange={handlePositionChange}
           >
@@ -308,7 +304,7 @@ const EmployeeTable = () => {
         </div>
         <div className="relative w-full md:w-48">
           <select
-            className="block w-full px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none appearance-none"
+            className="block w-full px-4 h-11 border border-gray-300 rounded-full text-sm focus:outline-none appearance-none bg-white"
             value={assignmentFilter}
             onChange={(e) => setAssignmentFilter(e.target.value)}
           >
@@ -327,6 +323,7 @@ const EmployeeTable = () => {
             handleView={handleView}
             setSelectedEmployee={setSelectedEmployee}
             setShowModal={setShowModal}
+            loading={loading}
           />
         </div>
       </div>

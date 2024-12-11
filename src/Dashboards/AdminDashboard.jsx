@@ -35,35 +35,30 @@ const AdminDashboard = () => {
   const [mealData, setMealData] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const event_id = useSelector((state) => state.auth.event_id);
+  const event_name = useSelector((state) => state.auth.event_name);
   const [roomStatus, setRoomStatus] = useState({ joined: false, members: [] });
-
 
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        
         const mealTypesResponse = await axiosInstance.get(
           '/unique-meals-list/'
         );
         const allMealTypes = mealTypesResponse.data.data;
 
-        
         const countResponse = await axiosInstance.get(
           '/mealcount-currentdate/'
         );
         const currentCounts = countResponse.data.data || [];
 
-        
         const countsMap = {};
-        
+
         if (Array.isArray(currentCounts)) {
           currentCounts.forEach((meal) => {
             countsMap[meal.meal_type_name.toLowerCase()] = meal.count;
           });
         } else {
-        
         }
-
 
         const initialData = allMealTypes.map((mealType) => ({
           eventType: mealType,
@@ -77,7 +72,6 @@ const AdminDashboard = () => {
           setEventId(countResponse.data.event.id);
         }
       } catch (error) {
-
         const defaultData =
           allMealTypes?.map((mealType) => ({
             eventType: mealType,
@@ -94,19 +88,15 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (!event_id) return;
 
-
     if (!websocketService.isInRoom(event_id)) {
       websocketService.connectWithAuth(event_id);
     }
 
     const handleWebSocketMessage = (data) => {
-
       if (data.type === 'MEAL_SCANNED') {
         setMealData((prevData) => {
-
           return prevData.map((meal) => {
             if (meal.eventType.toLowerCase() === data.meal_type.toLowerCase()) {
-
               return {
                 ...meal,
                 number: parseInt(data.new_count, 10),
@@ -119,8 +109,6 @@ const AdminDashboard = () => {
     };
 
     const unsubscribe = websocketService.subscribe(handleWebSocketMessage);
-
-
 
     return () => {
       unsubscribe();
@@ -144,6 +132,27 @@ const AdminDashboard = () => {
     <div className="flex w-full min-h-screen bg-[#f7fafc] overflow-x-hidden">
       <main className="w-full">
         <div className="w-full overflow-hidden">
+          <div className="p-6 mb-4 bg-white  border-b">
+            <div className="max-w-7xl mx-auto">
+              <span className="text-xs font-medium tracking-widest uppercase text-gray-500">
+                Current Event
+              </span>
+              <h1 className="text-3xl font-light text-gray-900 mt-1">
+                {event_name ? (
+                  <>
+                    <span className="font-normal bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                      {event_name}
+                    </span>
+                    <span className="text-sm ml-3 px-3 py-1 bg-purple-50 text-purple-700 rounded-full">
+                      Active
+                    </span>
+                  </>
+                ) : (
+                  'Dashboard'
+                )}
+              </h1>
+            </div>
+          </div>
           <div className="w-full flex gap-5 flex-wrap justify-center lg:justify-start">
             {mealData.map((item) => (
               <Dashboardcards
@@ -153,7 +162,7 @@ const AdminDashboard = () => {
             ))}
           </div>
           <div className="table-component mt-10">
-            <h1 className="text-xl lg:text-2xl font-semibold mb-6">Events</h1>
+            <h1 className="text-xl lg:text-2xl font-semibold mb-6">Registered Users</h1>
             <RegisteredUserTable />
           </div>
         </div>

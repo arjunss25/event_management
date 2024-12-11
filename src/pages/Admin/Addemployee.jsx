@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Camera } from 'lucide-react';
 import axiosInstance from '../../axiosConfig';
 import {
   createUserWithEmailAndPassword,
@@ -22,6 +21,13 @@ const AddEmployee = () => {
   const [extraFields, setExtraFields] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    position: '',
+  });
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -73,6 +79,14 @@ const AddEmployee = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+  
+    if (name === 'name') {
+  
+      if (!/^[A-Za-z\s]*$/.test(value)) {
+        return;
+      }
+    }
+
     if (name === 'position') {
       // Find the selected position
       const selectedPosition = positions.find(
@@ -116,8 +130,72 @@ const AddEmployee = () => {
     }));
   };
 
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      position: '',
+    };
+
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+      isValid = false;
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters long';
+      isValid = false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+      isValid = false;
+    }
+
+    // Phone validation
+    const phoneRegex = /^\d{10}$/;
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+      isValid = false;
+    } else if (!phoneRegex.test(formData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+      isValid = false;
+    }
+
+    // Address validation
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required';
+      isValid = false;
+    } else if (formData.address.length < 5) {
+      newErrors.address = 'Address must be at least 5 characters long';
+      isValid = false;
+    }
+
+    // Position validation
+    if (!formData.position) {
+      newErrors.position = 'Please select a position';
+      isValid = false;
+    }
+
+    setFieldErrors(newErrors);
+    return isValid;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Perform validation before submission
+    if (!validateForm()) {
+      return;
+    }
+
     setError('');
     setLoading(true);
 
@@ -248,20 +326,36 @@ const AddEmployee = () => {
       case 'dropdown':
       case 'option':
         return (
-          <select
-            id={field.field_name}
-            name={field.field_name}
-            value={formData.extra_fields[field.field_name] || ''}
-            onChange={handleChange}
-            className={commonInputClasses}
-          >
-            <option value="">Select {field.field_name}</option>
-            {Object.entries(field.field_option || {}).map(([key, value]) => (
-              <option key={key} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id={field.field_name}
+              name={field.field_name}
+              value={formData.extra_fields[field.field_name] || ''}
+              onChange={handleChange}
+              className={`${commonInputClasses} pr-10 appearance-none`}
+            >
+              <option value="">Select {field.field_name}</option>
+              {Object.entries(field.field_option || {}).map(([key, value]) => (
+                <option key={key} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+              <svg
+                className="h-4 w-4 text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+          </div>
         );
 
       case 'radio':
@@ -363,15 +457,14 @@ const AddEmployee = () => {
 
   return (
     <div className="w-full p-6 bg-white rounded-lg shadow-sm">
+      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Add Employee</h1>
+      
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-8">
-          <div className="relative">
-            <div className="w-28 h-28 bg-white rounded-full border border-black flex items-center justify-center">
-              <span className="text-purple-600 font-semibold">Grip</span>
-            </div>
-            <div className="absolute bottom-0 right-0 bg-gray-100 p-1 rounded-full cursor-pointer hover:bg-gray-200 transition-colors">
-              <Camera size={16} className="text-gray-600" />
-            </div>
+          <div className="w-28 h-28 bg-gray-200 rounded-full flex items-center justify-center">
+            <span className="text-gray-600 text-2xl">
+              {formData.name ? formData.name.charAt(0).toUpperCase() : 'U'}
+            </span>
           </div>
         </div>
 
@@ -381,104 +474,140 @@ const AddEmployee = () => {
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-5"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Name
               </label>
+              {fieldErrors.name && (
+                <p className="text-sm text-red-500 mb-1">{fieldErrors.name}</p>
+              )}
               <input
                 type="text"
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className={`w-full px-3 py-2 border rounded-3xl ${
+                  fieldErrors.name ? 'border-red-500' : 'border-gray-300'
+                } focus:outline-none focus:ring-1 focus:ring-purple-500`}
                 placeholder="Name"
-                required
               />
             </div>
 
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-5"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 e-mail
               </label>
+              {fieldErrors.email && (
+                <p className="text-sm text-red-500 mb-1">{fieldErrors.email}</p>
+              )}
               <input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                placeholder="xyz@gmail.com"
-                required
+                className={`w-full px-3 py-2 border rounded-3xl ${
+                  fieldErrors.email ? 'border-red-500' : 'border-gray-300'
+                } focus:outline-none focus:ring-1 focus:ring-purple-500`}
+                placeholder="Enter your email address"
               />
             </div>
 
             <div>
               <label
                 htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-5"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Phone
               </label>
+              {fieldErrors.phone && (
+                <p className="text-sm text-red-500 mb-1">{fieldErrors.phone}</p>
+              )}
               <input
                 type="tel"
                 id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                placeholder="8644566635"
-                required
+                className={`w-full px-3 py-2 border rounded-3xl ${
+                  fieldErrors.phone ? 'border-red-500' : 'border-gray-300'
+                } focus:outline-none focus:ring-1 focus:ring-purple-500`}
+                placeholder="Enter your 10-digit phone number"
               />
             </div>
 
             <div>
               <label
                 htmlFor="address"
-                className="block text-sm font-medium text-gray-700 mb-5"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Address
               </label>
+              {fieldErrors.address && (
+                <p className="text-sm text-red-500 mb-1">{fieldErrors.address}</p>
+              )}
               <input
                 type="text"
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className={`w-full px-3 py-2 border rounded-3xl ${
+                  fieldErrors.address ? 'border-red-500' : 'border-gray-300'
+                } focus:outline-none focus:ring-1 focus:ring-purple-500`}
                 placeholder="Enter address"
-                required
               />
             </div>
 
             <div>
               <label
                 htmlFor="position"
-                className="block text-sm font-medium text-gray-700 mb-5"
+                className="block text-sm font-medium text-gray-700 mb-1"
               >
                 Position
               </label>
-              <select
-                id="position"
-                name="position"
-                value={formData.position}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                required
-              >
-                <option value="">Select Position</option>
-                {positions.map((position) => (
-                  <option
-                    key={position.value || position.id}
-                    value={position.label || position.name || position.value}
+              {fieldErrors.position && (
+                <p className="text-sm text-red-500 mb-1">{fieldErrors.position}</p>
+              )}
+              <div className="relative">
+                <select
+                  id="position"
+                  name="position"
+                  value={formData.position}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-2 pr-10 border rounded-3xl appearance-none ${
+                    fieldErrors.position ? 'border-red-500' : 'border-gray-300'
+                  } focus:outline-none focus:ring-1 focus:ring-purple-500`}
+                >
+                  <option value="">Select Position</option>
+                  {positions.map((position) => (
+                    <option
+                      key={position.value || position.id}
+                      value={position.label || position.name || position.value}
+                    >
+                      {position.label || position.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-4 w-4 text-gray-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
                   >
-                    {position.label || position.name}
-                  </option>
-                ))}
-              </select>
+                    <path
+                      fillRule="evenodd"
+                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             {/* Extra fields */}
@@ -486,7 +615,7 @@ const AddEmployee = () => {
               <div key={field.field_name}>
                 <label
                   htmlFor={field.field_name}
-                  className="block text-sm font-medium text-gray-700 mb-5"
+                  className="block text-sm font-medium text-gray-700 mb-1"
                 >
                   {field.field_name}
                   {field.is_required && (

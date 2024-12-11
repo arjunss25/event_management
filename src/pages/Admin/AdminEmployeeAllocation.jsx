@@ -484,12 +484,14 @@ const AdminEmployeeAllocation = () => {
     return selectedSection ? selectedSection.employees.map(emp => emp.id) : [];
   };
 
-  const filteredEmployees = employees.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const allocatedIds = getAllocatedEmployeeIds();
-    const isNotAllocated = !allocatedIds.includes(employee.id);
-    return matchesSearch && isNotAllocated;
-  });
+  const filteredEmployees = Array.isArray(employees) 
+    ? employees.filter(employee => {
+        const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const allocatedIds = getAllocatedEmployeeIds();
+        const isNotAllocated = !allocatedIds.includes(employee.id);
+        return matchesSearch && isNotAllocated;
+      })
+    : [];
 
   if (status === 'failed' && error && 
       !error.includes('No positions available') && 

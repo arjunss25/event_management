@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { HiMenuAlt1 } from 'react-icons/hi';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectUser, logout } from '../../Redux/authSlice';
+import { selectUser, logout } from '../../Redux/authSlice.jsx';
 import { IoLogOutOutline, IoCloseOutline } from 'react-icons/io5';
 import { BsQrCodeScan } from 'react-icons/bs';
 import QrScanner from 'react-qr-scanner';
@@ -439,7 +439,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
               <div className="px-4 py-3 border-b border-gray-100">
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-20 h-20 mx-auto mb-3 rounded-full border-2 border-dashed border-gray-300 overflow-hidden cursor-pointer hover:border-blue-400 transition-all duration-300 relative"
+                  className="w-20 h-20 mx-auto mb-3 rounded-full border-2 border-dashed border-gray-300  cursor-pointer hover:border-blue-400 transition-all duration-300 relative"
                 >
                   <img
                     key={refreshKey}
@@ -450,7 +450,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                       e.target.src = '/Neurocode.png';
                     }}
                   />
-                  <Camera className="absolute bottom-2 right-2 text-gray-500" />
+                  <Camera className="absolute bottom-[-5px] right-[-5px] text-red-500" />
                 </div>
 
                 <input

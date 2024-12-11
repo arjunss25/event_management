@@ -29,6 +29,12 @@ const AdminEmployeeProfile = () => {
   // Add this state for check-in/out data
   const [checkInOutData, setCheckInOutData] = useState([]);
 
+  // Add new state for positions
+  const [positions, setPositions] = useState([]);
+
+  // Add new state for validation errors
+  const [validationErrors, setValidationErrors] = useState({});
+
   // Get employee ID from URL params
   const { id } = useParams();
 
@@ -96,12 +102,28 @@ const AdminEmployeeProfile = () => {
     }
   };
 
+  // Add function to fetch positions
+  const fetchPositions = async () => {
+    try {
+      const response = await axiosInstance.get('/list-positions-for-allocation/');
+      if (response.data?.status_code === 200) {
+        // Extract unique positions from position1 and position2
+        const positionData = response.data.data[0];
+        const uniquePositions = [...new Set([positionData.position1, positionData.position2])];
+        setPositions(uniquePositions);
+      }
+    } catch (err) {
+      console.error('Error fetching positions:', err);
+    }
+  };
+
   useEffect(() => {
     if (id) {
       fetchEmployeeData();
       fetchIdCardData();
       fetchEventsData();
       fetchCheckInOutData();
+      fetchPositions();
     }
   }, [id]);
 
@@ -113,12 +135,9 @@ const AdminEmployeeProfile = () => {
       id: employeeData.id,
       event_group: employeeData.event_group,
       name: employeeData.name,
-      email: employeeData.email,
       phone: employeeData.phone,
       position: employeeData.position,
       address: employeeData.address,
-      is_available: employeeData.is_available,
-      role: employeeData.role,
     };
     setTempData(editableFields);
     setModalOpen(true);
@@ -126,22 +145,73 @@ const AdminEmployeeProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setTempData((prevData) => ({ ...prevData, [name]: value }));
+    setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    
+    // Prevent numbers in name field
+    if (name === 'name' && /\d/.test(value)) {
+      setValidationErrors(prev => ({ ...prev, name: 'Numbers are not allowed in name' }));
+      return;
+    }
+
+    // For name field, only allow letters, spaces, and dots
+    if (name === 'name') {
+      const sanitizedValue = value.replace(/[^A-Za-z\s.]/g, '');
+      setTempData(prevData => ({ ...prevData, [name]: sanitizedValue }));
+    } else {
+      setTempData(prevData => ({ ...prevData, [name]: value }));
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    
+    // Name validation
+    if (!tempData.name?.trim()) {
+      errors.name = 'Name is required';
+    } else if (tempData.name.length < 2) {
+      errors.name = 'Name must be at least 2 characters long';
+    } else if (/\d/.test(tempData.name)) {
+      errors.name = 'Numbers are not allowed in name';
+    } else if (!/^[A-Za-z\s.]+$/.test(tempData.name)) {
+      errors.name = 'Name can only contain letters, spaces, and dots';
+    }
+
+    // Phone validation
+    if (!tempData.phone?.trim()) {
+      errors.phone = 'Phone number is required';
+    } else if (!/^\d{10}$/.test(tempData.phone)) {
+      errors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    // Position validation
+    if (!tempData.position?.trim()) {
+      errors.position = 'Position is required';
+    }
+
+    // Address validation
+    if (!tempData.address?.trim()) {
+      errors.address = 'Address is required';
+    } else if (tempData.address.length < 5) {
+      errors.address = 'Address must be at least 5 characters long';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const saveChanges = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     try {
-      // Create a payload with only the required fields
       const payload = {
         id: tempData.id,
         event_group: tempData.event_group,
         name: tempData.name,
-        email: tempData.email,
         phone: tempData.phone,
         position: tempData.position,
         address: tempData.address,
-        is_available: tempData.is_available,
-        role: tempData.role,
       };
 
       const response = await axiosInstance.put(
@@ -149,8 +219,9 @@ const AdminEmployeeProfile = () => {
         payload
       );
       if (response.data?.status_code === 200) {
-        setEmployeeData(tempData);
+        setEmployeeData({ ...employeeData, ...payload });
         setModalOpen(false);
+        setValidationErrors({});
       } else {
         setError('Failed to update employee data');
       }
@@ -530,30 +601,41 @@ const AdminEmployeeProfile = () => {
                 {Object.entries(tempData || {}).map(([key, value]) => {
                   if (key !== 'id' && key !== 'event_group') {
                     return (
-                      <label key={key} className="block mb-4">
-                        <span className="text-gray-700 capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </span>
-                        {key === 'is_available' ? (
-                          <select
-                            name={key}
-                            value={value}
-                            onChange={handleInputChange}
-                            className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value={true}>Available</option>
-                            <option value={false}>Not Available</option>
-                          </select>
-                        ) : (
-                          <input
-                            type="text"
-                            name={key}
-                            value={value}
-                            onChange={handleInputChange}
-                            className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          />
+                      <div key={key} className="block mb-4">
+                        <label className="block">
+                          <span className="text-gray-700 capitalize">
+                            {key.replace(/_/g, ' ')}
+                          </span>
+                          {key === 'position' ? (
+                            <select
+                              name={key}
+                              value={value}
+                              onChange={handleInputChange}
+                              className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                ${validationErrors[key] ? 'border-red-500' : 'border-gray-300'}`}
+                            >
+                              <option value="">Select Position</option>
+                              {positions.map((position) => (
+                                <option key={position} value={position}>
+                                  {position}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              name={key}
+                              value={value}
+                              onChange={handleInputChange}
+                              className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
+                                ${validationErrors[key] ? 'border-red-500' : 'border-gray-300'}`}
+                            />
+                          )}
+                        </label>
+                        {validationErrors[key] && (
+                          <p className="text-red-500 text-sm mt-1">{validationErrors[key]}</p>
                         )}
-                      </label>
+                      </div>
                     );
                   }
                   return null;

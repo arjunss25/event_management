@@ -9,8 +9,8 @@ const EmptyState = () => (
   <tr>
     <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
       <div className="flex flex-col items-center justify-center">
-        <p className="text-lg">No users found</p>
-        <p className="text-sm text-gray-400">No registered users available</p>
+        <p className="text-lg">No registered users available</p>
+        <p className="text-sm text-gray-400"></p>
       </div>
     </td>
   </tr>

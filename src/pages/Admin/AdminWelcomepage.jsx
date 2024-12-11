@@ -8,32 +8,21 @@ const AdminWelcomePage = () => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
   const [eventGroupName, setEventGroupName] = useState('');
-  const [eventName, setEventName] = useState('');
 
   useEffect(() => {
-    const fetchEventGroupName = async () => {
+    const fetchEventDetails = async () => {
       try {
         const response = await axiosInstance.get('/welcome-eventgroup-name/');
+        console.log('API Response:', response.data);
         setEventGroupName(
           response.data?.data?.event_group_name || 'Event Group'
         );
       } catch (error) {
+        console.error('Error fetching event details:', error);
       }
     };
 
-    fetchEventGroupName();
-  }, []);
-
-  useEffect(() => {
-    const fetchEventName = async () => {
-      try {
-        const response = await axiosInstance.get('/welcome-eventgroup-name/');
-        setEventName(response.data?.data?.event_name || 'Event');
-      } catch (error) {
-      }
-    };
-
-    fetchEventName();
+    fetchEventDetails();
   }, []);
 
   const handleNext = () => {
@@ -69,8 +58,6 @@ const AdminWelcomePage = () => {
         >
           We're glad to have you here as part of
           <span className="text-blue-500 font-semibold"> {eventGroupName}</span>
-          , for
-          <span className="text-blue-500 font-semibold"> {eventName}</span>
         </motion.p>
         <motion.div
           className="flex justify-center"

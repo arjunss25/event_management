@@ -8,7 +8,6 @@ const initialState = {
   loading: false,
   event_group_id: localStorage.getItem('event_group_id') || null,
   event_id: localStorage.getItem('event_id') || null,
-  event_name: localStorage.getItem('event_name') || null,
 };
 
 const authSlice = createSlice({
@@ -20,7 +19,7 @@ const authSlice = createSlice({
       state.error = null;
     },
     loginSuccess(state, action) {
-      const { token, user, event_group_id, event_id, event_name } = action.payload;
+      const { token, user, event_group_id, event_id } = action.payload;
 
       // Store in Redux state
       state.token = token;
@@ -30,14 +29,12 @@ const authSlice = createSlice({
       state.error = null;
       state.event_group_id = event_group_id;
       state.event_id = event_id;
-      state.event_name = event_name;
 
       // Store in localStorage
       localStorage.setItem('accessToken', token);
       localStorage.setItem('userData', JSON.stringify(user));
       localStorage.setItem('event_group_id', event_group_id);
       localStorage.setItem('event_id', event_id);
-      localStorage.setItem('event_name', event_name);
     },
     loginFailure(state, action) {
       state.error = action.payload;
@@ -59,14 +56,12 @@ const authSlice = createSlice({
       state.loading = false;
       state.event_group_id = null;
       state.event_id = null;
-      state.event_name = null;
 
       // Clear localStorage
       localStorage.removeItem('accessToken');
       localStorage.removeItem('userData');
       localStorage.removeItem('event_group_id');
       localStorage.removeItem('event_id');
-      localStorage.removeItem('event_name');
     },
     updateUserData(state, action) {
       // Update Redux state
@@ -95,7 +90,6 @@ export const selectAuthError = (state) => state.auth.error;
 export const selectAuthLoading = (state) => state.auth.loading;
 export const selectEventGroupId = (state) => state.auth.event_group_id;
 export const selectEventId = (state) => state.auth.event_id;
-export const selectEventName = (state) => state.auth.event_name;
 
 // Auth slice reducer
 export default authSlice.reducer;

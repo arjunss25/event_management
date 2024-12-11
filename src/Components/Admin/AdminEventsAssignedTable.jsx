@@ -51,8 +51,7 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
         }));
         setEventDays(daysArray);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const fetchMealTypes = async () => {
@@ -61,8 +60,7 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
       if (response.status === 200) {
         setMealTypes(response.data.data);
       }
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleScanReport = async (eventId) => {
@@ -70,7 +68,9 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     try {
       const response = await axiosInstance.get(`/scan-report/${employeeId}/`);
       if (response.status === 200) {
-        const responseData = Array.isArray(response.data.data) ? response.data.data : [];
+        const responseData = Array.isArray(response.data.data)
+          ? response.data.data
+          : [];
         setScanReportData(responseData);
         setFilteredScanData(responseData);
         setShowScanReport(true);
@@ -91,8 +91,6 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     if (selectedDate === '') {
       setFilteredScanData(scanReportData);
     } else {
-
-
       const filtered = scanReportData.filter((scan) => {
         const scanDate = scan.meal_date
           .split('T')[0]
@@ -111,7 +109,9 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     if (selectedType === '') {
       setFilteredScanData(scanReportData);
     } else {
-      const filtered = scanReportData.filter(scan => scan.meal_type_name === selectedType);
+      const filtered = scanReportData.filter(
+        (scan) => scan.meal_type_name === selectedType
+      );
       setFilteredScanData(filtered);
     }
   };
@@ -126,7 +126,7 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
           >
             Back to Events
           </button>
-          
+
           <div className="flex gap-4">
             <select
               value={selectedDay}
@@ -212,13 +212,41 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
     );
   }
 
-  // Check if data is undefined or empty
-  if (!data || data.length === 0) {
+  // Replace the existing empty data check with table structure
+  if (!Array.isArray(data) || data.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500 text-lg">
-          No events assigned to this employee.
-        </p>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Event Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Start Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                End Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Venue
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            <tr>
+              <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                No events assigned to this employee.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     );
   }
@@ -249,46 +277,49 @@ const AdminEventsAssignedTable = ({ data, employeeId, employeeName }) => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {data.map((event, index) => (
-            <tr key={index}>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {event.event_name}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {event.start_date}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">{event.end_date}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{event.venue}</td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs ${
-                    event.event_status === 'upcoming'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {event.event_status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {event.event_status === 'upcoming' ? (
-                  <button
-                    onClick={() => handleRemove(event.id)}
-                    className="text-red-600 hover:text-red-800"
+          {Array.isArray(data) &&
+            data.map((event, index) => (
+              <tr key={index}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {event.event_name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {event.start_date}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {event.end_date}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">{event.venue}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${
+                      event.event_status === 'upcoming'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
                   >
-                    Remove
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleScanReport(event.id)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    Scan Report
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
+                    {event.event_status}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {event.event_status === 'upcoming' ? (
+                    <button
+                      onClick={() => handleRemove(event.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      Remove
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleScanReport(event.id)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      Scan Report
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

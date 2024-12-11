@@ -8,6 +8,7 @@ import UserRegistration from './UserRegistration';
 import AdminEmployeeAllocation from './AdminEmployeeAllocation';
 import AdminEventFood from './AdminEventFood';
 import { FaBars, FaTimes } from 'react-icons/fa';
+import { CgProfile } from "react-icons/cg";
 
 const AdminEventDetails = () => {
   const dispatch = useDispatch();
@@ -110,7 +111,11 @@ const AdminEventDetails = () => {
                     <p className="text-gray-500 text-sm mb-1">Start Date</p>
                     <p className="text-lg font-semibold">
                       {selectedEvent?.startDate
-                        ? new Date(selectedEvent.startDate).toLocaleDateString()
+                        ? new Date(selectedEvent.startDate).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                          })
                         : 'N/A'}
                     </p>
                   </div>
@@ -120,7 +125,11 @@ const AdminEventDetails = () => {
                     <p className="text-gray-500 text-sm mb-1">End Date</p>
                     <p className="text-lg font-semibold">
                       {selectedEvent?.endDate
-                        ? new Date(selectedEvent.endDate).toLocaleDateString()
+                        ? new Date(selectedEvent.endDate).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                          })
                         : 'N/A'}
                     </p>
                   </div>
@@ -161,28 +170,26 @@ const AdminEventDetails = () => {
                   <label className="block text-gray-700 font-medium mb-2">
                     Venue
                   </label>
-                  <textarea
+                  <input
+                    type="text"
                     name="venue"
                     value={formData.venue}
                     onChange={handleInputChange}
                     placeholder="Enter venue details"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    rows="4"
-                    readOnly={!isEditModalOpen}
-                  ></textarea>
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-gray-700 font-medium mb-2">
                     Seats Allocated
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     name="seatsAllocated"
                     value={formData.seatsAllocated}
                     onChange={handleInputChange}
                     placeholder="Enter number of seats"
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    readOnly={!isEditModalOpen}
                   />
                 </div>
               </div>
@@ -336,8 +343,9 @@ const AdminEventDetails = () => {
           </button>
 
           <div className="flex flex-col items-center">
-            <div className="w-20 h-20 rounded-full border-2 border-black flex items-center justify-center bg-purple-100">
-              <span className="text-purple-600 font-semibold">Grip</span>
+            <div className="w-20 h-20 rounded-full border-2 border-black flex items-center justify-center ">
+              {/* <span className="text-purple-600 font-semibold">Grip</span> */}
+              <CgProfile className='text-[3rem]'/>
             </div>
             <h2 className="mt-4 text-lg font-semibold">
               {selectedEvent?.eventGroupName || 'No company name'}
