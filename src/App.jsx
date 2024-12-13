@@ -10,7 +10,7 @@ const App = () => {
   return (
     <Provider store={store}>
       <Router>
-        <AppRoutes /> {/* Use the AppRoutes component here */}
+        <AppRoutes /> 
       </Router>
     </Provider>
   );
