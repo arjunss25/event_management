@@ -29,7 +29,7 @@ const EmployeeDetails = () => {
     <div className="w-full overflow-hidden">
       <div className="top-sec w-full flex flex-col md:flex-row items-start md:items-center justify-between">
         <h1 className="text-[1.5rem] sm:text-[2rem] font-semibold mb-2 md:mb-0">
-          Employee
+        Employee Details
         </h1>
         <button
           onClick={handleAddEmployee}

@@ -25,7 +25,7 @@ const UserRegistration = () => {
   const [fetchedExtraFields, setFetchedExtraFields] = useState([]);
   const [newField, setNewField] = useState({
     label: '',
-    type: 'text',
+    type: '', 
     placeholder: '',
     options: [],
   });
@@ -38,13 +38,12 @@ const UserRegistration = () => {
   const [generatedLink, setGeneratedLink] = useState('');
   const fieldTypes = [
     'text',
-    'email',
-    'tel',
+    'email', 
     'number',
     'date',
-    'select',
+    'dropdown', 
     'radio',
-    'checkbox',
+    'checkbox'
   ];
   const [notification, setNotification] = useState({
     show: false,
@@ -123,9 +122,58 @@ const UserRegistration = () => {
   };
 
   const handleAddField = async () => {
-    if (newField.label && newField.type) {
+    // Trim the label to remove any whitespace
+    const trimmedLabel = newField.label.trim();
+
+    // Validation checks
+    if (!trimmedLabel) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: 'Field label cannot be empty.'
+      });
+      return;
+    }
+
+    // Check if field type is selected
+    if (!newField.type) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: 'Please choose a field type.'
+      });
+      return;
+    }
+
+    // Check if the field label already exists
+    const isDuplicateField = allFormFields.some(
+      (field) => field.label.toLowerCase() === trimmedLabel.toLowerCase()
+    );
+
+    if (isDuplicateField) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: 'A field with this label already exists. Please choose a different label.'
+      });
+      return;
+    }
+
+    // Validate options for select, radio, and checkbox types
+    if (['dropdown', 'radio', 'checkbox'].includes(newField.type)) {
+      if (newField.options.length === 0) {
+        setNotification({
+          show: true,
+          type: 'error',
+          message: `Please add at least one option for ${newField.type} field type.`
+        });
+        return;
+      }
+    }
+
+    if (newField.type && trimmedLabel) {
       const fieldData = {
-        fields_name: newField.label,
+        fields_name: trimmedLabel,
         fields_type: newField.type,
         field_option: newField.options.reduce(
           (acc, option, index) => ({ ...acc, [`option${index + 1}`]: option }),
@@ -141,23 +189,39 @@ const UserRegistration = () => {
 
         const newFieldToAdd = {
           id: `extra-${fetchedExtraFields.length}`,
-          label: newField.label,
+          label: trimmedLabel,
           type: newField.type,
-          placeholder: newField.label,
+          placeholder: trimmedLabel,
           options: newField.options,
         };
 
         setFetchedExtraFields([...fetchedExtraFields, newFieldToAdd]);
-        setNewField({ label: '', type: 'text', placeholder: '', options: [] });
-        alert('Field added successfully!');
-      } catch (error) {}
+        setNewField({ 
+          label: '', 
+          type: '', 
+          placeholder: '', 
+          options: [] 
+        });
+        setOptionInput(''); // Clear option input
+        setNotification({
+          show: true,
+          type: 'success',
+          message: 'Field added successfully!'
+        });
+      } catch (error) {
+        setNotification({
+          show: true,
+          type: 'error',
+          message: 'Failed to add field. Please try again.'
+        });
+      }
     }
   };
 
   const handleDeleteField = async (label) => {
     try {
       if (!label) {
-        alert('Invalid field label.');
+        // alert('Invalid field label.');
         return;
       }
 
@@ -172,7 +236,7 @@ const UserRegistration = () => {
         delete updatedFormData[label];
         setFormData(updatedFormData);
 
-        alert('Field deleted successfully!');
+        // alert('Field deleted successfully!');
       } else {
       }
     } catch (error) {}
@@ -274,13 +338,14 @@ const UserRegistration = () => {
 
   const renderInputField = (field) => {
     switch (field.type) {
-      case 'select':
+      case 'dropdown':
         return (
           <div key={field.id} className="mb-4">
             <select
               name={field.id}
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all outline-none"
               onChange={handleInputChange}
+              disabled // This prevents interaction
             >
               <option value="">Select {field.label}</option>
               {field.options &&
@@ -311,6 +376,7 @@ const UserRegistration = () => {
                       name={field.id}
                       value={option.value || option}
                       onChange={handleInputChange}
+                      disabled // This prevents interaction
                       className="w-4 h-4 text-black border-gray-300 focus:ring-gray-200"
                     />
                     <span className="text-gray-700">
@@ -337,6 +403,7 @@ const UserRegistration = () => {
                       name={field.id}
                       value={option.value || option}
                       onChange={handleInputChange}
+                      disabled // This prevents interaction
                       className="w-4 h-4 text-black rounded border-gray-300 focus:ring-gray-200"
                     />
                     <span className="text-gray-700">
@@ -356,6 +423,7 @@ const UserRegistration = () => {
               name={field.id}
               placeholder={field.placeholder}
               onChange={handleInputChange}
+              readOnly // This prevents typing
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all outline-none"
             />
           </div>
@@ -623,22 +691,26 @@ const UserRegistration = () => {
               <div className="relative">
                 <select
                   value={newField.type}
-                  onChange={(e) =>
-                    setNewField({ ...newField, type: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setNewField({ 
+                      ...newField, 
+                      type: e.target.value,
+                      options: [] 
+                    });
+                    setOptionInput('');
+                  }}
                   className="w-full p-3 pr-10 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all appearance-none"
                 >
+                  <option value="" disabled>Choose field type</option>
                   {fieldTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
+                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
                   ))}
                 </select>
                 <IoIosArrowDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </div>
 
-            {['select', 'radio', 'checkbox'].includes(newField.type) && (
+            {['dropdown', 'radio', 'checkbox'].includes(newField.type) && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Options

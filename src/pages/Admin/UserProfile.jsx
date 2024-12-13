@@ -22,6 +22,17 @@ const UserProfile = () => {
   // Get user ID from URL params
   const { id } = useParams();
 
+  // Format date function
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).replace(/\//g, '-');
+  };
+
   // Fetch user data
   const fetchUserData = async () => {
     try {
@@ -154,19 +165,19 @@ const UserProfile = () => {
       {/* Sidebar */}
       <div className={`fixed top-0 left-0 h-screen w-64 bg-white z-10 transform border-r-2 border-grey-200 ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col md:w-72 lg:w-64 p-4`}>
-        <button onClick={toggleSidebar} className="md:hidden absolute top-4 right-4 text-grey-600">
+      } transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:flex flex-col lg:w-64 p-4`}>
+        <button onClick={toggleSidebar} className="lg:hidden absolute top-4 right-4 text-gray-600">
           <FaTimes size={24} />
         </button>
 
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center mt-16">
           <img
-            className="w-20 h-20 rounded-full mt-10 "
+            className="w-20 h-20 rounded-full"
             src="/profile-avatar.png"
             alt="Profile"
           />
           <h2 className="mt-4 text-lg font-semibold">{userData?.full_name}</h2>
-          {/* <p className="text-sm text-gray-500">{userData?.email}</p> */}
+          <p className="text-sm text-gray-500 w-[80%] truncate">{userData?.email}</p>
         </div>
 
         <nav className="mt-6">
@@ -192,41 +203,49 @@ const UserProfile = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-4 md:p-6 lg:p-8 w-full overflow-x-hidden">
-        {/* Content Sections */}
-        <div className="max-w-4xl mx-auto mt-12 md:mt-0 relative">
-          {/* Mobile Menu Button - Moved inside and repositioned */}
+      <div className="flex-1 p-8 overflow-x-hidden w-[900px]">
+        <div className="flex items-center justify-between mb-6">
           <button
             onClick={toggleSidebar}
-            className="md:hidden absolute -left-2 -top-8 z-12 text-gray-600"
+            className="lg:hidden p-2 text-gray-600 focus:outline-none"
           >
             <FaBars size={24} />
           </button>
-
+          <button
+            onClick={() => window.history.back()}
+            className="px-4 py-2 text-gray-600 hover:text-gray-900 flex items-center"
+          >
+            <span className="mr-2">←</span> Back to Users
+          </button>
+        </div>
+        {/* Content Sections */}
+        <div className="max-w-4xl mx-auto mt-12 md:mt-0 relative">
           {activeSection === 'user-info' && (
-            <div className="bg-white rounded-lg  p-4 md:p-6">
-              <h2 className="text-xl md:text-2xl font-semibold mb-6">User Information</h2>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                <div className="break-words">
-                  <p className="text-gray-600 mb-1">Full Name</p>
-                  <p className="font-medium">{userData?.full_name}</p>
-                </div>
-                <div className="break-words">
-                  <p className="text-gray-600 mb-1">Email</p>
-                  <p className="font-medium">{userData?.email}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600 mb-2">Phone</p>
-                  <p className="font-medium">{userData?.phone}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600 mb-2">Created Date</p>
-                  <p className="font-medium">{userData?.created_date}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600 mb-2">Event ID</p>
-                  <p className="font-medium">{userData?.event}</p>
+            <div className="bg-white p-6 rounded-lg">
+              <h1 className="text-2xl font-semibold mb-4">User Information</h1>
+              <hr className="w-full border mb-5" />
+              <div className="flex flex-col xl:flex-row items-start justify-between">
+                <div className="grid grid-cols-1 gap-4 mt-2">
+                  <div className="flex flex-col xl:flex-row">
+                    <p className="text-gray-500 w-52">Full Name</p>
+                    <p>{userData?.full_name}</p>
+                  </div>
+                  <div className="flex flex-col xl:flex-row">
+                    <p className="text-gray-500 w-52">Email</p>
+                    <p>{userData?.email}</p>
+                  </div>
+                  {/* <div className="flex flex-col xl:flex-row">
+                    <p className="text-gray-500 w-52">Phone</p>
+                    <p>{userData?.phone}</p>
+                  </div> */}
+                  <div className="flex flex-col xl:flex-row">
+                    <p className="text-gray-500 w-52">Created Date</p>
+                    <p>{formatDate(userData?.created_date)}</p>
+                  </div>
+                  {/* <div className="flex flex-col xl:flex-row">
+                    <p className="text-gray-500 w-52">Event ID</p>
+                    <p>{userData?.event}</p>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -243,7 +262,7 @@ const UserProfile = () => {
                       onClick={() => toggleDay(day.id, day.date)}
                       className="w-full bg-white border border-gray-500 rounded-md px-4 py-2 flex justify-between items-center hover:bg-gray-50"
                     >
-                      <span className="text-gray-700">Day {index + 1} - {day.date}</span>
+                      <span className="text-gray-700">Day {index + 1} - {formatDate(day.date)}</span>
                       {expandedDays[day.id] ? (
                         <FiChevronUp className="w-5 h-5 text-gray-500" />
                       ) : (

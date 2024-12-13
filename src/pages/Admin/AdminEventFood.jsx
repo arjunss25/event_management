@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './AdminEventFood.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { IoMdClose } from 'react-icons/io';
+import { IoClose } from 'react-icons/io5';
 import {
   addDay,
   removeDay,
@@ -20,7 +21,7 @@ import {
   postMealCategoryForDate,
   postRemoveMealCategory,
 } from '../../Redux/Slices/Admin/eventFoodSlice';
-import './AdminEventFood.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminEventFood = () => {
   const dispatch = useDispatch();
@@ -42,6 +43,8 @@ const AdminEventFood = () => {
   }, [selectedEvent, dispatch]);
 
   const [isListLoading, setIsListLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showError, setShowError] = useState(false);
 
   const refreshMealList = () => {
     setIsListLoading(true);
@@ -60,14 +63,24 @@ const AdminEventFood = () => {
       return;
     }
 
+    // When apply to all days is checked, we'll use postMealCategory regardless of which day is selected
     if (applyToAllDays) {
-      dispatch(postMealCategory(categoryName.trim())).then(() =>
-        refreshMealList()
-      );
+      dispatch(postMealCategory(categoryName.trim()))
+        .then(() => refreshMealList())
+        .catch((error) => {
+          setErrorMessage(error.message || 'Failed to add meal category');
+          setShowError(true);
+          setTimeout(() => setShowError(false), 1500);
+        });
     } else {
-      dispatch(
-        postMealCategoryForDate(categoryName.trim(), selectedDay.date)
-      ).then(() => refreshMealList());
+      // For single day, use postMealCategoryForDate with the selected day's date
+      dispatch(postMealCategoryForDate(categoryName.trim(), selectedDay.date))
+        .then(() => refreshMealList())
+        .catch((error) => {
+          setErrorMessage(error.message || 'Failed to add meal category');
+          setShowError(true);
+          setTimeout(() => setShowError(false), 1500);
+        });
     }
   };
 
@@ -90,6 +103,36 @@ const AdminEventFood = () => {
 
   const handleAddNextDay = () => {
     dispatch(addDay());
+  };
+
+  // Error Popup Component
+  const ErrorPopup = () => {
+    if (!showError) return null;
+
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          className="fixed bottom-4 right-4 bg-white rounded-xl shadow-lg p-4 flex items-start gap-3 z-50"
+        >
+          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
+            <span className="text-red-500 text-lg">!</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-medium text-gray-900">Error</h4>
+            <p className="text-gray-600">{errorMessage}</p>
+          </div>
+          <button
+            onClick={() => setShowError(false)}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+          >
+            <IoClose size={20} />
+          </button>
+        </motion.div>
+      </AnimatePresence>
+    );
   };
 
   return (
@@ -185,7 +228,7 @@ const AdminEventFood = () => {
             )}
         </h2>
 
-        <div className="flex gap-2 mb-6 add-cat-sec">
+        <div className="flex gap-2 mb-6 add-cat-sec relative">
           <input
             type="text"
             placeholder="Meal Category"
@@ -202,8 +245,18 @@ const AdminEventFood = () => {
               const input = document.querySelector(
                 'input[placeholder="Meal Category"]'
               );
-              handleAddMealCategory(input.value);
+              const value = input?.value?.trim();
+              
+              if (!value) {
+                setErrorMessage('Please enter a meal category');
+                setShowError(true);
+                setTimeout(() => setShowError(false), 1500);
+                return;
+              }
+              
+              handleAddMealCategory(value);
               input.value = '';
+              setShowError(false);
             }}
             className="px-6 py-3 bg-white text-black rounded-lg hover:bg-gray-100 transition-colors"
           >
@@ -211,6 +264,7 @@ const AdminEventFood = () => {
           </button>
         </div>
       </div>
+      <ErrorPopup />
     </div>
   );
 };

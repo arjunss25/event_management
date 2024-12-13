@@ -76,12 +76,11 @@ const AddEmployee = () => {
 
     fetchInitialData();
   }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-  
     if (name === 'name') {
-  
       if (!/^[A-Za-z\s]*$/.test(value)) {
         return;
       }
@@ -119,6 +118,7 @@ const AddEmployee = () => {
       }));
     }
   };
+
   // Modified to store single value instead of array
   const handleCheckboxChange = (fieldName, value) => {
     setFormData((prev) => ({
@@ -174,8 +174,8 @@ const AddEmployee = () => {
       newErrors.address = 'Address is required';
       isValid = false;
     } else if (formData.address.length < 5) {
-      newErrors.address = 'Address must be at least 5 characters long';
-      isValid = false;
+      // newErrors.address = 'Address must be at least 5 characters long';
+      // isValid = false;
     }
 
     // Position validation
@@ -190,7 +190,7 @@ const AddEmployee = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Perform validation before submission
     if (!validateForm()) {
       return;
@@ -240,7 +240,6 @@ const AddEmployee = () => {
         firebase_uid: firebaseUser.uid,
       };
 
-
       const response = await axiosInstance.post('/register-employee/', payload);
 
       if (response.data?.status === 'Success') {
@@ -259,7 +258,6 @@ const AddEmployee = () => {
         );
       }
     } catch (error) {
-
 
       // Set appropriate error message
       if (error.response) {
@@ -378,14 +376,11 @@ const AddEmployee = () => {
                   />
                   <div className="w-5 h-5 border-2 border-gray-300 rounded-full group-hover:border-purple-500 transition-colors">
                     <div
-                      className={`
-                      w-3 h-3 m-0.5 rounded-full transition-all
-                      ${
+                      className={`w-3 h-3 m-0.5 rounded-full transition-all ${
                         formData.extra_fields[field.field_name] === value
                           ? 'bg-purple-600 scale-100'
                           : 'bg-transparent scale-0'
-                      }
-                    `}
+                      }`}
                     />
                   </div>
                 </div>
@@ -419,14 +414,11 @@ const AddEmployee = () => {
                   />
                   <div className="w-5 h-5 border-2 border-gray-300 rounded group-hover:border-purple-500 transition-colors">
                     <div
-                      className={`
-                          w-3 h-3 m-0.5 rounded transition-all
-                          ${
-                            formData.extra_fields[field.field_name] === value
-                              ? 'bg-purple-600 scale-100'
-                              : 'bg-transparent scale-0'
-                          }
-                        `}
+                      className={`w-3 h-3 m-0.5 rounded transition-all ${
+                        formData.extra_fields[field.field_name] === value
+                          ? 'bg-purple-600 scale-100'
+                          : 'bg-transparent scale-0'
+                      }`}
                     />
                   </div>
                 </div>
@@ -452,13 +444,58 @@ const AddEmployee = () => {
   }
 
   if (error) {
-    return <div className="w-full p-6 text-red-600">{error}</div>;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 transform animate-error-popup">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-red-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold text-center text-gray-900 mb-2">
+            Error
+          </h3>
+          <p className="text-center text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="w-full py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
   }
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes error-popup {
+      0% { opacity: 0; transform: scale(0.95); }
+      70% { transform: scale(1.02); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .animate-error-popup {
+      animation: error-popup 0.3s ease-out forwards;
+    }
+  `;
+  document.head.appendChild(style);
 
   return (
     <div className="w-full p-6 bg-white rounded-lg shadow-sm">
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">Add Employee</h1>
-      
+
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-8">
           <div className="w-28 h-28 bg-gray-200 rounded-full flex items-center justify-center">

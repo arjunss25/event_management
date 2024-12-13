@@ -34,7 +34,11 @@ const AddCategory = () => {
   const [editedRoleName, setEditedRoleName] = useState('');
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [deleteStatus, setDeleteStatus] = useState(null); // 'loading', 'success', 'error'
+  const [deleteStatus, setDeleteStatus] = useState(null);
+  
+  // New state for success modal
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {}, [event_group_id]);
 
@@ -242,9 +246,21 @@ const AddCategory = () => {
       };
 
       setCategories([...categories, newCategory]);
+      
+      // Set success message and show success modal
+      setSuccessMessage(`${newCategoryLabel} category added successfully`);
+      setShowSuccessModal(true);
+
+      // Reset form fields
       setNewCategoryLabel('');
       setNewFieldType('');
       setNewOptions(['']);
+
+      // Automatically hide success modal after 3 seconds
+      setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 3000);
+
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message || 'Failed to add category'
@@ -253,6 +269,60 @@ const AddCategory = () => {
       setTimeout(() => setShowError(false), 1500);
     }
   };
+
+  // Success Modal Component
+  const SuccessModal = () => (
+    <AnimatePresence>
+      {showSuccessModal && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="fixed bottom-5 right-5 bg-white rounded-lg p-6 max-w-md"
+          style={{
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            border: '1px solid rgba(0,0,0,0.05)',
+          }}
+        >
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-6 w-6 text-green-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-gray-900">Success</h3>
+              <div className="mt-2">
+                <p className="text-sm text-gray-500">{successMessage}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   const closeEditModal = () => {
     setCategories(
@@ -420,7 +490,12 @@ const AddCategory = () => {
   );
 
   const handleAddRole = async () => {
-    if (!newRoleName.trim()) return;
+    if (!newRoleName.trim()) {
+      setErrorMessage('Position/Role name is required');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
 
     try {
       const payload = {
@@ -442,6 +517,7 @@ const AddCategory = () => {
     } catch (error) {
       setErrorMessage(error.response?.data?.message || 'Failed to add role');
       setShowError(true);
+      setTimeout(() => setShowError(false), 1500);
     }
   };
 
@@ -1036,6 +1112,7 @@ const AddCategory = () => {
           </motion.div>
         </div>
       )}
+       <SuccessModal />
       {showDeleteConfirmation && <DeleteConfirmationModal />}
       <ErrorPopup />
     </div>

@@ -36,6 +36,7 @@ import {
   selectLoadingEventEmployees,
   resetEventEmployees,
   addEmployeesToEvent,
+  resetSelectedPosition,
 } from '../../Redux/Slices/Admin/employeeAllocationSlice';
 import './AdminEmployeeAllocation.css';
 
@@ -249,17 +250,16 @@ const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }
   return (
     <>
       {filteredEmployees.map((employee) => (
-        <div key={employee.id} className="grid grid-cols-3 gap-4 items-center p-5 bg-white">
-          <div className="text-gray-600">#{employee.id}</div>
+        <div key={employee.id} className="grid grid-cols-2 gap-4 items-center p-5 bg-white">
           <div className="text-gray-800">{employee.name}</div>
           <button
             onClick={() => handleAddEmployee(employee)}
-            disabled={addingEmployee}
+            disabled={addingEmployee === employee.id}
             className={`px-3 py-1 bg-black text-white rounded text-sm hover:bg-gray-800 transition-colors ${
-              addingEmployee ? 'opacity-50 cursor-not-allowed' : ''
+              addingEmployee === employee.id ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {addingEmployee ? 'Adding...' : 'Add'}
+            {addingEmployee === employee.id ? 'Adding...' : 'Add'}
           </button>
         </div>
       ))}
@@ -306,7 +306,6 @@ const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => 
               >
                 <div>
                   <span className="font-medium">{employee.name}</span>
-                  <span className="text-sm text-gray-500 ml-2">#{employee.id}</span>
                 </div>
                 <button
                   onClick={() => onRemoveEmployee(section.position, employee.id, employee.name)}
@@ -382,6 +381,11 @@ const AdminEmployeeAllocation = () => {
   useEffect(() => {
     dispatch(fetchPositions());
     dispatch(fetchAllocatedEmployees());
+
+    // Reset when component unmounts
+    return () => {
+      dispatch(resetSelectedPosition());
+    };
   }, [dispatch]);
 
   useEffect(() => {
@@ -398,6 +402,11 @@ const AdminEmployeeAllocation = () => {
     if (selectedPosition) {
       dispatch(addEmployeeToAllocation(employee))
         .unwrap()
+        .then(() => {
+          // Refresh both allocated employees and available employees
+          dispatch(fetchAllocatedEmployees());
+          dispatch(fetchEmployeesByPosition(selectedPosition));
+        })
         .catch((error) => {
         });
     }

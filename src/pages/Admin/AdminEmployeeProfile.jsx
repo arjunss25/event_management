@@ -266,14 +266,14 @@ const AdminEmployeeProfile = () => {
           <FaTimes size={24} />
         </button>
 
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center mt-16">
           <img
             className="w-20 h-20 rounded-full border-2 border-black"
-            src="/profile_pic.svg"
+            // src={`https://event.neurocode.in${idCardData.image}`}
             alt="Profile"
           />
           <h2 className="mt-4 text-lg font-semibold">{employeeData?.name}</h2>
-          <p className="text-sm text-gray-500">{employeeData?.email}</p>
+          <p className="text-sm text-gray-500 w-[80%] truncate ">{employeeData?.email}</p>
         </div>
 
         <nav className="mt-6">
@@ -516,13 +516,13 @@ const AdminEmployeeProfile = () => {
                       )} */}
                     </div>
 
-                    {/* QR Code - Adjusted margin */}
+
                     <div className="mt-4 mb-4">
-                      <div className="bg-white p-1 rounded-lg shadow-md">
+                      <div className="bg-white p-1 rounded-lg shadow-md ">
                         <img
                           src={`https://event.neurocode.in${idCardData.qr_code_image}`}
                           alt="QR Code"
-                          className="w-16 h-16"
+                          className="w-16 h-16 "
                           onError={(e) =>
                             console.log()
                           }
@@ -540,7 +540,7 @@ const AdminEmployeeProfile = () => {
 
         {activeSection === 'check-in-out-log' && (
           <div className="bg-white p-6 rounded-lg">
-            <h1 className="text-2xl font-semibold mb-4">Daily Check-in Log</h1>
+            <h1 className="text-2xl font-semibold mb-4">Daily Check-In/Out Log</h1>
             <hr className="w-full border mb-5" />
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white">

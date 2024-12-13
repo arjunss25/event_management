@@ -226,7 +226,7 @@ const employeeAllocationSlice = createSlice({
     status: 'idle',
     error: null,
     searchTerm: '',
-    addingEmployee: false,
+    addingEmployee: null,  
     removingEmployee: false,
     removingPosition: false,
     loadingAllocated: false,
@@ -238,26 +238,23 @@ const employeeAllocationSlice = createSlice({
     selectedEventId: null,
   },
   reducers: {
-    setSelectedPosition: (state, action) => {
+    setSelectedPosition(state, action) {
       state.selectedPosition = action.payload;
-      state.employees = [];
-      if (!state.allocatedSections.find(section => section.position === action.payload)) {
-        state.allocatedSections.push({
-          position: action.payload,
-          employees: []
-        });
-      }
     },
-    setSearchTerm: (state, action) => {
+    resetSelectedPosition(state) {
+      state.selectedPosition = '';
+      state.employees = [];
+    },
+    setSearchTerm(state, action) {
       state.searchTerm = action.payload;
     },
-    clearError: (state) => {
+    clearError(state) {
       state.error = null;
     },
-    setShowImportModal: (state, action) => {
+    setShowImportModal(state, action) {
       state.showImportModal = action.payload;
     },
-    resetEventEmployees: (state) => {
+    resetEventEmployees(state) {
       state.eventEmployees = [];
       state.loadingEventEmployees = false;
     },
@@ -329,22 +326,16 @@ const employeeAllocationSlice = createSlice({
       })
 
       // Add Employee cases
-      .addCase(addEmployeeToAllocation.pending, (state) => {
-        state.addingEmployee = true;
+      .addCase(addEmployeeToAllocation.pending, (state, action) => {
+        state.addingEmployee = action.meta.arg.id;  
       })
-      .addCase(addEmployeeToAllocation.fulfilled, (state, action) => {
-        state.addingEmployee = false;
-        const sectionIndex = state.allocatedSections.findIndex(
-          section => section.position === state.selectedPosition
-        );
-        if (sectionIndex !== -1) {
-          state.allocatedSections[sectionIndex].employees.push(action.payload.employee);
-        }
+      .addCase(addEmployeeToAllocation.fulfilled, (state) => {
+        state.addingEmployee = null;
         state.error = null;
       })
       .addCase(addEmployeeToAllocation.rejected, (state, action) => {
-        state.addingEmployee = false;
-        state.error = action.payload.message;
+        state.addingEmployee = null;
+        state.error = action.payload?.message;
       })
 
       // Remove Employee cases
@@ -431,6 +422,7 @@ export const {
   clearError,
   setShowImportModal,
   resetEventEmployees,
+  resetSelectedPosition,
 } = employeeAllocationSlice.actions;
 
 // Selectors
