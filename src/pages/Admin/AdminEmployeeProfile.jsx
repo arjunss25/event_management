@@ -268,12 +268,14 @@ const AdminEmployeeProfile = () => {
 
         <div className="flex flex-col items-center mt-16">
           <img
-            className="w-20 h-20 rounded-full border-2 border-black"
-            // src={`https://event.neurocode.in${idCardData.image}`}
+            className="w-20 h-20 rounded-full object-cover"
+            src={employeeData?.image || 'default-profile-image-url'}
             alt="Profile"
           />
           <h2 className="mt-4 text-lg font-semibold">{employeeData?.name}</h2>
-          <p className="text-sm text-gray-500 w-[80%] truncate ">{employeeData?.email}</p>
+          <p className="text-sm text-gray-500 text-center px-2 break-words">
+            {employeeData?.email}
+          </p>
         </div>
 
         <nav className="mt-6">
@@ -380,6 +382,20 @@ const AdminEmployeeProfile = () => {
                   <p className="text-gray-500 w-52">Role</p>
                   <p>{employeeData?.role}</p>
                 </div>
+
+                {employeeData?.extra_fields && Object.entries(employeeData.extra_fields).length > 0 && (
+                  <>
+                    <div className="flex flex-col xl:flex-row mt-4">
+                      <p className="text-gray-500 w-52 font-semibold">Additional Information</p>
+                    </div>
+                    {Object.entries(employeeData.extra_fields).map(([key, value]) => (
+                      <div key={key} className="flex flex-col xl:flex-row">
+                        <p className="text-gray-500 w-52 capitalize">{key.replace(/_/g, ' ')}</p>
+                        <p>{value}</p>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
               <button
                 className="mt-4 px-4 py-2 text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"

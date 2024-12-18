@@ -651,7 +651,7 @@ const UserRegistration = () => {
                 type="submit"
                 className="w-full py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                Save Form
+                Continue
               </button>
             </form>
           )}

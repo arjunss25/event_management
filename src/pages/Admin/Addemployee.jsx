@@ -213,7 +213,6 @@ const AddEmployee = () => {
         );
         firebaseUser = userCredential.user;
       } catch (firebaseError) {
-
         // Handle specific Firebase errors
         if (firebaseError.code === 'auth/email-already-in-use') {
           throw new Error('An account with this email already exists.');
@@ -249,16 +248,13 @@ const AddEmployee = () => {
         if (firebaseUser) {
           try {
             await firebaseUser.delete();
-          } catch (deleteError) {
-
-          }
+          } catch (deleteError) {}
         }
         throw new Error(
           response.data?.message || 'Failed to register employee'
         );
       }
     } catch (error) {
-
       // Set appropriate error message
       if (error.response) {
         setError(
@@ -494,7 +490,9 @@ const AddEmployee = () => {
 
   return (
     <div className="w-full p-6 bg-white rounded-lg shadow-sm">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Add Employee</h1>
+      <h1 className="text-2xl font-semibold text-gray-800 mb-6">
+        Add Employee
+      </h1>
 
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-8">
@@ -506,18 +504,16 @@ const AddEmployee = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Form fields remain the same */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+            <div className="space-y-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 Name
               </label>
-              {fieldErrors.name && (
-                <p className="text-sm text-red-500 mb-1">{fieldErrors.name}</p>
-              )}
+              <div className="min-h-[20px]">
+                {fieldErrors.name && (
+                  <p className="text-sm text-red-500">{fieldErrors.name}</p>
+                )}
+              </div>
               <input
                 type="text"
                 id="name"
@@ -531,16 +527,15 @@ const AddEmployee = () => {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 e-mail
               </label>
-              {fieldErrors.email && (
-                <p className="text-sm text-red-500 mb-1">{fieldErrors.email}</p>
-              )}
+              <div className="min-h-[20px]">
+                {fieldErrors.email && (
+                  <p className="text-sm text-red-500">{fieldErrors.email}</p>
+                )}
+              </div>
               <input
                 type="email"
                 id="email"
@@ -554,16 +549,15 @@ const AddEmployee = () => {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="phone"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+            <div className="space-y-2">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                 Phone
               </label>
-              {fieldErrors.phone && (
-                <p className="text-sm text-red-500 mb-1">{fieldErrors.phone}</p>
-              )}
+              <div className="min-h-[20px]">
+                {fieldErrors.phone && (
+                  <p className="text-sm text-red-500">{fieldErrors.phone}</p>
+                )}
+              </div>
               <input
                 type="tel"
                 id="phone"
@@ -577,16 +571,15 @@ const AddEmployee = () => {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="address"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+            <div className="space-y-2">
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700">
                 Address
               </label>
-              {fieldErrors.address && (
-                <p className="text-sm text-red-500 mb-1">{fieldErrors.address}</p>
-              )}
+              <div className="min-h-[20px]">
+                {fieldErrors.address && (
+                  <p className="text-sm text-red-500">{fieldErrors.address}</p>
+                )}
+              </div>
               <input
                 type="text"
                 id="address"
@@ -600,16 +593,15 @@ const AddEmployee = () => {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="position"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+            <div className="space-y-2">
+              <label htmlFor="position" className="block text-sm font-medium text-gray-700">
                 Position
               </label>
-              {fieldErrors.position && (
-                <p className="text-sm text-red-500 mb-1">{fieldErrors.position}</p>
-              )}
+              <div className="min-h-[20px]">
+                {fieldErrors.position && (
+                  <p className="text-sm text-red-500">{fieldErrors.position}</p>
+                )}
+              </div>
               <div className="relative">
                 <select
                   id="position"
@@ -647,18 +639,15 @@ const AddEmployee = () => {
               </div>
             </div>
 
-            {/* Extra fields */}
             {extraFields.map((field) => (
-              <div key={field.field_name}>
-                <label
-                  htmlFor={field.field_name}
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
+              <div key={field.field_name} className="space-y-2">
+                <label htmlFor={field.field_name} className="block text-sm font-medium text-gray-700">
                   {field.field_name}
-                  {field.is_required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
+                  {field.is_required && <span className="text-red-500 ml-1">*</span>}
                 </label>
+                <div className="min-h-[20px]">
+                  {/* Add error handling for extra fields if needed */}
+                </div>
                 {renderExtraField(field)}
               </div>
             ))}
@@ -668,9 +657,7 @@ const AddEmployee = () => {
             <button
               type="button"
               className="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-colors"
-              onClick={() => {
-                navigate('/admin/employee-details');
-              }}
+              onClick={() => navigate('/admin/employee-details')}
             >
               Cancel
             </button>

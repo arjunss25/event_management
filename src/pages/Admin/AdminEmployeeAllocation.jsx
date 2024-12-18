@@ -230,6 +230,7 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
 // Employee List component
 const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }) => {
   const addingEmployee = useSelector(selectAddingEmployee);
+  const searchTerm = useSelector(selectSearchTerm);
 
   if (!selectedPosition) {
     return (
@@ -242,7 +243,10 @@ const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }
   if (filteredEmployees.length === 0) {
     return (
       <div className="text-center text-gray-500 py-4">
-        No employees available for this position. They might be all allocated or none exist.
+        {searchTerm 
+          ? "No employees found matching your search"
+          : "No employees available for this position. They might be all allocated or none exist."
+        }
       </div>
     );
   }
@@ -415,6 +419,12 @@ const AdminEmployeeAllocation = () => {
   const handleRemoveEmployee = (positionName, employeeId, employeeName) => {
     dispatch(removeEmployeeFromAllocation({ employeeId, positionName, employeeName }))
       .unwrap()
+      .then(() => {
+        // Refresh the employee list after successful removal
+        if (selectedPosition === positionName) {
+          dispatch(fetchEmployeesByPosition(selectedPosition));
+        }
+      })
       .catch((error) => {
       });
   };
@@ -437,10 +447,13 @@ const AdminEmployeeAllocation = () => {
         throw new Error('Position not found');
       }
 
-
       if (sectionToRemove.employees.length === 0) {
         dispatch(removeEmployeePosition.fulfilled(positionName));
         setConfirmationModal({ isOpen: false, positionToRemove: null });
+        // Refresh employee list if the removed position was selected
+        if (selectedPosition === positionName) {
+          dispatch(fetchEmployeesByPosition(selectedPosition));
+        }
         return;
       }
 
@@ -448,6 +461,11 @@ const AdminEmployeeAllocation = () => {
         positionName,
         employees: sectionToRemove.employees
       })).unwrap();
+
+      // Refresh employee list if the removed position was selected
+      if (selectedPosition === positionName) {
+        dispatch(fetchEmployeesByPosition(selectedPosition));
+      }
 
       setConfirmationModal({ isOpen: false, positionToRemove: null });
     } catch (error) {
