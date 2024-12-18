@@ -122,7 +122,7 @@ const UserRegistration = () => {
   };
 
   const handleAddField = async () => {
-    // Trim the label to remove any whitespace
+    
     const trimmedLabel = newField.label.trim();
 
     // Validation checks
@@ -135,7 +135,6 @@ const UserRegistration = () => {
       return;
     }
 
-    // Check if field type is selected
     if (!newField.type) {
       setNotification({
         show: true,
@@ -145,7 +144,7 @@ const UserRegistration = () => {
       return;
     }
 
-    // Check if the field label already exists
+    
     const isDuplicateField = allFormFields.some(
       (field) => field.label.toLowerCase() === trimmedLabel.toLowerCase()
     );
@@ -263,10 +262,7 @@ const UserRegistration = () => {
     e.preventDefault();
 
     try {
-      // Uncomment when backend is ready
-      // const response = await axiosConfig.post("/user-register/", formData);
-      // console.log("Submit Response:", response.data);
-
+      
       setFormData({});
       setGeneratedLink('/admin/confirmation');
     } catch (error) {}
@@ -376,7 +372,7 @@ const UserRegistration = () => {
                       name={field.id}
                       value={option.value || option}
                       onChange={handleInputChange}
-                      disabled // This prevents interaction
+                      disabled 
                       className="w-4 h-4 text-black border-gray-300 focus:ring-gray-200"
                     />
                     <span className="text-gray-700">
@@ -664,7 +660,7 @@ const UserRegistration = () => {
 
       {/* Field Addition Section */}
       <div className="w-full right-sect lg:w-1/2">
-        <div className="bg-black rounded-2xl shadow-sm p-5 sm:p-8">
+        <div className="bg-black rounded-2xl shadow-sm p-5 sm:p-8 h-full">
           <h3 className="text-xl font-semibold mb-8 text-white">
             Customize Registration Form
           </h3>

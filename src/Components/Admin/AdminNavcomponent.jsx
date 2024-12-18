@@ -34,7 +34,7 @@ export { eventBus }; // Export for use in SidebarAdmin
 const AdminNavcomponent = ({ toggleSidebar }) => {
   const [showProfile, setShowProfile] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  const [logoImage, setLogoImage] = useState('/Neurocode.png');
+  const [logoImage, setLogoImage] = useState('/profile-avatar.png');
   const user = useSelector(selectUser);
   const dispatch = useDispatch();
   const [employeeDetails, setEmployeeDetails] = useState(null);
@@ -412,7 +412,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
         {/* profile-icon */}
         <div className="profile-icon relative">
           <div
-            className="w-10 h-10 rounded-full border-[1px] border-[#636e72] flex items-center justify-center cursor-pointer overflow-hidden"
+            className="w-10 h-10 rounded-full  flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={() => setShowProfile(!showProfile)}
           >
             <img
@@ -421,7 +421,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
               src={logoImage}
               alt="Profile"
               onError={(e) => {
-                e.target.src = '/Neurocode.png';
+                e.target.src = '/profile-avatar.png';
               }}
             />
           </div>
@@ -439,7 +439,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
               <div className="px-4 py-3 border-b border-gray-100">
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-20 h-20 mx-auto mb-3 rounded-full border-2 border-dashed border-gray-300  cursor-pointer hover:border-blue-400 transition-all duration-300 relative"
+                  className="w-20 h-20 mx-auto mb-3 rounded-full border-2   cursor-pointer hover:border-blue-400 transition-all duration-300 relative"
                 >
                   <img
                     key={refreshKey}
@@ -447,7 +447,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                     alt="Profile"
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
-                      e.target.src = '/Neurocode.png';
+                      e.target.src = '/profile-avatar.png';
                     }}
                   />
                   <Camera className="absolute bottom-[-5px] right-[-5px] text-red-500" />

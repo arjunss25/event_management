@@ -42,6 +42,10 @@ const AdminEventFood = () => {
     }
   }, [selectedEvent, dispatch]);
 
+  useEffect(() => {
+    dispatch(setApplyToAllDays(false));
+  }, [dispatch]);
+
   const [isListLoading, setIsListLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
@@ -134,6 +138,21 @@ const AdminEventFood = () => {
       </AnimatePresence>
     );
   };
+
+  // Add this useEffect to set the first day as selected when component mounts
+  useEffect(() => {
+    if (days && days.length > 0) {
+      dispatch(setSelectedDay(days[0].id));
+    }
+  }, [days, dispatch]);
+
+  // Add this useEffect for cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      // Reset selected day when component unmounts
+      dispatch(setSelectedDay(null));
+    };
+  }, [dispatch]);
 
   return (
     <div className="flex flex-col-reverse lg:flex-row w-full gap-4 meal-sec-main">

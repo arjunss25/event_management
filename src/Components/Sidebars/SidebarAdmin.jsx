@@ -16,7 +16,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isEmployeesOpen, setIsEmployeesOpen] = useState(false);
-  const [logoImage, setLogoImage] = useState('/Neurocode2.png');
+  const [logoImage, setLogoImage] = useState('/profile-avatar.png');
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -81,14 +81,14 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
 
           {/* Logo section */}
           <div className="logo-section w-full mt-10 h-[150px] flex items-center justify-center">
-            <div className="w-[80px] h-[80px] rounded-full overflow-hidden border-2 border-gray-200">
+            <div className="w-[80px] h-[80px] rounded-full overflow-hidden ">
               <img
                 key={refreshKey}
                 className="w-full h-full object-cover"
                 src={logoImage}
                 alt="Logo"
                 onError={(e) => {
-                  e.target.src = '/Neurocode2.png';
+                  e.target.src = '/profile-avatar.png';
                 }}
               />
             </div>
