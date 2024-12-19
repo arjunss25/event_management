@@ -258,80 +258,72 @@ const EventgroupsSuperadmin = () => {
             >
               <div className="w-full max-w-6xl mx-auto px-4 md:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-16">
-                  <div className="text-center">
+                  <div className="text-center relative">
                     <label className="block text-gray-700 mb-2 text-left">
                       Event Group Name
                     </label>
-                    <div className="h-[60px]">
-                      {formErrors.eventGroupName && (
-                        <div className="text-red-500 text-sm mb-1 text-left">
-                          {formErrors.eventGroupName}
-                        </div>
-                      )}
-                      <input
-                        type="text"
-                        name="eventGroupName"
-                        className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter event group name"
-                      />
-                    </div>
+                    {formErrors.eventGroupName && (
+                      <div className="absolute text-red-500 text-sm text-left -top-4">
+                        {formErrors.eventGroupName}
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      name="eventGroupName"
+                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter event group name"
+                    />
                   </div>
 
-                  <div className="text-center">
+                  <div className="text-center relative">
                     <label className="block text-gray-700 mb-2 text-left">
                       Owner's Name
                     </label>
-                    <div className="h-[60px]">
-                      {formErrors.ownerName && (
-                        <div className="text-red-500 text-sm mb-1 text-left">
-                          {formErrors.ownerName}
-                        </div>
-                      )}
-                      <input
-                        type="text"
-                        name="ownerName"
-                        className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter owner's name"
-                      />
-                    </div>
+                    {formErrors.ownerName && (
+                      <div className="absolute text-red-500 text-sm text-left -top-4">
+                        {formErrors.ownerName}
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      name="ownerName"
+                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter owner's name"
+                    />
                   </div>
 
-                  <div className="text-center">
+                  <div className="text-center relative">
                     <label className="block text-gray-700 mb-2 text-left">
                       Email
                     </label>
-                    <div className="h-[60px]">
-                      {formErrors.email && (
-                        <div className="text-red-500 text-sm mb-1 text-left">
-                          {formErrors.email}
-                        </div>
-                      )}
-                      <input
-                        type="text"
-                        name="email"
-                        className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter email address"
-                      />
-                    </div>
+                    {formErrors.email && (
+                      <div className="absolute text-red-500 text-sm text-left -top-4">
+                        {formErrors.email}
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      name="email"
+                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter email address"
+                    />
                   </div>
 
-                  <div className="text-center">
+                  <div className="text-center relative">
                     <label className="block text-gray-700 mb-2 text-left">
                       Phone
                     </label>
-                    <div className="h-[60px]">
-                      {formErrors.phone && (
-                        <div className="text-red-500 text-sm mb-1 text-left">
-                          {formErrors.phone}
-                        </div>
-                      )}
-                      <input
-                        type="tel"
-                        name="phone"
-                        className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter phone number"
-                      />
-                    </div>
+                    {formErrors.phone && (
+                      <div className="absolute text-red-500 text-sm text-left -top-4">
+                        {formErrors.phone}
+                      </div>
+                    )}
+                    <input
+                      type="tel"
+                      name="phone"
+                      className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter phone number"
+                    />
                   </div>
                 </div>
 

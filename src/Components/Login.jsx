@@ -14,6 +14,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -45,9 +46,36 @@ const Login = () => {
     }
   }, [dispatch, navigate]);
 
+  const validateForm = () => {
+    const errors = {};
+    
+    // Email validation
+    if (!email) {
+      errors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    // Password validation
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (password.length < 6) {
+      errors.password = 'Password must be at least 6 characters long';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setValidationErrors({});
+
+    // Validate form before submission
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       const response = await axios.post(
@@ -181,7 +209,7 @@ const Login = () => {
 
   return (
     <div className="w-full h-auto lg:h-screen flex items-center justify-center p-10 lg:p-0">
-      <div className="w-[90%] lg:w-[70vw] h-auto lg:h-[80vh] flex flex-col lg:flex-row items-center justify-center gap-7 lg:gap-[10%] rounded-lg shadow-[0_0_5px_rgba(0,0,0,0.2)] py-5 lg:p-0">
+      <div className="w-[90%] lg:w-[70vw] h-auto lg:h-[80vh] flex flex-col lg:flex-row items-center justify-center gap-7 lg:gap-[10%] rounded-lg  py-5 lg:p-0">
         {/* Left image section */}
         <div className="left w-[90%] lg:w-[40%] h-auto lg:h-[90%] bg-[#EBF5FF] rounded-lg flex flex-col items-center justify-between object-contain">
           <img
@@ -209,8 +237,26 @@ const Login = () => {
             </p>
           </div>
 
-          {/* Error message */}
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {/* Error messages container */}
+          {(validationErrors.email || validationErrors.password) && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+              <div className="flex flex-col">
+                {validationErrors.email && (
+                  <p className="text-red-700 text-sm">{validationErrors.email}</p>
+                )}
+                {validationErrors.password && (
+                  <p className="text-red-700 text-sm">{validationErrors.password}</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* General error message */}
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
 
           {/* Form */}
           <form
@@ -219,23 +265,26 @@ const Login = () => {
           >
             <label>Email</label>
             <input
-              type="email"
-              className="form-field w-full lg:w-[70%] h-9 bg-[#EBF5FF] rounded text-[0.8rem] pl-3"
+              type="text"
+              className={`form-field w-full lg:w-[70%] h-9 bg-[#EBF5FF] rounded text-[0.8rem] pl-3 ${
+                validationErrors.email ? 'border-2 border-red-500' : ''
+              }`}
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
 
             <label>Password</label>
             <div className="relative w-full lg:w-[70%]">
               <input
                 type={showPassword ? 'text' : 'password'}
-                className="form-field w-full h-9 bg-[#EBF5FF] rounded text-[0.8rem] pl-3 pr-10"
+                className={`form-field w-full h-9 bg-[#EBF5FF] rounded text-[0.8rem] pl-3 pr-10 ${
+                  validationErrors.password ? 'border-2 border-red-500' : ''
+                }`}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                autoComplete="current-password"
               />
               <button
                 type="button"

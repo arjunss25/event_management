@@ -143,9 +143,9 @@ const AdminDashboard = () => {
                     <span className="font-normal bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                       {event_name}
                     </span>
-                    <span className="text-sm ml-3 px-3 py-1 bg-purple-50 text-purple-700 rounded-full">
+                    {/* <span className="text-sm ml-3 px-3 py-1 bg-purple-50 text-purple-700 rounded-full">
                       Active
-                    </span>
+                    </span> */}
                   </>
                 ) : (
                   'Dashboard'

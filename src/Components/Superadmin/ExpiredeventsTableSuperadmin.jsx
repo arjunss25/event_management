@@ -39,6 +39,10 @@ const ExpiredeventsTableSuperadmin = () => {
     message: '',
   });
   const [isSendingMail, setIsSendingMail] = useState(false);
+  const [isRefunding, setIsRefunding] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [refundedEvents, setRefundedEvents] = useState(new Set());
 
   const handleSendMail = async (eventName, eventGroup, eventId) => {
     setIsSendingMail(true);
@@ -57,6 +61,34 @@ const ExpiredeventsTableSuperadmin = () => {
       });
     } finally {
       setIsSendingMail(false);
+    }
+  };
+
+  const handleRefund = (event) => {
+    setSelectedEvent(event);
+    setShowConfirmModal(true);
+  };
+
+  const confirmRefund = async () => {
+    setIsRefunding(true);
+    try {
+      // Replace with your actual API endpoint
+      await axiosInstance.post(`/refund-event/${selectedEvent.eventId}/`);
+      setRefundedEvents(prev => new Set([...prev, selectedEvent.eventId]));
+      setNotification({
+        show: true,
+        type: 'success',
+        message: 'Event refunded successfully!',
+      });
+    } catch (error) {
+      setNotification({
+        show: true,
+        type: 'error',
+        message: 'Failed to refund event. Please try again.',
+      });
+    } finally {
+      setIsRefunding(false);
+      setShowConfirmModal(false);
     }
   };
 
@@ -142,13 +174,16 @@ const ExpiredeventsTableSuperadmin = () => {
   );
 
   const getStatusStyle = (status) => {
-    if (status === 'Completed') {
+    if (status === 'completed') {
       return 'bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
     }
-    if (status === 'Cancelled') {
+    if (status === 'cancelled') {
       return 'bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
     }
-    return 'bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+    if (status === 'advance Paid') {
+      return 'bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+    }
+    return 'bg-yellow-100 text-yellow-00 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
   };
 
   if (loading)
@@ -304,6 +339,20 @@ const ExpiredeventsTableSuperadmin = () => {
                               )}
                             </button>
                           )}
+                        {event.status.toLowerCase() === 'cancelled' &&
+                          event.paymentStatus === 'Completed' && (
+                          <button
+                            onClick={() => handleRefund(event)}
+                            disabled={refundedEvents.has(event.eventId)}
+                            className={`${
+                              refundedEvents.has(event.eventId)
+                                ? 'bg-gray-400'
+                                : 'bg-red-500 hover:bg-red-600'
+                            } text-white px-4 py-2 rounded-md text-sm`}
+                          >
+                            {refundedEvents.has(event.eventId) ? 'Refunded' : 'Refund'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -317,6 +366,37 @@ const ExpiredeventsTableSuperadmin = () => {
           setNotification={setNotification}
         />
       </div>
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-xl font-semibold text-center text-gray-900 mb-4">
+              Confirm Refund
+            </h3>
+            <p className="text-center text-gray-600 mb-6">
+              Are you sure you want to refund this event?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmRefund}
+                disabled={isRefunding}
+                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                {isRefunding ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mx-auto"></div>
+                ) : (
+                  'Yes, Refund'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

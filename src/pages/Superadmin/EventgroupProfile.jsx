@@ -66,6 +66,8 @@ const EventgroupProfile = () => {
 
   const [editFormErrors, setEditFormErrors] = useState({});
 
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!id) {
@@ -191,6 +193,7 @@ const EventgroupProfile = () => {
     }
 
     try {
+      setIsSaving(true);
       let changedFields = {
         id: eventId,
       };
@@ -266,6 +269,8 @@ const EventgroupProfile = () => {
         type: 'error',
         message: err.message || 'Unable to save changes. Please try again.',
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -602,9 +607,17 @@ const EventgroupProfile = () => {
                 </button>
                 <button
                   onClick={saveChanges}
-                  className="px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200"
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  Save Changes
+                  {isSaving ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
               </div>
             </div>

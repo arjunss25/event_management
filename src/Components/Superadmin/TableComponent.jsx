@@ -657,16 +657,16 @@ const EventsTable = () => {
 
     switch (normalizedStatus) {
       case 'pending':
-        return `${baseStyle} bg-[#FFE6E6] text-[#CC0000]`;
+        return `${baseStyle} bg-red-100 text-red-800`;
       case 'advance paid':
       case 'advance':
-        return `${baseStyle} bg-[#FFF3E6] text-[#CC7700]`;
+        return `${baseStyle} bg-yellow-100 text-yellow-600`;
       case 'completed':
-        return `${baseStyle} bg-[#E6FFE6] text-[#008000]`;
+        return `${baseStyle} bg-green-500 text-white`;
       case 'ongoing':
-        return `${baseStyle} bg-[#E6F3FF] text-[#0066CC]`;
+        return `${baseStyle} bg-blue-100 text-blue-800`;
       default:
-        return `${baseStyle} bg-[#F0F0F0] text-[#666666]`;
+        return `${baseStyle} bg-gray-100 text-gray-800`;
     }
   };
 

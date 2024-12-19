@@ -8,7 +8,8 @@ import QrScanner from 'react-qr-scanner';
 import axiosInstance from '../../axiosConfig';
 import EmployeeCheckinDetails from './EmployeeCheckinDetails';
 import imageCompression from 'browser-image-compression';
-import { ImagePlus, Camera } from 'lucide-react';
+import { ImagePlus, Camera, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // const originalConsoleError = console.error;
 // console.error = (...args) => {
@@ -21,17 +22,18 @@ import { ImagePlus, Camera } from 'lucide-react';
 const eventBus = {
   listeners: new Set(),
   emit() {
-    this.listeners.forEach(listener => listener());
+    this.listeners.forEach((listener) => listener());
   },
   subscribe(listener) {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
-  }
+  },
 };
 
 export { eventBus }; // Export for use in SidebarAdmin
 
 const AdminNavcomponent = ({ toggleSidebar }) => {
+  const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [logoImage, setLogoImage] = useState('/profile-avatar.png');
@@ -59,8 +61,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
             : `https://event.neurocode.in${response.data.data.image}`;
           setLogoImage(imageUrl);
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     };
 
     fetchEventLogo();
@@ -200,9 +201,7 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     }
   };
 
-  const handleError = (error) => {
-
-  };
+  const handleError = (error) => {};
 
   const previewStyle = {
     width: '100%',
@@ -278,21 +277,27 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
     setUploadError(null);
 
     try {
-      const response = await axiosInstance.patch('/update-event-dp/', formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          'Accept': 'application/json'
-        },
-        maxBodyLength: Infinity,
-        maxContentLength: Infinity
-      });
+      const response = await axiosInstance.patch(
+        '/update-event-dp/',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Accept: 'application/json',
+          },
+          maxBodyLength: Infinity,
+          maxContentLength: Infinity,
+        }
+      );
       const newImageUrl = response.data.data.image;
       setLogoImage(newImageUrl);
       setShowProfile(false);
-      setRefreshKey(prevKey => prevKey + 1);
-      eventBus.emit(); // Notify other components to refresh
+      setRefreshKey((prevKey) => prevKey + 1);
+      eventBus.emit();
     } catch (error) {
-      setUploadError(error.response?.data?.message || 'Upload failed. Please try again.');
+      setUploadError(
+        error.response?.data?.message || 'Upload failed. Please try again.'
+      );
     } finally {
       setIsUploading(false);
     }
@@ -304,116 +309,40 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
       className="w-full font-bold h-[8vh] flex items-center justify-between lg:justify-end px-5 py-8 lg:px-10 lg:py-10 fixed top-0 right-0 bg-white z-[9]"
     >
       {/* left-section for small screens */}
-      <div className="left-section block lg:hidden" onClick={toggleSidebar}>
-        <div className="menubar text-[2rem] text-[#636e72] hover:text-black cursor-pointer">
+      <div className="block lg:hidden">
+        <button 
+          onClick={toggleSidebar}
+          className="text-[2rem] text-[#636e72] hover:text-black transition-colors duration-200"
+        >
           <HiMenuAlt1 />
-        </div>
+        </button>
       </div>
 
       {/* right-section */}
-      <div className="right-sec flex items-center gap-5">
-        {/* QR Scanner */}
+      <div className="flex items-center space-x-6">
+        {/* Events List Button */}
+        <button
+          onClick={() => navigate('/admin/events-list')}
+          className="flex items-center gap-2 text-[#636e72] hover:text-black transition-colors duration-200"
+        >
+          <Calendar className="w-6 h-6" />
+          <span className="hidden md:inline text-sm font-medium">Events</span>
+        </button>
+
+        {/* QR Scanner Button */}
+        <button
+          onClick={toggleScanner}
+          className="flex items-center gap-2 text-[#636e72] hover:text-black transition-colors duration-200"
+        >
+          <BsQrCodeScan className="w-6 h-6" />
+          <span className="hidden md:inline text-sm font-medium">Scan</span>
+        </button>
+
+        {/* Profile Button */}
         <div className="relative">
           <button
-            onClick={toggleScanner}
-            className="text-[2rem] text-[#636e72] hover:text-black transition-colors duration-200"
-          >
-            <BsQrCodeScan />
-          </button>
-
-          {/* Enhanced Scanner Modal */}
-          {showScanner && (
-            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-xl shadow-2xl relative max-w-md w-full">
-                {/* Header */}
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-800">
-                      Scan QR Code
-                    </h2>
-                    <button
-                      onClick={closeScanner}
-                      className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
-                    >
-                      <IoCloseOutline className="text-2xl text-gray-600" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Scanner Container */}
-                <div className="p-6">
-                  <div className="relative w-full aspect-square max-w-[400px] mx-auto rounded-lg overflow-hidden bg-gray-900">
-                    {isScanning && (
-                      <QrScanner
-                        key={`scanner-${pauseScanning}`}
-                        delay={300}
-                        onError={handleError}
-                        onScan={handleScan}
-                        style={previewStyle}
-                        constraints={{
-                          video: { facingMode: 'environment' },
-                        }}
-                      />
-                    )}
-                    <div className="absolute inset-0 border-2 border-white/30">
-                      <div className="absolute inset-0 border-2 border-white/30 m-8"></div>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-600 text-center mt-4 text-sm">
-                    Position the QR code within the frame to scan
-                  </p>
-                </div>
-
-                {/* Add Status Modal */}
-                {showStatusModal && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div
-                      className={`bg-white p-6 rounded-lg shadow-xl max-w-sm mx-4 ${
-                        scanResult.success
-                          ? 'border-green-500'
-                          : 'border-red-500'
-                      } border-2`}
-                    >
-                      <div
-                        className={`text-lg font-semibold mb-2 ${
-                          scanResult.success ? 'text-green-600' : 'text-red-600'
-                        }`}
-                      >
-                        {scanResult.success
-                          ? 'Scan Successful!'
-                          : 'Scan Failed!'}
-                      </div>
-                      <p className="text-gray-600 mb-4">{scanResult.message}</p>
-                      <button
-                        onClick={handleStatusModalClose}
-                        className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                      >
-                        Continue Scanning
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div className="p-4 border-t border-gray-200 flex justify-end">
-                  <button
-                    onClick={closeScanner}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
-                  >
-                    Close Scanner
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* profile-icon */}
-        <div className="profile-icon relative">
-          <div
-            className="w-10 h-10 rounded-full  flex items-center justify-center cursor-pointer overflow-hidden"
             onClick={() => setShowProfile(!showProfile)}
+            className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors duration-200"
           >
             <img
               key={refreshKey}
@@ -424,8 +353,8 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
                 e.target.src = '/profile-avatar.png';
               }}
             />
-          </div>
-
+          </button>
+          
           {/* Profile Dropdown */}
           {showProfile && (
             <div className="absolute right-0 top-10 w-64 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
@@ -494,6 +423,93 @@ const AdminNavcomponent = ({ toggleSidebar }) => {
           )}
         </div>
       </div>
+
+      {/* Enhanced Scanner Modal */}
+      {showScanner && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl relative max-w-md w-full">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Scan QR Code
+                </h2>
+                <button
+                  onClick={closeScanner}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                >
+                  <IoCloseOutline className="text-2xl text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scanner Container */}
+            <div className="p-6">
+              <div className="relative w-full aspect-square max-w-[400px] mx-auto rounded-lg overflow-hidden bg-gray-900">
+                {isScanning && (
+                  <QrScanner
+                    key={`scanner-${pauseScanning}`}
+                    delay={300}
+                    onError={handleError}
+                    onScan={handleScan}
+                    style={previewStyle}
+                    constraints={{
+                      video: { facingMode: 'environment' },
+                    }}
+                  />
+                )}
+                <div className="absolute inset-0 border-2 border-white/30">
+                  <div className="absolute inset-0 border-2 border-white/30 m-8"></div>
+                </div>
+              </div>
+
+              <p className="text-gray-600 text-center mt-4 text-sm">
+                Position the QR code within the frame to scan
+              </p>
+            </div>
+
+            {/* Add Status Modal */}
+            {showStatusModal && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <div
+                  className={`bg-white p-6 rounded-lg shadow-xl max-w-sm mx-4 ${
+                    scanResult.success
+                      ? 'border-green-500'
+                      : 'border-red-500'
+                  } border-2`}
+                >
+                  <div
+                    className={`text-lg font-semibold mb-2 ${
+                      scanResult.success ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    {scanResult.success
+                      ? 'Scan Successful!'
+                      : 'Scan Failed!'}
+                  </div>
+                  <p className="text-gray-600 mb-4">{scanResult.message}</p>
+                  <button
+                    onClick={handleStatusModalClose}
+                    className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    Continue Scanning
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={closeScanner}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
+              >
+                Close Scanner
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {employeeDetails && (
         <EmployeeCheckinDetails
