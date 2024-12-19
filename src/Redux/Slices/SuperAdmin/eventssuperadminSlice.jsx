@@ -39,7 +39,13 @@ export const updateEvent = createAsyncThunk(
   'events/updateEvent',
   async ({ eventGroupId, eventData }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.put(`/eventgroup-events/${eventGroupId}/`, eventData);
+      // Format the date to yyyy-mm-dd if it exists in eventData
+      const formattedEventData = {
+        ...eventData,
+        date: eventData.date ? new Date(eventData.date).toISOString().split('T')[0] : eventData.date
+      };
+
+      const response = await axiosInstance.put(`/eventgroup-events/${eventGroupId}/`, formattedEventData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to update event');

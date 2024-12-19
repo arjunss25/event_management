@@ -34,7 +34,10 @@ const SuperadminLayout = () => {
 
         {/* Page content with proper padding and scrolling */}
         <main className="flex-1">
+          <div className="out-main pt-[10vh]">
           <Outlet />
+          </div>
+          
         </main>
       </div>
     </div>

@@ -108,7 +108,7 @@ const ExpiredeventsTableSuperadmin = () => {
         setSearchError(null);
 
         // Filter the existing events array by event name only
-        const filteredEvents = events.filter(event => 
+        const filteredEvents = events.filter((event) =>
           event.eventName.toLowerCase().includes(searchTerm.toLowerCase())
         );
 
@@ -279,8 +279,9 @@ const ExpiredeventsTableSuperadmin = () => {
                         </div>
                       </td>
                       <td className="px-6 py-6 whitespace-nowrap">
-                        {event.status === 'Completed' &&
-                          event.paymentStatus !== 'Complete' && (
+                        {event.status.toLowerCase() === 'completed' &&
+                          (event.paymentStatus === 'Pending' ||
+                            event.paymentStatus === 'Advance Paid') && (
                             <button
                               onClick={() =>
                                 handleSendMail(
@@ -290,7 +291,9 @@ const ExpiredeventsTableSuperadmin = () => {
                                 )
                               }
                               className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm ${
-                                isSendingMail ? 'opacity-50 cursor-not-allowed' : ''
+                                isSendingMail
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : ''
                               }`}
                               disabled={isSendingMail}
                             >

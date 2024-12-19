@@ -64,6 +64,8 @@ const EventgroupProfile = () => {
     updateError,
   } = useSelector((state) => state.eventGroups);
 
+  const [editFormErrors, setEditFormErrors] = useState({});
+
   useEffect(() => {
     const fetchData = async () => {
       if (!id) {
@@ -127,10 +129,53 @@ const EventgroupProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setTempData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    if (name === 'ownerName') {
+      const noNumbers = value.replace(/[0-9]/g, '');
+      setTempData(prev => ({
+        ...prev,
+        [name]: noNumbers,
+      }));
+    } else {
+      setTempData(prev => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
+
+  const validateEditFields = (section, data) => {
+    const errors = {};
+
+    if (section === 'basic-info') {
+      if (!data.eventGroupName?.trim()) {
+        errors.eventGroupName = 'Event Group Name is required';
+      } else if (data.eventGroupName.length < 2) {
+        errors.eventGroupName = 'Event Group Name must be at least 2 characters';
+      }
+
+      if (!data.ownerName?.trim()) {
+        errors.ownerName = 'Owner Name is required';
+      } else if (data.ownerName.length < 2) {
+        errors.ownerName = 'Owner Name must be at least 2 characters';
+      } else if (/\d/.test(data.ownerName)) {
+        errors.ownerName = 'Owner Name cannot contain numbers';
+      }
+    } else if (section === 'contact-info') {
+      if (!data.email?.trim()) {
+        errors.email = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        errors.email = 'Please enter a valid email address';
+      }
+
+      if (!data.phone?.trim()) {
+        errors.phone = 'Phone number is required';
+      } else if (!/^\d{10}$/.test(data.phone.replace(/\D/g, ''))) {
+        errors.phone = 'Please enter a valid 10-digit phone number';
+      }
+    }
+
+    return errors;
   };
 
   const saveChanges = async () => {
@@ -168,6 +213,14 @@ const EventgroupProfile = () => {
           company_name: basicInfo.eventGroupName,
           owner_name: basicInfo.ownerName,
         };
+      }
+
+      // Validate fields before saving
+      const validationErrors = validateEditFields(editSection, tempData);
+      setEditFormErrors(validationErrors);
+
+      if (Object.keys(validationErrors).length > 0) {
+        return;
       }
 
       // Update through Redux and get the response
@@ -481,8 +534,13 @@ const EventgroupProfile = () => {
                         name="eventGroupName"
                         value={tempData.eventGroupName || ''}
                         onChange={handleInputChange}
-                        className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          editFormErrors.eventGroupName ? 'border-red-500' : ''
+                        }`}
                       />
+                      {editFormErrors.eventGroupName && (
+                        <p className="text-red-500 text-sm mt-1">{editFormErrors.eventGroupName}</p>
+                      )}
                     </label>
                     <label className="block mb-4">
                       <span className="text-gray-700">Owner's Name</span>
@@ -491,8 +549,13 @@ const EventgroupProfile = () => {
                         name="ownerName"
                         value={tempData.ownerName || ''}
                         onChange={handleInputChange}
-                        className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          editFormErrors.ownerName ? 'border-red-500' : ''
+                        }`}
                       />
+                      {editFormErrors.ownerName && (
+                        <p className="text-red-500 text-sm mt-1">{editFormErrors.ownerName}</p>
+                      )}
                     </label>
                   </>
                 ) : (
@@ -504,8 +567,13 @@ const EventgroupProfile = () => {
                         name="email"
                         value={tempData.email || ''}
                         onChange={handleInputChange}
-                        className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          editFormErrors.email ? 'border-red-500' : ''
+                        }`}
                       />
+                      {editFormErrors.email && (
+                        <p className="text-red-500 text-sm mt-1">{editFormErrors.email}</p>
+                      )}
                     </label>
                     <label className="block mb-4">
                       <span className="text-gray-700">Phone</span>
@@ -514,19 +582,14 @@ const EventgroupProfile = () => {
                         name="phone"
                         value={tempData.phone || ''}
                         onChange={handleInputChange}
-                        className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                          editFormErrors.phone ? 'border-red-500' : ''
+                        }`}
                       />
+                      {editFormErrors.phone && (
+                        <p className="text-red-500 text-sm mt-1">{editFormErrors.phone}</p>
+                      )}
                     </label>
-                    {/* <label className="block mb-4">
-                      <span className="text-gray-700">Address</span>
-                      <input
-                        type="text"
-                        name="address"
-                        value={tempData.address || ''}
-                        onChange={handleInputChange}
-                        className="w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </label> */}
                   </>
                 )}
               </form>

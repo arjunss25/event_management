@@ -108,7 +108,7 @@ const Login = () => {
 
   const handleGoogleSignIn = async () => {
     try {
-      setError(''); 
+      setError('');
 
       if (!auth) {
         throw new Error('Firebase authentication not initialized');
@@ -162,7 +162,6 @@ const Login = () => {
               throw new Error(`Unauthorized role: ${role}`);
           }
         } catch (backendError) {
-
           await auth.signOut();
           tokenService.clearTokens();
 
@@ -231,7 +230,7 @@ const Login = () => {
             <label>Password</label>
             <div className="relative w-full lg:w-[70%]">
               <input
-                type={showPassword ? 'password' : 'text'}
+                type={showPassword ? 'text' : 'password'}
                 className="form-field w-full h-9 bg-[#EBF5FF] rounded text-[0.8rem] pl-3 pr-10"
                 placeholder="Enter your password"
                 value={password}
@@ -240,13 +239,13 @@ const Login = () => {
               />
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-4 top-[32%] -translate-y-1/2 text-gray-400"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <PiEyeSlashLight size={20} />
+                  <PiEyeLight size={18} />
                 ) : (
-                  <PiEyeLight size={20} />
+                  <PiEyeSlashLight size={18} />
                 )}
               </button>
             </div>

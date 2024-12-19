@@ -577,7 +577,16 @@ const EventsTable = () => {
   const handleSearch = useCallback(
     async (searchTerm) => {
       if (!searchTerm.trim()) {
-        setDisplayData(Array.isArray(events) ? events : events?.data || []);
+        // When search is empty, fetch all events again
+        dispatch(fetchEvents())
+          .unwrap()
+          .then((result) => {
+            const eventsArray = result?.data || [];
+            setDisplayData(Array.isArray(eventsArray) ? eventsArray : []);
+          })
+          .catch((error) => {
+            setDisplayData([]);
+          });
         setTableLoading(false);
         setSearchError(null);
         return;
@@ -602,7 +611,7 @@ const EventsTable = () => {
         setTableLoading(false);
       }
     },
-    [events]
+    [dispatch]
   );
 
   // Debounced search implementation
@@ -914,20 +923,17 @@ const EventsTable = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="w-20">
-                          {event.payment_status !== 'Completed' &&
-                            event.event_status !== 'completed' && (
-                              <button
-                                className={`w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors ${
-                                  isCanceling
-                                    ? 'opacity-50 cursor-not-allowed'
-                                    : ''
-                                }`}
-                                onClick={() => handleCancelClick(event)}
-                                disabled={isCanceling}
-                              >
-                                {isCanceling ? 'Canceling...' : 'Cancel'}
-                              </button>
-                            )}
+                          {(event.event_status === 'upcoming' || event.event_status === 'ongoing') && (
+                            <button
+                              className={`w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors ${
+                                isCanceling ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
+                              onClick={() => handleCancelClick(event)}
+                              disabled={isCanceling}
+                            >
+                              {isCanceling ? 'Canceling...' : 'Cancel'}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

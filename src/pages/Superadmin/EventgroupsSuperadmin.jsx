@@ -50,11 +50,13 @@ const EventgroupsSuperadmin = () => {
       errors.ownerName = 'Owner Name should only contain letters and spaces';
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!data.email.trim()) {
       errors.email = 'Email is required';
     } else if (!emailRegex.test(data.email)) {
       errors.email = 'Please enter a valid email address';
+    } else if (data.email.length > 254) {
+      errors.email = 'Email address is too long';
     }
 
     const phoneRegex = /^\d{10}$/;
@@ -305,7 +307,7 @@ const EventgroupsSuperadmin = () => {
                         </div>
                       )}
                       <input
-                        type="email"
+                        type="text"
                         name="email"
                         className="w-full border p-2 rounded-3xl pl-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Enter email address"

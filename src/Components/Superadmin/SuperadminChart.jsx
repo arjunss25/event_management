@@ -55,8 +55,9 @@ const SuperadminChart = () => {
           .sort((a, b) => b - a); 
         setAvailableYears(years);
         
-        // Set the most recent year as default
-        if (years.length > 0) {
+        // Only set the most recent year if the current year isn't available
+        const currentYear = new Date().getFullYear();
+        if (!years.includes(currentYear)) {
           setSelectedYear(years[0]);
         }
       } else {
@@ -116,12 +117,18 @@ const SuperadminChart = () => {
 
   return (
     <div className="w-full h-[50vh] lg:h-[50vh] p-4 mt-6 md:mt-4 lg:mt-2">
-      <div className="flex flex-row items-center justify-between mb-6">
-        <h2 className="text-xl font-bold">Event Statistics</h2>
+      <div className="flex flex-col gap-2 mb-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-bold">Event Statistics</h2>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-[#2D3436]"></div>
+            <span className="text-sm text-gray-600">Completed Events</span>
+          </div>
+        </div>
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-          className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="self-end px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={loading || availableYears.length === 0}
         >
           {availableYears.length > 0 ? (

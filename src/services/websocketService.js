@@ -3,7 +3,8 @@ class WebSocketService {
     this.ws = null;
     this.subscribers = new Set();
     this.connected = false;
-    this.url = 'ws://185.170.196.16:8001/ws/admin/meal_updates/';
+    // this.url = 'ws://185.170.196.16:8001/ws/admin/meal_updates/';
+    this.url = 'wss://event.neurocode.in/ws/admin/meal_updates/';
     this.currentRoom = null;
     this.roomMembers = new Set();
     this.connectionQueue = [];

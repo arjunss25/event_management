@@ -151,6 +151,11 @@ const EventgroupEventsList = ({ eventGroupId }) => {
     event_status: '',
     payment_status: '',
   });
+  const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   useEffect(() => {
     if (eventGroupId) {
@@ -190,9 +195,19 @@ const EventgroupEventsList = ({ eventGroupId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Convert dates from DD-MM-YYYY to YYYY-MM-DD
+    const formatDateForAPI = (dateString) => {
+      if (!dateString) return '';
+      const [day, month, year] = dateString.split('-');
+      return `${year}-${month}-${day}`;
+    };
+
     const updateData = {
       id: selectedEvent.id,
       ...formData,
+      start_date: formatDateForAPI(formData.start_date),
+      end_date: formatDateForAPI(formData.end_date),
     };
 
     try {
@@ -204,10 +219,14 @@ const EventgroupEventsList = ({ eventGroupId }) => {
       ).unwrap();
       setIsModalOpen(false);
       dispatch(fetchEventsByGroupId(eventGroupId));
+      setNotification({
+        open: true,
+        message: 'Event updated successfully',
+        severity: 'success'
+      });
     } catch (error) {
       let errorMessage = 'Unable to add event. Please try again.';
       
-      // Check for specific error responses
       if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error.response?.status === 400) {
@@ -215,11 +234,10 @@ const EventgroupEventsList = ({ eventGroupId }) => {
       }
 
       setNotification({
-        show: true,
-        type: 'error',
+        open: true,
         message: errorMessage,
+        severity: 'error'
       });
-      setDrawerOpen(false);
     }
   };
 

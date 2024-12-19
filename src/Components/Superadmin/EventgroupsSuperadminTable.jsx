@@ -133,17 +133,25 @@ const EventgroupsSuperadminTable = () => {
 
   // Update display data when events change
   useEffect(() => {
-    setDisplayData(Array.isArray(events) ? events : []);
-  }, [events]);
+    if (!tableLoading) { // Only update if not actively searching
+      setDisplayData(Array.isArray(events) ? events : []);
+    }
+  }, [events, tableLoading]);
 
   // Debounced search handler
   const handleSearch = React.useCallback(
     async (searchTerm) => {
       // If search term is empty, reset to show all events
       if (!searchTerm.trim()) {
-        dispatch(fetchEvents());
-        setTableLoading(false);
-        setSearchError(null);
+        setTableLoading(true);
+        try {
+          const response = await dispatch(fetchEvents()).unwrap();
+          setDisplayData(Array.isArray(response) ? response : []);
+        } catch (error) {
+          setSearchError('Failed to fetch events');
+        } finally {
+          setTableLoading(false);
+        }
         return;
       }
 

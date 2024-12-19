@@ -13,7 +13,7 @@ const Navcomponent = ({ toggleSidebar }) => {
   const dispatch = useDispatch();
 
   return (
-    <div className='w-full font-bold h-[8vh] flex items-center justify-between lg:justify-end px-5 py-8 lg:px-10 lg:py-10'>
+    <div className='w-full font-bold h-[8vh] flex items-center justify-between lg:justify-end px-5 py-8 lg:px-10 lg:py-10 fixed top-0 right-0 bg-white z-[9]'>
       {/* left-section for small screens */}
       <div className="left-section block lg:hidden" onClick={toggleSidebar}>
         <div className="menubar text-[2rem] text-[#636e72] hover:text-black cursor-pointer">
