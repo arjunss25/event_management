@@ -104,7 +104,7 @@ const TableRow = memo(
 );
 
 // Main Component
-const EventgroupsSuperadminTable = () => {
+const EventgroupsSuperadminTable = ({ data }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { events, loading, error, deleteLoading, deleteError } = useSelector(
@@ -131,45 +131,47 @@ const EventgroupsSuperadminTable = () => {
     return () => dispatch(clearErrors());
   }, [dispatch]);
 
-  // Update display data when events change
+  // Update displayData when either props.data or events changes
   useEffect(() => {
-    if (!tableLoading) { // Only update if not actively searching
+    if (data && data.length > 0) {
+      setDisplayData(data);
+    } else if (events && !loading && !tableLoading) {
       setDisplayData(Array.isArray(events) ? events : []);
     }
-  }, [events, tableLoading]);
+  }, [data, loading]);
 
-  // Debounced search handler
+  // Update the handleSearch function
   const handleSearch = React.useCallback(
     async (searchTerm) => {
-      // If search term is empty, reset to show all events
-      if (!searchTerm.trim()) {
-        setTableLoading(true);
-        try {
-          const response = await dispatch(fetchEvents()).unwrap();
-          setDisplayData(Array.isArray(response) ? response : []);
-        } catch (error) {
-          setSearchError('Failed to fetch events');
-        } finally {
-          setTableLoading(false);
-        }
-        return;
-      }
+      setTableLoading(true);
+      setSearchError(null);
 
       try {
-        setTableLoading(true);
-        setSearchError(null);
-
-        const response = await axiosInstance.get(
-          `/search-eventgroup-name/${searchTerm}`
-        );
-
-        if (response.status === 200) {
-          const searchResults = response.data?.data || [];
-          setDisplayData(Array.isArray(searchResults) ? searchResults : []);
+        if (!searchTerm.trim()) {
+          // If search is empty, fetch all events
+          const response = await dispatch(fetchEvents()).unwrap();
+          setDisplayData(Array.isArray(response) ? response : []);
+        } else {
+          // Search for specific term
+          const response = await axiosInstance.get(
+            `/search-eventgroup-name/${searchTerm}`
+          );
+          
+          if (response.status === 200) {
+            // Even if data is empty, we should update the display
+            const searchResults = response.data?.data || [];
+            setDisplayData(searchResults);
+            
+            // Optional: Show a message when no results found
+            if (searchResults.length === 0) {
+              setSearchError(`No event groups found matching "${searchTerm}"`);
+            }
+          }
         }
       } catch (err) {
+        console.error('Search error:', err);
         setSearchError('Failed to fetch search results');
-        setDisplayData([]);
+        setDisplayData([]); // Set empty array on error
       } finally {
         setTableLoading(false);
       }
@@ -177,21 +179,17 @@ const EventgroupsSuperadminTable = () => {
     [dispatch]
   );
 
-  // Debounced search implementation
+  // Replace the debouncedSearch implementation with a proper debounce
   const debouncedSearch = React.useCallback(
-    (searchTerm) => {
-      setTableLoading(true);
-      const timeoutId = setTimeout(() => {
-        handleSearch(searchTerm);
-      }, 300);
-
-      return () => {
+    (() => {
+      let timeoutId;
+      return (searchTerm) => {
         clearTimeout(timeoutId);
-        if (!searchTerm.trim()) {
-          setTableLoading(false);
-        }
+        timeoutId = setTimeout(() => {
+          handleSearch(searchTerm);
+        }, 300); // 300ms delay
       };
-    },
+    })(),
     [handleSearch]
   );
 
@@ -302,7 +300,7 @@ const EventgroupsSuperadminTable = () => {
           <div className="w-full p-4 flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
           </div>
-        ) : !displayData || displayData.length === 0 ? (
+        ) : !Array.isArray(displayData) || displayData.length === 0 ? (
           <div className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg">
             <p className="text-gray-500 text-center">No event groups found.</p>
           </div>

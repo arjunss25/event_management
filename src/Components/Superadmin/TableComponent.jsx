@@ -4,6 +4,7 @@ import { IoInformationCircleOutline } from 'react-icons/io5';
 import { IoClose } from 'react-icons/io5';
 import { IoCashOutline } from 'react-icons/io5';
 import { FaCheckCircle, FaSearch } from 'react-icons/fa';
+import { IoCalendarOutline } from 'react-icons/io5';
 import {
   fetchEvents,
   updatePaymentStatus,
@@ -55,6 +56,9 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
     type: '',
     message: '',
   });
+
+  // New states for date picker
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Get current date in YYYY-MM-DD format
   const getCurrentDate = () => {
@@ -108,6 +112,16 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
       ...prevData,
       [name]: value,
     }));
+  };
+
+  const handleDateClick = () => {
+    setShowDatePicker(true);
+  };
+
+  const handleDateBlur = () => {
+    setTimeout(() => {
+      setShowDatePicker(false);
+    }, 200);
   };
 
   // Add Notification component
@@ -214,65 +228,81 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
 
   return (
     <>
-      <div className="fixed inset-0 z-[60] flex justify-center items-center bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-[60] flex justify-center items-center bg-black bg-opacity-50 p-4">
         {paymentLoading ? (
           <div className="bg-white p-8 rounded-lg flex items-center justify-center">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
           </div>
         ) : (
-          <div className="bg-white rounded-[1.5rem] w-[30vw] py-8 px-10 border-[2px] border-black">
+          <div className="bg-white rounded-[1.5rem] w-[95%] sm:w-[80%] md:w-[60%] lg:w-[40%] xl:w-[30%] py-6 sm:py-8 px-6 sm:px-10 border-[2px] border-black max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-semibold">Add Payment</h1>
+              <h1 className="text-xl sm:text-2xl font-semibold">Add Payment</h1>
               <IoClose
-                className="text-3xl cursor-pointer hover:text-gray-700"
+                className="text-2xl sm:text-3xl cursor-pointer hover:text-gray-700"
                 onClick={onClose}
               />
             </div>
 
             {paymentError && (
-              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded text-sm">
                 {paymentError}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date
+                    Date <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    max={getCurrentDate()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.date || ''}
+                      onClick={handleDateClick}
+                      readOnly
+                      placeholder="Select date"
+                      className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 cursor-pointer"
+                    />
+                    <IoCalendarOutline 
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl pointer-events-none" 
+                    />
+                    <input
+                      type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      max={getCurrentDate()}
+                      onBlur={handleDateBlur}
+                      className={`absolute inset-0 opacity-0 cursor-pointer ${
+                        showDatePicker ? '' : 'hidden'
+                      }`}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Amount
+                    Amount <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
                     name="amount"
                     value={formData.amount}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter amount"
                     required
                   />
                 </div>
               </div>
 
-              <div className="btn-sec w-full flex justify-end">
+              <div className="btn-sec w-full flex justify-end pt-2">
                 <button
                   type="submit"
                   disabled={paymentLoading}
-                  className={`w-fit bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition-colors ${
+                  className={`w-full sm:w-fit bg-black text-white py-2 px-6 rounded-md text-sm sm:text-base hover:bg-gray-800 transition-colors ${
                     paymentLoading ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -576,37 +606,30 @@ const EventsTable = () => {
   // Debounced search handler
   const handleSearch = useCallback(
     async (searchTerm) => {
-      if (!searchTerm.trim()) {
-        // When search is empty, fetch all events again
-        dispatch(fetchEvents())
-          .unwrap()
-          .then((result) => {
-            const eventsArray = result?.data || [];
-            setDisplayData(Array.isArray(eventsArray) ? eventsArray : []);
-          })
-          .catch((error) => {
-            setDisplayData([]);
-          });
-        setTableLoading(false);
-        setSearchError(null);
-        return;
-      }
+      setTableLoading(true);
+      setSearchError(null);
 
       try {
-        setTableLoading(true);
-        setSearchError(null);
-
-        const response = await axiosInstance.get(
-          `/search-events/${searchTerm}`
-        );
-
-        if (response.status === 200) {
-          const searchResults = response.data?.data || [];
-          setDisplayData(Array.isArray(searchResults) ? searchResults : []);
+        if (!searchTerm.trim()) {
+          // If search is empty, fetch all events
+          const response = await dispatch(fetchEvents()).unwrap();
+          setDisplayData(Array.isArray(response?.data) ? response.data : []);
+        } else {
+          // Search for specific term
+          const response = await axiosInstance.get(
+            `/search-events/${searchTerm}`
+          );
+          
+          if (response.status === 200) {
+            // Directly set the data from the response
+            const searchResults = response.data?.data;
+            setDisplayData(Array.isArray(searchResults) ? searchResults : []);
+          }
         }
       } catch (err) {
+        console.error('Search error:', err);
         setSearchError('Failed to fetch search results');
-        setDisplayData([]);
+        setDisplayData([]); // Set empty array on error
       } finally {
         setTableLoading(false);
       }
@@ -617,17 +640,12 @@ const EventsTable = () => {
   // Debounced search implementation
   const debouncedSearch = useCallback(
     (searchTerm) => {
-      setTableLoading(true);
+      // Clear any existing timeout
       const timeoutId = setTimeout(() => {
         handleSearch(searchTerm);
       }, 300);
 
-      return () => {
-        clearTimeout(timeoutId);
-        if (!searchTerm.trim()) {
-          setTableLoading(false);
-        }
-      };
+      return () => clearTimeout(timeoutId);
     },
     [handleSearch]
   );

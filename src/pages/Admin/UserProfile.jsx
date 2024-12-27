@@ -239,7 +239,7 @@ const UserProfile = () => {
                     <p>{userData?.phone}</p>
                   </div> */}
                   <div className="flex flex-col xl:flex-row">
-                    <p className="text-gray-500 w-52">Created Date</p>
+                    <p className="text-gray-500 w-52">Registered Date</p>
                     <p>{formatDate(userData?.created_date)}</p>
                   </div>
                   {/* <div className="flex flex-col xl:flex-row">

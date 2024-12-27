@@ -35,6 +35,7 @@ import EmployeeScanner from './Components/Employee/EmployeeScanner';
 import EmployeeProfile from './pages/Employee/EmployeeProfile';
 import UserProfile from './pages/Admin/UserProfile';
 import ConfirmationPage from './pages/Admin/ConfirmationPage';
+import RegistrationForm from './pages/Public/RegistrationForm';
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const auth = useSelector((state) => state.auth);
@@ -177,6 +178,9 @@ const AppRoutes = () => {
 
       {/* Catch all other routes */}
       <Route path="*" element={<Navigate to="/login" replace />} />
+
+      {/* Add this new public route */}
+      <Route path="/registration-form" element={<RegistrationForm />} />
     </Routes>
   );
 };

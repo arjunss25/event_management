@@ -36,7 +36,6 @@ const TableContent = ({ users, navigate }) => (
       <tr>
         <th className="px-6 py-3">Full Name</th>
         <th className="px-6 py-3">Email</th>
-        <th className="px-6 py-3">Phone</th>
         <th className="px-6 py-3">Registration Date</th>
         <th className="px-6 py-3">Actions</th>
       </tr>
@@ -47,7 +46,6 @@ const TableContent = ({ users, navigate }) => (
           <tr key={user.id} className="hover:bg-gray-50">
             <td className="px-6 py-4">{user.full_name}</td>
             <td className="px-6 py-4">{user.email}</td>
-            <td className="px-6 py-4">{user.phone}</td>
             <td className="px-6 py-4">{formatDate(user.created_date)}</td>
             <td className="px-6 py-4">
               <button onClick={() => navigate(`/admin/user/${user.id}`)}>
@@ -95,7 +93,7 @@ const RegisteredUserTable = () => {
     <div className="w-full">
       <div className="w-full bg-white rounded-lg p-4">
         {/* Search Bar */}
-        <div className="mb-6 relative w-full md:w-[60%] lg:w-[30%]">
+        <div className="mb-6 relative w-full md:w-[60%] lg:w-[30%] mt-5">
           <input
             type="text"
             value={searchTerm}

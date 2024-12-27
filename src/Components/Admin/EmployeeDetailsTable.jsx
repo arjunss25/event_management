@@ -35,12 +35,12 @@ const TableContent = ({
     <table className="w-full text-sm text-left text-gray-500">
       <thead className="text-xs text-white uppercase bg-gray-800">
         <tr>
-          <th className="px-6 py-3">Name</th>
-          <th className="px-6 py-3">Position</th>
-          <th className="px-6 py-3">Email</th>
-          <th className="px-6 py-3">Phone</th>
-          <th className="px-6 py-3">Assigned</th>
-          <th className="px-6 py-3">Actions</th>
+          <th className="px-6 py-3 w-[20%]">Name</th>
+          <th className="px-6 py-3 w-[20%]">Position</th>
+          <th className="px-6 py-3 w-[25%]">Email</th>
+          <th className="px-6 py-3 w-[15%]">Phone</th>
+          <th className="px-6 py-3 w-[10%]">Assigned</th>
+          <th className="px-6 py-3 w-[10%]">Actions</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-200">
@@ -53,7 +53,7 @@ const TableContent = ({
               <td className="px-6 py-4">{employee.phone}</td>
               <td className="px-6 py-4">
                 <span
-                  className={`px-3 py-1 rounded-full text-xs ${
+                  className={`inline-flex items-center justify-center w-16 px-3 py-1 rounded-full text-xs ${
                     employee.currentlyAssigned
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
@@ -62,18 +62,20 @@ const TableContent = ({
                   {employee.currentlyAssigned ? 'Yes' : 'No'}
                 </span>
               </td>
-              <td className="px-6 py-4 flex space-x-2">
-                <button onClick={() => handleView(employee.id)}>
-                  <FaRegEye className="text-gray-500 hover:text-blue-500 text-[1.2rem]" />
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedEmployee(employee.id);
-                    setShowModal(true);
-                  }}
-                >
-                  <MdOutlineDeleteOutline className="text-gray-500 hover:text-red-500 text-[1.2rem]" />
-                </button>
+              <td className="px-6 py-4 w-[10%]">
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => handleView(employee.id)}>
+                    <FaRegEye className="text-gray-500 hover:text-blue-500 text-[1.2rem]" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedEmployee(employee.id);
+                      setShowModal(true);
+                    }}
+                  >
+                    <MdOutlineDeleteOutline className="text-gray-500 hover:text-red-500 text-[1.2rem]" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))

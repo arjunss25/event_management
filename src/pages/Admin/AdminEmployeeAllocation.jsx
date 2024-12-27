@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { IoMdClose } from 'react-icons/io';
 import { FiSearch } from 'react-icons/fi';
-import { IoIosRemoveCircleOutline } from "react-icons/io";
-import { IoIosArrowDown } from "react-icons/io";
+import { IoIosRemoveCircleOutline } from 'react-icons/io';
+import { IoIosArrowDown } from 'react-icons/io';
 import {
   fetchPositions,
   fetchEmployeesByPosition,
@@ -53,7 +53,7 @@ const ErrorState = ({ error, onRetry }) => (
     <div className="text-red-500 text-center">
       <p className="text-xl font-semibold mb-2">Error Loading Data</p>
       <p>{error}</p>
-      <button 
+      <button
         onClick={onRetry}
         className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
       >
@@ -84,15 +84,17 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
   };
 
   const handleAddToEvent = () => {
-    const employees = eventEmployees.map(emp => ({ id: emp.id, name: emp.name }));
+    const employees = eventEmployees.map((emp) => ({
+      id: emp.id,
+      name: emp.name,
+    }));
     dispatch(addEmployeesToEvent(employees))
       .unwrap()
       .then(() => {
         dispatch(fetchAllocatedEmployees());
         onClose();
       })
-      .catch((error) => {
-      });
+      .catch((error) => {});
   };
 
   const groupedEmployees = eventEmployees.reduce((acc, emp) => {
@@ -111,7 +113,9 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-900">
-              {selectedEvent ? 'Event Employees' : 'Import from Previous Events'}
+              {selectedEvent
+                ? 'Event Employees'
+                : 'Import from Previous Events'}
             </h2>
             <button
               onClick={() => {
@@ -135,7 +139,9 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
               <div className="space-y-6">
                 <div className="flex justify-between items-center mb-6">
                   <div>
-                    <h3 className="text-lg font-medium">{selectedEvent.event_name}</h3>
+                    <h3 className="text-lg font-medium">
+                      {selectedEvent.event_name}
+                    </h3>
                     <p className="text-sm text-gray-500">
                       {selectedEvent.start_date} to {selectedEvent.end_date}
                     </p>
@@ -155,41 +161,51 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
                     </button>
                   </div>
                 </div>
-                
+
                 {eventEmployees.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">No employees found for this event.</p>
+                    <p className="text-gray-500">
+                      No employees found for this event.
+                    </p>
                   </div>
                 ) : (
-                  Object.entries(groupedEmployees).map(([position, employees]) => (
-                    <div key={position} className="bg-gray-50 rounded-xl p-4">
-                      <h4 className="text-md font-semibold text-gray-800 mb-3">
-                        {position}
-                      </h4>
-                      <div className="grid gap-3">
-                        {employees.map((employee) => (
-                          <div
-                            key={employee.id}
-                            className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm"
-                          >
-                            <div>
-                              <span className="font-medium">{employee.name}</span>
-                              <span className="text-sm text-gray-500 ml-2">
-                                #{employee.id}
+                  Object.entries(groupedEmployees).map(
+                    ([position, employees]) => (
+                      <div key={position} className="bg-gray-50 rounded-xl p-4">
+                        <h4 className="text-md font-semibold text-gray-800 mb-3">
+                          {position}
+                        </h4>
+                        <div className="grid gap-3">
+                          {employees.map((employee) => (
+                            <div
+                              key={employee.id}
+                              className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm"
+                            >
+                              <div>
+                                <span className="font-medium">
+                                  {employee.name}
+                                </span>
+                                <span className="text-sm text-gray-500 ml-2">
+                                  #{employee.id}
+                                </span>
+                              </div>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs ${
+                                  employee.is_available
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {employee.is_available
+                                  ? 'Available'
+                                  : 'Unavailable'}
                               </span>
                             </div>
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              employee.is_available 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {employee.is_available ? 'Available' : 'Unavailable'}
-                            </span>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  )
                 )}
               </div>
             )
@@ -207,11 +223,13 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
                       <p className="text-sm text-gray-500">
                         {event.start_date} to {event.end_date}
                       </p>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        event.event_status === 'upcoming' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          event.event_status === 'upcoming'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
                         {event.event_status}
                       </span>
                     </div>
@@ -228,7 +246,11 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
 };
 
 // Employee List component
-const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }) => {
+const EmployeeList = ({
+  selectedPosition,
+  filteredEmployees,
+  handleAddEmployee,
+}) => {
   const addingEmployee = useSelector(selectAddingEmployee);
   const searchTerm = useSelector(selectSearchTerm);
 
@@ -243,10 +265,9 @@ const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }
   if (filteredEmployees.length === 0) {
     return (
       <div className="text-center text-gray-500 py-4">
-        {searchTerm 
-          ? "No employees found matching your search"
-          : "No employees available for this position. They might be all allocated or none exist."
-        }
+        {searchTerm
+          ? 'No employees found matching your search'
+          : 'No employees available for this position. They might be all allocated or none exist.'}
       </div>
     );
   }
@@ -254,13 +275,18 @@ const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }
   return (
     <>
       {filteredEmployees.map((employee) => (
-        <div key={employee.id} className="grid grid-cols-2 gap-4 items-center p-5 bg-white">
+        <div
+          key={employee.id}
+          className="grid grid-cols-2 gap-4 items-center p-5 bg-white"
+        >
           <div className="text-gray-800">{employee.name}</div>
           <button
             onClick={() => handleAddEmployee(employee)}
             disabled={addingEmployee === employee.id}
             className={`px-3 py-1 bg-black text-white rounded text-sm hover:bg-gray-800 transition-colors ${
-              addingEmployee === employee.id ? 'opacity-50 cursor-not-allowed' : ''
+              addingEmployee === employee.id
+                ? 'opacity-50 cursor-not-allowed'
+                : ''
             }`}
           >
             {addingEmployee === employee.id ? 'Adding...' : 'Add'}
@@ -272,14 +298,19 @@ const EmployeeList = ({ selectedPosition, filteredEmployees, handleAddEmployee }
 };
 
 // Allocated Sections component
-const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => {
+const AllocatedSections = ({
+  sections,
+  onRemovePosition,
+  onRemoveEmployee,
+}) => {
   const removingEmployee = useSelector(selectRemovingEmployee);
   const removingPosition = useSelector(selectRemovingPosition);
 
   if (sections.length === 0) {
     return (
       <div className="text-center text-gray-500 py-8">
-        No positions have been allocated yet. Select a position and add employees.
+        No positions have been allocated yet. Select a position and add
+        employees.
       </div>
     );
   }
@@ -289,7 +320,9 @@ const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => 
       {sections.map((section) => (
         <div key={section.position} className="mb-6">
           <div className="flex items-center justify-between mb-4 position-btn-sec">
-            <h3 className="text-lg font-medium text-gray-700">{section.position}</h3>
+            <h3 className="text-lg font-medium text-gray-700">
+              {section.position}
+            </h3>
             <button
               onClick={() => onRemovePosition(section.position)}
               disabled={removingPosition}
@@ -301,18 +334,26 @@ const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => 
             </button>
           </div>
           {section.employees.length === 0 ? (
-            <div className="text-gray-500 text-sm">No employees allocated to this position</div>
+            <div className="text-gray-500 text-sm">
+              No employees allocated to this position
+            </div>
           ) : (
             section.employees.map((employee) => (
-              <div 
-                key={employee.id} 
+              <div
+                key={employee.id}
                 className="flex items-center justify-between  p-3 rounded-full border-[1px] border-black mb-2 shadow-sm hover:bg-gray-100 transition-colors"
               >
                 <div>
                   <span className="font-medium">{employee.name}</span>
                 </div>
                 <button
-                  onClick={() => onRemoveEmployee(section.position, employee.id, employee.name)}
+                  onClick={() =>
+                    onRemoveEmployee(
+                      section.position,
+                      employee.id,
+                      employee.name
+                    )
+                  }
                   disabled={removingEmployee}
                   className={`text-gray-500 hover:text-red-500 transition-colors ${
                     removingEmployee ? 'opacity-50 cursor-not-allowed' : ''
@@ -331,7 +372,14 @@ const AllocatedSections = ({ sections, onRemovePosition, onRemoveEmployee }) => 
   );
 };
 
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, loading }) => {
+const ConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  loading,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -363,7 +411,7 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, loading
 
 const AdminEmployeeAllocation = () => {
   const dispatch = useDispatch();
-  
+
   const positions = useSelector(selectPositions);
   const employees = useSelector(selectEmployees);
   const allocatedSections = useSelector(selectAllocatedSections);
@@ -378,7 +426,7 @@ const AdminEmployeeAllocation = () => {
   const showImportModal = useSelector(selectShowImportModal);
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
-    positionToRemove: null
+    positionToRemove: null,
   });
   const removingPosition = useSelector(selectRemovingPosition);
 
@@ -411,13 +459,14 @@ const AdminEmployeeAllocation = () => {
           dispatch(fetchAllocatedEmployees());
           dispatch(fetchEmployeesByPosition(selectedPosition));
         })
-        .catch((error) => {
-        });
+        .catch((error) => {});
     }
   };
 
   const handleRemoveEmployee = (positionName, employeeId, employeeName) => {
-    dispatch(removeEmployeeFromAllocation({ employeeId, positionName, employeeName }))
+    dispatch(
+      removeEmployeeFromAllocation({ employeeId, positionName, employeeName })
+    )
       .unwrap()
       .then(() => {
         // Refresh the employee list after successful removal
@@ -425,14 +474,13 @@ const AdminEmployeeAllocation = () => {
           dispatch(fetchEmployeesByPosition(selectedPosition));
         }
       })
-      .catch((error) => {
-      });
+      .catch((error) => {});
   };
 
   const handleRemovePosition = (positionName) => {
     setConfirmationModal({
       isOpen: true,
-      positionToRemove: positionName
+      positionToRemove: positionName,
     });
   };
 
@@ -440,7 +488,7 @@ const AdminEmployeeAllocation = () => {
     const positionName = confirmationModal.positionToRemove;
     try {
       const sectionToRemove = allocatedSections.find(
-        section => section.position === positionName
+        (section) => section.position === positionName
       );
 
       if (!sectionToRemove) {
@@ -457,10 +505,12 @@ const AdminEmployeeAllocation = () => {
         return;
       }
 
-      await dispatch(removeEmployeePosition({
-        positionName,
-        employees: sectionToRemove.employees
-      })).unwrap();
+      await dispatch(
+        removeEmployeePosition({
+          positionName,
+          employees: sectionToRemove.employees,
+        })
+      ).unwrap();
 
       // Refresh employee list if the removed position was selected
       if (selectedPosition === positionName) {
@@ -492,8 +542,7 @@ const AdminEmployeeAllocation = () => {
       .then(() => {
         handleCloseImportModal();
       })
-      .catch((error) => {
-      });
+      .catch((error) => {});
   };
 
   const handleRetry = () => {
@@ -506,46 +555,51 @@ const AdminEmployeeAllocation = () => {
 
   const getAllocatedEmployeeIds = () => {
     const selectedSection = allocatedSections.find(
-      section => section.position === selectedPosition
+      (section) => section.position === selectedPosition
     );
-    return selectedSection ? selectedSection.employees.map(emp => emp.id) : [];
+    return selectedSection
+      ? selectedSection.employees.map((emp) => emp.id)
+      : [];
   };
 
-  const filteredEmployees = Array.isArray(employees) 
-    ? employees.filter(employee => {
-        const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredEmployees = Array.isArray(employees)
+    ? employees.filter((employee) => {
+        const matchesSearch = employee.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
         const allocatedIds = getAllocatedEmployeeIds();
         const isNotAllocated = !allocatedIds.includes(employee.id);
         return matchesSearch && isNotAllocated;
       })
     : [];
 
-  if (status === 'failed' && error && 
-      !error.includes('No positions available') && 
-      !error.includes('Failed to fetch allocated employees')) {
+  if (
+    status === 'failed' &&
+    error &&
+    !error.includes('No positions available') &&
+    !error.includes('Failed to fetch allocated employees')
+  ) {
     return <ErrorState error={error} onRetry={handleRetry} />;
   }
 
   return (
-    <div className="flex w-full min-h-screen  lg:flex-row flex-col gap-4  employee-allocation-main">
-      <div className="w-full lg:w-1/2 bg-white rounded-lg p-6 employee-allocation-left">
+    <div className="flex w-full flex-col-reverse lg:flex-row gap-4">
+      <div className="w-full lg:w-1/2 bg-white rounded-lg p-6">
         <div className="flex justify-start items-center mb-6 w-full pb-5 border-b-[2px] border-black">
-          <h2 className="text-[1.5rem]  text-gray-800">Employee Allocation</h2>
-          
+          <h2 className="text-[1.5rem] text-gray-800">Employee Allocation</h2>
         </div>
         <div className="flex justify-end items-center mb-6">
-        <button
+          <button
             onClick={handleOpenImportModal}
             className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
           >
             Import from Events
           </button>
-          
         </div>
         {loadingAllocated ? (
           <LoadingState />
         ) : (
-          <AllocatedSections 
+          <AllocatedSections
             sections={allocatedSections}
             onRemovePosition={handleRemovePosition}
             onRemoveEmployee={handleRemoveEmployee}
@@ -553,8 +607,10 @@ const AdminEmployeeAllocation = () => {
         )}
       </div>
 
-      <div className="w-full lg:w-1/2 bg-black rounded-lg p-6 employee-allocation-left">
-        <h2 className="text-xl font-semibold mb-6 text-white">Add Employees to Position</h2>
+      <div className="w-full lg:w-1/2 bg-black rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-6 text-white">
+          Add Employees to Position
+        </h2>
         <div className="mb-6 relative">
           <select
             value={selectedPosition}
@@ -568,9 +624,12 @@ const AdminEmployeeAllocation = () => {
               </option>
             ))}
           </select>
-          <IoIosArrowDown size={20} className="absolute right-4 top-3 text-gray-400" />
+          <IoIosArrowDown
+            size={20}
+            className="absolute right-4 top-3 text-gray-400"
+          />
         </div>
-        
+
         {positions.length === 0 && (
           <div className="text-white text-center p-4">
             No positions available. Please add positions first.
@@ -588,10 +647,13 @@ const AdminEmployeeAllocation = () => {
                   placeholder="Search employees"
                   className="w-full p-3 pl-10 rounded-lg bg-white border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                 />
-                <FiSearch size={20} className="absolute left-4 top-3 text-gray-400" />
+                <FiSearch
+                  size={20}
+                  className="absolute left-4 top-3 text-gray-400"
+                />
               </div>
             </div>
-            
+
             <EmployeeList
               selectedPosition={selectedPosition}
               filteredEmployees={filteredEmployees}
@@ -611,7 +673,9 @@ const AdminEmployeeAllocation = () => {
 
       <ConfirmationModal
         isOpen={confirmationModal.isOpen}
-        onClose={() => setConfirmationModal({ isOpen: false, positionToRemove: null })}
+        onClose={() =>
+          setConfirmationModal({ isOpen: false, positionToRemove: null })
+        }
         onConfirm={handleConfirmRemove}
         title="Remove Position"
         message={`Are you sure you want to remove ${confirmationModal.positionToRemove}? This action cannot be undone.`}

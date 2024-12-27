@@ -293,113 +293,114 @@ const EmployeeProfile = () => {
         )}
 
         {activeSection === 'id-card' && (
-          <div className="bg-white p-6 rounded-lg">
+          <div className="bg-white p-4 md:p-6 rounded-lg">
             <h1 className="text-2xl font-semibold mb-4">ID Card</h1>
             <hr className="w-full border mb-5" />
 
             {idCardData ? (
-              <div className="max-w-md mx-auto relative">
-                <div className="w-[350px] relative shadow-md rounded-2xl overflow-hidden">
-                  {/* Background Template Image */}
-                  <img
-                    src={idCardTemplate}
-                    alt="ID Card Template"
-                    className="w-full h-full object-contain"
-                  />
+              <div className="flex justify-center items-center w-full">
+                <div className="scale-[0.65] sm:scale-[0.8] md:scale-100 origin-top">
+                  <div className="w-[350px] relative shadow-md rounded-2xl overflow-hidden mx-auto">
+                    <img
+                      src={idCardTemplate}
+                      alt="ID Card Template"
+                      className="w-full h-full object-contain"
+                    />
 
-                  {/* Content overlaid on template */}
-                  <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center">
-                    {/* Header Section */}
-                    <div className="w-full text-white py-2 px-6 mt-4">
-                      <h3 className="text-md font-semi-bold opacity-90 mb-0.5">
-                        EVENT STAFF
-                      </h3>
-                      <h4 className="text-xs opacity-75">
-                        {idCardData.event_group_name} - {idCardData.event}
-                      </h4>
-                    </div>
-
-                    {/* Profile Section */}
-                    <div className="mt-4 relative">
-                      <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
-                        <img
-                          src={idCardData.image}
-                          alt="Employee"
-                          className="w-full h-full object-cover"
-                        />
+                    {/* Content overlaid on template */}
+                    <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center">
+                      {/* Header Section */}
+                      <div className="w-full text-white py-2 px-6 mt-4">
+                        <h3 className="text-md font-semi-bold opacity-90 mb-0.5">
+                          EVENT STAFF
+                        </h3>
+                        <h4 className="text-xs opacity-75">
+                          {idCardData.event_group_name} - {idCardData.event}
+                        </h4>
                       </div>
-                    </div>
 
-                    {/* Name and Position */}
-                    <div className="text-center mt-2 px-4">
-                      <h2 className="text-xl font-bold text-[#1a237e] mb-1">
-                        {idCardData.name}
-                      </h2>
-                      <span className="inline-block bg-[#e8eaf6] text-[#3949ab] px-3 py-0.5 rounded-full text-sm font-medium">
-                        {idCardData.position}
-                      </span>
-                    </div>
-
-                    {/* Contact Details */}
-                    <div className="w-[90%] px-6 mt-4 space-y-1.5">
-                      <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
-                        <div className="w-6">
-                          <svg
-                            className="w-4 h-4 text-[#3949ab]"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-[10px] text-gray-500">Email</p>
-                          <p className="text-xs font-medium text-gray-800 break-all">
-                            {idCardData.email}
-                          </p>
+                      {/* Profile Section */}
+                      <div className="mt-4 relative">
+                        <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+                          <img
+                            src={idCardData.image}
+                            alt="Employee"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       </div>
 
-                      <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
-                        <div className="w-6">
-                          <svg
-                            className="w-4 h-4 text-[#3949ab]"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                            />
-                          </svg>
+                      {/* Name and Position */}
+                      <div className="text-center mt-2 px-4">
+                        <h2 className="text-xl font-bold text-[#1a237e] mb-1">
+                          {idCardData.name}
+                        </h2>
+                        <span className="inline-block bg-[#e8eaf6] text-[#3949ab] px-3 py-0.5 rounded-full text-sm font-medium">
+                          {idCardData.position}
+                        </span>
+                      </div>
+
+                      {/* Contact Details */}
+                      <div className="w-[90%] px-6 mt-4 space-y-1.5">
+                        <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
+                          <div className="w-6">
+                            <svg
+                              className="w-4 h-4 text-[#3949ab]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[10px] text-gray-500">Email</p>
+                            <p className="text-xs font-medium text-gray-800 break-all">
+                              {idCardData.email}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="text-[10px] text-gray-500">Phone</p>
-                          <p className="text-xs font-medium text-gray-800">
-                            {idCardData.phone}
-                          </p>
+
+                        <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
+                          <div className="w-6">
+                            <svg
+                              className="w-4 h-4 text-[#3949ab]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[10px] text-gray-500">Phone</p>
+                            <p className="text-xs font-medium text-gray-800">
+                              {idCardData.phone}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* QR Code */}
-                    <div className="mt-4 mb-4">
-                      <div className="bg-white p-1 rounded-lg shadow-md">
-                        <img
-                          src={idCardData.qr_code_image}
-                          alt="QR Code"
-                          className="w-16 h-16"
-                          onError={(e) => console.log()}
-                        />
+                      {/* QR Code */}
+                      <div className="mt-4 mb-4">
+                        <div className="bg-white p-1 rounded-lg shadow-md">
+                          <img
+                            src={idCardData.qr_code_image}
+                            alt="QR Code"
+                            className="w-16 h-16"
+                            onError={(e) => console.log()}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

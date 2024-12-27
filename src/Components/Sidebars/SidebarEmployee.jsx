@@ -39,8 +39,8 @@ const SidebarEmployee = ({ isSidebarOpen, toggleSidebar }) => {
           </div>
 
           {/* Logo section */}
-          <div className="logo-section w-full h-[30vh] flex items-center justify-center lg:justify-start lg:ml-10">
-            <img className="w-[10rem] lg:w-[12rem]" src="/Neurocode2.png" alt="Logo" />
+          <div className="logo-section w-full h-[30vh] flex items-center justify-center">
+            <img className="w-[6rem]" src="/profile-avatar.png" alt="Profile" />
           </div>
 
           {/* Sidebar links */}

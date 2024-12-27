@@ -6,6 +6,11 @@
         width: 100%;
     }
   }
+/* @media (min-width: 1470px)  {
+    .regi-main{
+        width: 100%;
+    }
+  } */
 
 
   @media (min-width: 350px) and (max-width:442px) {

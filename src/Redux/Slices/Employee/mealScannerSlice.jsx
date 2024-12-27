@@ -20,8 +20,14 @@ export const getDays = createAsyncThunk(
     try {
       const response = await axiosInstance.get('/no-event-days-emp');
 
+      if (!response?.data?.data?.length) {
+        return rejectWithValue('No events found. Please check back later.');
+      }
+
       if (!response?.data?.data?.[0]?.event_dates_with_meals) {
-        return rejectWithValue('Invalid or missing data structure');
+        return rejectWithValue(
+          'No meals are currently scheduled. Please contact your administrator.'
+        );
       }
 
       const eventData = response.data.data[0];
@@ -49,7 +55,10 @@ export const getDays = createAsyncThunk(
         days: transformedDays,
       };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || error.message);
+      const errorMessage =
+        error.response?.data?.message ||
+        'Unable to load meal schedule. Please try again later or contact support.';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -58,23 +67,23 @@ export const scanMeal = createAsyncThunk(
   'mealScanner/scanMeal',
   async (scanData, { dispatch }) => {
     try {
-      
       const response = await axiosInstance.post('/scan-meal/', {
         meal_type: scanData.mealCategory,
         date: scanData.date,
       });
 
       if (response.data?.success) {
-
         const wsMessage = {
           type: 'meal_scanned',
           meal_type: scanData.mealCategory,
           new_count: response.data?.data?.count || 0,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
-        
 
-        if (websocketService.ws && websocketService.ws.readyState === WebSocket.OPEN) {
+        if (
+          websocketService.ws &&
+          websocketService.ws.readyState === WebSocket.OPEN
+        ) {
           websocketService.ws.send(JSON.stringify(wsMessage));
         }
       }
@@ -127,7 +136,11 @@ const mealScannerSlice = createSlice({
       })
       .addCase(getDays.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload || 'Failed to fetch meal data';
+        state.error = {
+          message: action.payload || 'An unexpected error occurred',
+          timestamp: new Date().toISOString(),
+          code: 'MEAL_FETCH_ERROR',
+        };
         state.days = [];
         state.eventName = null;
       });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Navcomponent from '../Components/Navcomponent';
+import EmployeeNavcomponent from '../Components/Employee/EmployeeNavcomponent';
 import SidebarEmployee from '../Components/Sidebars/SidebarEmployee';
 
 
@@ -19,8 +19,8 @@ const EmployeeLayout = () => {
         {/* Main content area */}
         <div className="w-full transition-all duration-300 lg:ml-[300px] overflow-x-hidden bg-[#f7fafc]">
           {/* Navbar */}
-          <Navcomponent toggleSidebar={toggleSidebar} />
-          <div className="page-content pb-10 px-10">
+          <EmployeeNavcomponent toggleSidebar={toggleSidebar} />
+          <div className="page-content pb-10 px-10 mt-[15vh]">
             <Outlet />
           </div>
         </div>

@@ -55,7 +55,6 @@ const AdminEmployeeProfile = () => {
     }
   };
 
-
   const fetchIdCardData = async () => {
     try {
       setLoading(true);
@@ -91,8 +90,13 @@ const AdminEmployeeProfile = () => {
   // Add new function to fetch check-in/out data
   const fetchCheckInOutData = async () => {
     try {
-      const response = await axiosInstance.get(`/employee-inout-details/${id}/`);
-      if (response.data?.status_code === 200 && Array.isArray(response.data.data)) {
+      const response = await axiosInstance.get(
+        `/employee-inout-details/${id}/`
+      );
+      if (
+        response.data?.status_code === 200 &&
+        Array.isArray(response.data.data)
+      ) {
         setCheckInOutData(response.data.data);
       } else {
         setCheckInOutData([]);
@@ -105,12 +109,19 @@ const AdminEmployeeProfile = () => {
   // Add function to fetch positions
   const fetchPositions = async () => {
     try {
-      const response = await axiosInstance.get('/list-positions-for-allocation/');
+      const response = await axiosInstance.get(
+        '/list-positions-for-allocation/'
+      );
       if (response.data?.status_code === 200) {
-        // Extract unique positions from position1 and position2
         const positionData = response.data.data[0];
-        const uniquePositions = [...new Set([positionData.position1, positionData.position2])];
-        setPositions(uniquePositions);
+
+        // Dynamically get all position fields
+        const allPositions = Object.keys(positionData)
+          .filter((key) => key.startsWith('position')) // Get all keys that start with 'position'
+          .map((key) => positionData[key]) // Get the values for those keys
+          .filter((position) => position); // Remove any empty values
+
+        setPositions(allPositions);
       }
     } catch (err) {
       console.error('Error fetching positions:', err);
@@ -145,26 +156,29 @@ const AdminEmployeeProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setValidationErrors(prev => ({ ...prev, [name]: '' }));
-    
+    setValidationErrors((prev) => ({ ...prev, [name]: '' }));
+
     // Prevent numbers in name field
     if (name === 'name' && /\d/.test(value)) {
-      setValidationErrors(prev => ({ ...prev, name: 'Numbers are not allowed in name' }));
+      setValidationErrors((prev) => ({
+        ...prev,
+        name: 'Numbers are not allowed in name',
+      }));
       return;
     }
 
     // For name field, only allow letters, spaces, and dots
     if (name === 'name') {
       const sanitizedValue = value.replace(/[^A-Za-z\s.]/g, '');
-      setTempData(prevData => ({ ...prevData, [name]: sanitizedValue }));
+      setTempData((prevData) => ({ ...prevData, [name]: sanitizedValue }));
     } else {
-      setTempData(prevData => ({ ...prevData, [name]: value }));
+      setTempData((prevData) => ({ ...prevData, [name]: value }));
     }
   };
 
   const validateForm = () => {
     const errors = {};
-    
+
     // Name validation
     if (!tempData.name?.trim()) {
       errors.name = 'Name is required';
@@ -188,11 +202,9 @@ const AdminEmployeeProfile = () => {
       errors.position = 'Position is required';
     }
 
-    // Address validation
+    // Address validation - only check if it's required
     if (!tempData.address?.trim()) {
       errors.address = 'Address is required';
-    } else if (tempData.address.length < 5) {
-      errors.address = 'Address must be at least 5 characters long';
     }
 
     setValidationErrors(errors);
@@ -273,7 +285,7 @@ const AdminEmployeeProfile = () => {
             alt="Profile"
           />
           <h2 className="mt-4 text-lg font-semibold">{employeeData?.name}</h2>
-          <p className="text-sm text-gray-500 text-center px-2 break-words">
+          <p className="text-sm text-gray-500 text-center max-w-[200px] truncate">
             {employeeData?.email}
           </p>
         </div>
@@ -327,7 +339,7 @@ const AdminEmployeeProfile = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-x-hidden w-[900px]">
+      <div className="flex-1 p-3 md:p-8 overflow-x-hidden w-[900px]">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={toggleSidebar}
@@ -350,59 +362,68 @@ const AdminEmployeeProfile = () => {
               Employee Information
             </h1>
             <hr className="w-full border mb-5" />
-            <div className="flex flex-col xl:flex-row items-start justify-between">
-              <div className="grid grid-cols-1 gap-4 mt-2">
-                <div className="flex flex-col xl:flex-row">
-                  <p className="text-gray-500 w-52">Name</p>
-                  <p>{employeeData?.name}</p>
-                </div>
-                <div className="flex flex-col xl:flex-row">
-                  <p className="text-gray-500 w-52">Email</p>
-                  <p>{employeeData?.email}</p>
-                </div>
-                <div className="flex flex-col xl:flex-row">
-                  <p className="text-gray-500 w-52">Phone</p>
-                  <p>{employeeData?.phone}</p>
-                </div>
-                <div className="flex flex-col xl:flex-row">
-                  <p className="text-gray-500 w-52">Position</p>
-                  <p>{employeeData?.position}</p>
-                </div>
-                <div className="flex flex-col xl:flex-row">
-                  <p className="text-gray-500 w-52">Address</p>
-                  <p>{employeeData?.address}</p>
-                </div>
-                <div className="flex flex-col xl:flex-row">
-                  <p className="text-gray-500 w-52">Status</p>
-                  <p>
-                    {employeeData?.is_available ? 'Available' : 'Not Available'}
-                  </p>
-                </div>
-                <div className="flex flex-col xl:flex-row">
-                  <p className="text-gray-500 w-52">Role</p>
-                  <p>{employeeData?.role}</p>
-                </div>
-
-                {employeeData?.extra_fields && Object.entries(employeeData.extra_fields).length > 0 && (
-                  <>
-                    <div className="flex flex-col xl:flex-row mt-4">
-                      <p className="text-gray-500 w-52 font-semibold">Additional Information</p>
-                    </div>
-                    {Object.entries(employeeData.extra_fields).map(([key, value]) => (
-                      <div key={key} className="flex flex-col xl:flex-row">
-                        <p className="text-gray-500 w-52 capitalize">{key.replace(/_/g, ' ')}</p>
-                        <p>{value}</p>
-                      </div>
-                    ))}
-                  </>
-                )}
-              </div>
+            <div className="flex justify-end mb-4">
               <button
-                className="mt-4 px-4 py-2 text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"
+                className="px-4 py-2 text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-200"
                 onClick={() => openEditModal('employee-info')}
               >
                 Edit
               </button>
+            </div>
+            <div className="grid grid-cols-1 gap-4 mt-2 w-full">
+              <div className="flex flex-col xl:flex-row">
+                <p className="text-gray-500 min-w-[130px] xl:w-52">Name</p>
+                <p>{employeeData?.name}</p>
+              </div>
+              <div className="flex flex-col xl:flex-row">
+                <p className="text-gray-500 min-w-[150px] xl:w-52">Email</p>
+                <p className="break-all max-w-[calc(100%-10px)] xl:max-w-[calc(100%-208px)]">
+                  {employeeData?.email}
+                </p>
+              </div>
+              <div className="flex flex-col xl:flex-row">
+                <p className="text-gray-500 min-w-[130px] xl:w-52">Phone</p>
+                <p>{employeeData?.phone}</p>
+              </div>
+              <div className="flex flex-col xl:flex-row">
+                <p className="text-gray-500 min-w-[130px] xl:w-52">Position</p>
+                <p>{employeeData?.position}</p>
+              </div>
+              <div className="flex flex-col xl:flex-row">
+                <p className="text-gray-500 min-w-[130px] xl:w-52">Address</p>
+                <p>{employeeData?.address}</p>
+              </div>
+              <div className="flex flex-col xl:flex-row">
+                <p className="text-gray-500 min-w-[130px] xl:w-52">Status</p>
+                <p>
+                  {employeeData?.is_available ? 'Available' : 'Not Available'}
+                </p>
+              </div>
+              <div className="flex flex-col xl:flex-row">
+                <p className="text-gray-500 min-w-[130px] xl:w-52">Role</p>
+                <p>{employeeData?.role}</p>
+              </div>
+
+              {employeeData?.extra_fields &&
+                Object.entries(employeeData.extra_fields).length > 0 && (
+                  <>
+                    <div className="flex flex-col xl:flex-row mt-4">
+                      <p className="text-gray-500 min-w-[130px] xl:w-52 font-semibold">
+                        Additional Information
+                      </p>
+                    </div>
+                    {Object.entries(employeeData.extra_fields).map(
+                      ([key, value]) => (
+                        <div key={key} className="flex flex-col xl:flex-row">
+                          <p className="text-gray-500 min-w-[130px] xl:w-52 capitalize">
+                            {key.replace(/_/g, ' ')}
+                          </p>
+                          <p>{value}</p>
+                        </div>
+                      )
+                    )}
+                  </>
+                )}
             </div>
           </div>
         )}
@@ -420,129 +441,113 @@ const AdminEmployeeProfile = () => {
         )}
 
         {activeSection === 'id-card' && (
-          <div className="bg-white p-6 rounded-lg">
+          <div className="bg-white p-4 md:p-6 rounded-lg">
             <h1 className="text-2xl font-semibold mb-4">ID Card</h1>
             <hr className="w-full border mb-5" />
 
             {idCardData ? (
-              <div className="max-w-md mx-auto relative">
-                <div className="w-[350px] relative shadow-md rounded-2xl overflow-hidden">
-                  {/* Background Template Image */}
-                  <img
-                    src={idCardTemplate}
-                    alt="ID Card Template"
-                    className="w-full h-full object-contain"
-                  />
+              <div className="flex justify-center items-center w-full">
+                <div className="scale-[0.65] sm:scale-[0.8] md:scale-100 origin-top">
+                  <div className="w-[350px] relative shadow-md rounded-2xl overflow-hidden mx-auto">
+                    <img
+                      src={idCardTemplate}
+                      alt="ID Card Template"
+                      className="w-full h-full object-contain"
+                    />
 
-                  {/* Content overlaid on template */}
-                  <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center">
-                    {/* Header Section - Reduced top margin */}
-                    <div className="w-full text-white py-2 px-6 mt-4">
-                      <h3 className="text-md font-semi-bold opacity-90 mb-0.5">
-                        EVENT STAFF
-                      </h3>
-                      <h4 className="text-xs opacity-75">
-                        {idCardData.event_group_name}
-                      </h4>
-                    </div>
-
-                    {/* Profile Section - Reduced margin */}
-                    <div className="mt-4 relative">
-                      <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
-                        <img
-                          src={`https://event.neurocode.in${idCardData.image}`}
-                          alt="Employee"
-                          className="w-full h-full object-cover"
-                        />
+                    <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center">
+                      {/* Header Section */}
+                      <div className="w-full text-white py-2 px-6 mt-4">
+                        <h3 className="text-md font-semi-bold opacity-90 mb-0.5">
+                          EVENT STAFF
+                        </h3>
+                        <h4 className="text-xs opacity-75">
+                          {idCardData.event_group_name} - {idCardData.event}
+                        </h4>
                       </div>
-                    </div>
 
-                    {/* Name and Position - Reduced margins */}
-                    <div className="text-center mt-2 px-4">
-                      <h2 className="text-xl font-bold text-[#1a237e] mb-1">
-                        {idCardData.name}
-                      </h2>
-                      <span className="inline-block bg-[#e8eaf6] text-[#3949ab] px-3 py-0.5 rounded-full text-sm font-medium">
-                        {idCardData.position}
-                      </span>
-                    </div>
-
-                    {/* Contact Details - Reduced padding and spacing */}
-                    <div className="w-[90%] px-6 mt-4 space-y-1.5">
-                      <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
-                        <div className="w-6">
-                          <svg
-                            className="w-4 h-4 text-[#3949ab]"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-[10px] text-gray-500">Email</p>
-                          <p className="text-xs font-medium text-gray-800 break-all">
-                            {idCardData.email}
-                          </p>
+                      {/* Profile Section */}
+                      <div className="mt-4 relative">
+                        <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+                          <img
+                            src={`https://event.neurocode.in${idCardData.image}`}
+                            alt="Employee"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                       </div>
 
-                      <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
-                        <div className="w-6">
-                          <svg
-                            className="w-4 h-4 text-[#3949ab]"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-[10px] text-gray-500">Phone</p>
-                          <p className="text-xs font-medium text-gray-800">
-                            {idCardData.phone}
-                          </p>
-                        </div>
+                      {/* Name and Position */}
+                      <div className="text-center mt-2 px-4">
+                        <h2 className="text-xl font-bold text-[#1a237e] mb-1">
+                          {idCardData.name}
+                        </h2>
+                        <span className="inline-block bg-[#e8eaf6] text-[#3949ab] px-3 py-0.5 rounded-full text-sm font-medium">
+                          {idCardData.position}
+                        </span>
                       </div>
-                      {/* 
-                      {idCardData.DOB && (
+
+                      {/* Contact Details */}
+                      <div className="w-[90%] px-6 mt-4 space-y-1.5">
                         <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
                           <div className="w-6">
-                            <svg className="w-4 h-4 text-[#3949ab]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            <svg
+                              className="w-4 h-4 text-[#3949ab]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <p className="text-[10px] text-gray-500">Date of Birth</p>
-                            <p className="text-xs font-medium text-gray-800">{idCardData.DOB}</p>
+                            <p className="text-[10px] text-gray-500">Email</p>
+                            <p className="text-xs font-medium text-gray-800 break-all">
+                              {idCardData.email}
+                            </p>
                           </div>
                         </div>
-                      )} */}
-                    </div>
 
+                        <div className="flex items-center bg-white rounded-lg shadow-sm p-2 border-l-4 border-[#3949ab]">
+                          <div className="w-6">
+                            <svg
+                              className="w-4 h-4 text-[#3949ab]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[10px] text-gray-500">Phone</p>
+                            <p className="text-xs font-medium text-gray-800">
+                              {idCardData.phone}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
 
-                    <div className="mt-4 mb-4">
-                      <div className="bg-white p-1 rounded-lg shadow-md ">
-                        <img
-                          src={`https://event.neurocode.in${idCardData.qr_code_image}`}
-                          alt="QR Code"
-                          className="w-16 h-16 "
-                          onError={(e) =>
-                            console.log()
-                          }
-                        />
+                      {/* QR Code */}
+                      <div className="mt-4 mb-4">
+                        <div className="bg-white p-1 rounded-lg shadow-md">
+                          <img
+                            src={`https://event.neurocode.in${idCardData.qr_code_image}`}
+                            alt="QR Code"
+                            className="w-16 h-16"
+                            onError={(e) => console.log()}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -556,37 +561,65 @@ const AdminEmployeeProfile = () => {
 
         {activeSection === 'check-in-out-log' && (
           <div className="bg-white p-6 rounded-lg">
-            <h1 className="text-2xl font-semibold mb-4">Daily Check-In/Out Log</h1>
+            <h1 className="text-2xl font-semibold mb-4">
+              Daily Check-In/Out Log
+            </h1>
             <hr className="w-full border mb-5" />
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="w-12"></th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-In Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-Out Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Check-In Time
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Check-Out Time
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {Array.isArray(checkInOutData) && checkInOutData.length > 0 ? (
+                  {Array.isArray(checkInOutData) &&
+                  checkInOutData.length > 0 ? (
                     checkInOutData.map((log, index) => (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            <svg
+                              className="w-4 h-4 text-white"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M5 13l4 4L19 7"
+                              />
                             </svg>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.checkin_date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.checkin_time}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{log.checkout_time}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {log.checkin_date}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {log.checkin_time}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {log.checkout_time}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="4" className="px-6 py-4 text-center text-gray-500">
+                      <td
+                        colSpan="4"
+                        className="px-6 py-4 text-center text-gray-500"
+                      >
                         No check-in/out data available
                       </td>
                     </tr>
@@ -628,7 +661,11 @@ const AdminEmployeeProfile = () => {
                               value={value}
                               onChange={handleInputChange}
                               className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                                ${validationErrors[key] ? 'border-red-500' : 'border-gray-300'}`}
+                                ${
+                                  validationErrors[key]
+                                    ? 'border-red-500'
+                                    : 'border-gray-300'
+                                }`}
                             >
                               <option value="">Select Position</option>
                               {positions.map((position) => (
@@ -644,12 +681,18 @@ const AdminEmployeeProfile = () => {
                               value={value}
                               onChange={handleInputChange}
                               className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                                ${validationErrors[key] ? 'border-red-500' : 'border-gray-300'}`}
+                                ${
+                                  validationErrors[key]
+                                    ? 'border-red-500'
+                                    : 'border-gray-300'
+                                }`}
                             />
                           )}
                         </label>
                         {validationErrors[key] && (
-                          <p className="text-red-500 text-sm mt-1">{validationErrors[key]}</p>
+                          <p className="text-red-500 text-sm mt-1">
+                            {validationErrors[key]}
+                          </p>
                         )}
                       </div>
                     );

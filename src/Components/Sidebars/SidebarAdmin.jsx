@@ -149,7 +149,7 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                         className={getLinkClass('/add-category')}
                         onClick={toggleSidebar}
                       >
-                        <span className="text-base">Add Category</span>
+                        <span className="text-base">Add Field</span>
                       </Link>
                     </li>
                   </ul>

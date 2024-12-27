@@ -42,10 +42,10 @@ const ExpiredeventsTableSuperadmin = () => {
   const [isRefunding, setIsRefunding] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [refundedEvents, setRefundedEvents] = useState(new Set());
+  const [sendingMailEvents, setSendingMailEvents] = useState({});
 
   const handleSendMail = async (eventName, eventGroup, eventId) => {
-    setIsSendingMail(true);
+    setSendingMailEvents(prev => ({ ...prev, [eventId]: true }));
     try {
       await axiosInstance.post(`/notifications-payment-delay/${eventId}/`);
       setNotification({
@@ -60,7 +60,7 @@ const ExpiredeventsTableSuperadmin = () => {
         message: 'Failed to send payment reminder email. Please try again.',
       });
     } finally {
-      setIsSendingMail(false);
+      setSendingMailEvents(prev => ({ ...prev, [eventId]: false }));
     }
   };
 
@@ -72,14 +72,15 @@ const ExpiredeventsTableSuperadmin = () => {
   const confirmRefund = async () => {
     setIsRefunding(true);
     try {
-      // Replace with your actual API endpoint
-      await axiosInstance.post(`/refund-event/${selectedEvent.eventId}/`);
-      setRefundedEvents(prev => new Set([...prev, selectedEvent.eventId]));
+      await axiosInstance.post('/marking-event-refunded/', {
+        event_id: selectedEvent.eventId.toString()
+      });
       setNotification({
         show: true,
         type: 'success',
         message: 'Event refunded successfully!',
       });
+      await fetchEvents();
     } catch (error) {
       setNotification({
         show: true,
@@ -92,37 +93,41 @@ const ExpiredeventsTableSuperadmin = () => {
     }
   };
 
-  // Fetch initial data
-  useEffect(() => {
-    axiosInstance
-      .get('/list-expired-events/')
-      .then((response) => {
-        const eventsData = Array.isArray(response.data.data)
-          ? response.data.data
-          : [];
+  // Add a function to fetch events
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get('/list-expired-events/');
+      const eventsData = Array.isArray(response.data.data)
+        ? response.data.data
+        : [];
 
-        if (eventsData.length > 0) {
-          const transformedData = eventsData.map((event) => ({
-            id: event.event_name,
-            eventId: event.event_id,
-            eventName: event.event_name,
-            eventGroup: event.event_group,
-            startDate: event.start_date.split('-').reverse().join('-'),
-            endDate: event.end_date.split('-').reverse().join('-'),
-            status: event.event_status,
-            paymentStatus: event.payment_status,
-          }));
-          setEvents(transformedData);
-          setDisplayData(transformedData);
-        } else {
-          setError('No events available');
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        setError(error.message);
-        setLoading(false);
-      });
+      if (eventsData.length > 0) {
+        const transformedData = eventsData.map((event) => ({
+          eventId: event.event_id,
+          eventName: event.event_name,
+          eventGroup: event.event_group,
+          startDate: event.start_date.split('-').reverse().join('-'),
+          endDate: event.end_date.split('-').reverse().join('-'),
+          status: event.event_status,
+          paymentStatus: event.payment_status,
+          isRefunded: event.is_refunded
+        }));
+        setEvents(transformedData);
+        setDisplayData(transformedData);
+      } else {
+        setError('No events available');
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update the initial useEffect to use the fetchEvents function
+  useEffect(() => {
+    fetchEvents();
   }, []);
 
   // Debounced search handler
@@ -293,7 +298,7 @@ const ExpiredeventsTableSuperadmin = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {displayData.map((event) => (
-                    <tr key={event.id} className="bg-white hover:bg-gray-50">
+                    <tr key={event.eventId} className="bg-white hover:bg-gray-50">
                       <td className="px-6 py-6 text-black whitespace-nowrap">
                         {event.eventName}
                       </td>
@@ -326,13 +331,13 @@ const ExpiredeventsTableSuperadmin = () => {
                                 )
                               }
                               className={`bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm ${
-                                isSendingMail
+                                sendingMailEvents[event.eventId]
                                   ? 'opacity-50 cursor-not-allowed'
                                   : ''
                               }`}
-                              disabled={isSendingMail}
+                              disabled={sendingMailEvents[event.eventId]}
                             >
-                              {isSendingMail ? (
+                              {sendingMailEvents[event.eventId] ? (
                                 <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mx-auto"></div>
                               ) : (
                                 'Send Mail'
@@ -343,14 +348,14 @@ const ExpiredeventsTableSuperadmin = () => {
                           event.paymentStatus === 'Completed' && (
                           <button
                             onClick={() => handleRefund(event)}
-                            disabled={refundedEvents.has(event.eventId)}
+                            disabled={event.isRefunded}
                             className={`${
-                              refundedEvents.has(event.eventId)
+                              event.isRefunded
                                 ? 'bg-gray-400'
                                 : 'bg-red-500 hover:bg-red-600'
                             } text-white px-4 py-2 rounded-md text-sm`}
                           >
-                            {refundedEvents.has(event.eventId) ? 'Refunded' : 'Refund'}
+                            {event.isRefunded ? 'Refunded' : 'Refund'}
                           </button>
                         )}
                       </td>

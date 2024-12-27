@@ -6,6 +6,8 @@ import axiosInstance from '../../axiosConfig';
 import { tokenService } from '../../tokenService';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
+import { useDispatch } from 'react-redux';
+import { fetchEvents } from '../../Redux/Slices/SuperAdmin/EventgroupssuperadminSlice';
 
 const EventgroupsSuperadmin = () => {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -31,6 +33,8 @@ const EventgroupsSuperadmin = () => {
     message: '',
     type: '', // 'success' or 'error'
   });
+
+  const dispatch = useDispatch();
 
   const validateForm = (data) => {
     const errors = {};
@@ -139,6 +143,9 @@ const EventgroupsSuperadmin = () => {
         });
         setShowNotificationModal(true);
         toggleDrawer();
+
+        // Dispatch fetchEvents to reload the table data
+        dispatch(fetchEvents());
       }
     } catch (err) {
       if (firebaseUser) {

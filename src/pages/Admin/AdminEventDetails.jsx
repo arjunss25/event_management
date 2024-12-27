@@ -220,14 +220,14 @@ const AdminEventDetails = () => {
                   <label className="block text-gray-700 font-medium mb-2">
                     Venue
                   </label>
-
                   <input
                     type="text"
                     name="venue"
                     value={formData.venue}
                     onChange={handleInputChange}
                     placeholder="Enter venue details"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                    disabled
                   />
                 </div>
 
@@ -235,14 +235,14 @@ const AdminEventDetails = () => {
                   <label className="block text-gray-700 font-medium mb-2">
                     Seats Allocated
                   </label>
-
                   <input
                     type="number"
                     name="seatsAllocated"
                     value={formData.seatsAllocated}
                     onChange={handleInputChange}
                     placeholder="Enter number of seats"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50"
+                    disabled
                   />
                 </div>
               </div>
@@ -488,7 +488,7 @@ const AdminEventDetails = () => {
 
         {/* Main Content */}
 
-        <div className="flex-1 p-4 lg:py-8 overflow-x-hidden w-[900px] rounded-[1rem]">
+        <div className="flex-1 p-4 lg:py-8 overflow-x-hidden rounded-[1rem]">
           <button
             onClick={toggleSidebar}
             className="lg:hidden p-2 text-gray-600 focus:outline-none mb-4"

@@ -86,10 +86,13 @@ const AdminEventsList = () => {
     navigate('/');
   };
 
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.event_group_name.toLowerCase().includes(searchTerm.toLowerCase());
-    return activeTab === 'all' ? matchesSearch : (matchesSearch && event.event_status === activeTab);
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.event_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.event_group_name.toLowerCase().includes(searchTerm.toLowerCase());
+    return activeTab === 'all'
+      ? matchesSearch
+      : matchesSearch && event.event_status === activeTab;
   });
 
   const getStatusColor = (status) => {
@@ -112,12 +115,22 @@ const AdminEventsList = () => {
       </div>
     );
 
-  if (error) 
+  if (error)
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50">
         <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-          <svg className="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-12 h-12 text-red-500 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <p className="text-red-500 font-medium">{error}</p>
         </div>
@@ -130,15 +143,15 @@ const AdminEventsList = () => {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-gray-50"
     >
-      <div className="w-full mx-auto px-16 py-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-16 py-4 sm:py-8">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+        <div className="mb-4 sm:mb-8">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <span className="text-xs font-medium tracking-widest uppercase text-gray-500">
                 Administration
               </span>
-              <h1 className="text-4xl font-light text-gray-900">
+              <h1 className="text-3xl sm:text-4xl font-light text-gray-900">
                 Events<span className="font-bold">List</span>
               </h1>
             </div>
@@ -146,16 +159,26 @@ const AdminEventsList = () => {
               onClick={handleLogout}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
               </svg>
               Logout
             </button>
           </div>
 
-          {/* Search and Filter Section */}
-          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-            <div className="relative flex-1 max-w-xs">
+          {/* Search and Filter Section - Updated for better mobile layout */}
+          <div className="mt-4 sm:mt-6 flex flex-col gap-4">
+            <div className="relative w-full sm:max-w-xs">
               <input
                 type="text"
                 placeholder="Search events..."
@@ -177,12 +200,12 @@ const AdminEventsList = () => {
                 />
               </svg>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               {['all', 'upcoming', 'ongoing', 'completed'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  className={`px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                     activeTab === tab
                       ? 'bg-purple-600 text-white shadow-lg'
                       : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -195,7 +218,7 @@ const AdminEventsList = () => {
           </div>
         </div>
 
-        {/* Events Grid */}
+        {/* Events Grid - Updated grid columns for different screen sizes */}
         {!filteredEvents.length ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -215,14 +238,18 @@ const AdminEventsList = () => {
                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
-            <p className="mt-4 text-lg font-medium text-gray-900">No events found</p>
-            <p className="mt-2 text-sm text-gray-500">Try adjusting your search or filter criteria</p>
+            <p className="mt-4 text-lg font-medium text-gray-900">
+              No events found
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              Try adjusting your search or filter criteria
+            </p>
           </motion.div>
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6"
           >
             {filteredEvents.map((event, index) => (
               <motion.div
@@ -233,21 +260,28 @@ const AdminEventsList = () => {
                 className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 ease-out transform hover:-translate-y-1"
                 onClick={() => handleEventSelect(event.id)}
               >
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-40 sm:h-48 overflow-hidden">
                   <img
-                    src={event.image || 'https://images.unsplash.com/photo-1505236858219-8359eb29e329?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2000&q=80'}
+                    src={
+                      event.image ||
+                      'https://images.unsplash.com/photo-1505236858219-8359eb29e329?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2000&q=80'
+                    }
                     alt={event.event_name}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 group-hover:opacity-90 transition-opacity duration-300" />
                   <div className="absolute top-3 right-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getStatusColor(event.event_status)} text-white shadow-lg`}>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getStatusColor(
+                        event.event_status
+                      )} text-white shadow-lg`}
+                    >
                       {event.event_status}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-4 space-y-3">
+                <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors duration-300 line-clamp-1">
                       {event.event_name}
@@ -259,18 +293,44 @@ const AdminEventsList = () => {
 
                   <div className="space-y-2">
                     <div className="flex items-center text-gray-600">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
                       </svg>
                       <span className="text-xs">
-                        {formatDate(event.start_date)} to {formatDate(event.end_date)}
+                        {formatDate(event.start_date)} to{' '}
+                        {formatDate(event.end_date)}
                       </span>
                     </div>
 
                     <div className="flex items-center text-gray-600">
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
                       </svg>
                       <span className="text-xs line-clamp-1">
                         {event.venue || 'Location TBA'}

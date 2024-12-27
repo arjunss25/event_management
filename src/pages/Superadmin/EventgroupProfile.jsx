@@ -366,7 +366,7 @@ const EventgroupProfile = () => {
     );
 
   return (
-    <div className="flex min-h-screen px-3 sm:px-10 pb-10">
+    <div className="flex min-h-screen px-3 sm:px-10 pb-10 mt-10">
       <Notification
         notification={notification}
         setNotification={setNotification}
@@ -663,7 +663,7 @@ const EventgroupProfile = () => {
                 <div className="w-full max-w-2xl">
                   <div className="mb-4">
                     <label className="block text-gray-700 mb-2">
-                      Event Name
+                      Event Name <span className="text-red-500">*</span>
                     </label>
                     {formErrors.eventName && (
                       <div className="text-red-500 text-sm mb-1">
@@ -679,7 +679,7 @@ const EventgroupProfile = () => {
                   </div>
                   <div className="mb-4">
                     <label className="block text-gray-700 mb-2">
-                      Start Date
+                      Start Date <span className="text-red-500">*</span>
                     </label>
                     {formErrors.startDate && (
                       <div className="text-red-500 text-sm mb-1">
@@ -694,7 +694,9 @@ const EventgroupProfile = () => {
                     />
                   </div>
                   <div className="mb-6">
-                    <label className="block text-gray-700 mb-2">End Date</label>
+                    <label className="block text-gray-700 mb-2">
+                      End Date <span className="text-red-500">*</span>
+                    </label>
                     {formErrors.endDate && (
                       <div className="text-red-500 text-sm mb-1">
                         {formErrors.endDate}
@@ -708,7 +710,9 @@ const EventgroupProfile = () => {
                     />
                   </div>
                   <div className="mb-6">
-                    <label className="block text-gray-700 mb-2">Amount</label>
+                    <label className="block text-gray-700 mb-2">
+                      Amount <span className="text-red-500">*</span>
+                    </label>
                     {formErrors.amount && (
                       <div className="text-red-500 text-sm mb-1">
                         {formErrors.amount}

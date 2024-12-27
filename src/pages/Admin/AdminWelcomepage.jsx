@@ -7,16 +7,14 @@ import axiosInstance from '../../axiosConfig';
 const AdminWelcomePage = () => {
   const navigate = useNavigate();
   const auth = useSelector((state) => state.auth);
-  const [eventGroupName, setEventGroupName] = useState('');
+  const [companyName, setCompanyName] = useState('');
 
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
         const response = await axiosInstance.get('/welcome-eventgroup-name/');
         console.log('API Response:', response.data);
-        setEventGroupName(
-          response.data?.data?.event_group_name || 'Event Group'
-        );
+        setCompanyName(response.data?.data?.company_name || 'Company');
       } catch (error) {
         console.error('Error fetching event details:', error);
       }
@@ -37,7 +35,7 @@ const AdminWelcomePage = () => {
           alt=""
           className="w-full h-full object-cover opacity-80"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3">
           <motion.h1
             className="text-6xl font-extrabold text-white"
             initial={{ opacity: 0, y: -50 }}
@@ -57,7 +55,7 @@ const AdminWelcomePage = () => {
           transition={{ delay: 0.5, duration: 1 }}
         >
           We're glad to have you here as part of
-          <span className="text-blue-500 font-semibold"> {eventGroupName}</span>
+          <span className="text-blue-500 font-semibold"> {companyName}</span>
         </motion.p>
         <motion.div
           className="flex justify-center"

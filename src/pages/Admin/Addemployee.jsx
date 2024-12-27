@@ -28,6 +28,7 @@ const AddEmployee = () => {
     address: '',
     position: '',
   });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -185,13 +186,27 @@ const AddEmployee = () => {
     }
 
     setFieldErrors(newErrors);
+
+    // If there are errors, scroll to the first error field
+    if (!isValid) {
+      const firstErrorField = Object.keys(newErrors).find(
+        (key) => newErrors[key] !== ''
+      );
+      if (firstErrorField) {
+        const errorElement = document.getElementById(firstErrorField);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          errorElement.focus();
+        }
+      }
+    }
+
     return isValid;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Perform validation before submission
     if (!validateForm()) {
       return;
     }
@@ -242,7 +257,11 @@ const AddEmployee = () => {
       const response = await axiosInstance.post('/register-employee/', payload);
 
       if (response.data?.status === 'Success') {
-        navigate('/admin/employee-details');
+        setShowSuccessModal(true);
+        setTimeout(() => {
+          setShowSuccessModal(false);
+          navigate('/admin/employee-details');
+        }, 2000);
       } else {
         // If backend registration fails, delete the Firebase user
         if (firebaseUser) {
@@ -274,10 +293,11 @@ const AddEmployee = () => {
     }
   };
 
-  const renderExtraField = (field) => {
-    const commonInputClasses =
-      'w-full px-3 py-2 border rounded-3xl border-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500';
+  // Update input styling with more rounded corners and remove HTML validation
+  const commonInputClasses = `w-full px-4 py-3 border-2 rounded-full bg-white/50 backdrop-blur-sm
+    focus:outline-none focus:border-purple-500 transition-all duration-200`;
 
+  const renderExtraField = (field) => {
     switch (field.field_type?.toLowerCase()) {
       case 'text':
         return (
@@ -289,6 +309,7 @@ const AddEmployee = () => {
             onChange={handleChange}
             className={commonInputClasses}
             placeholder={`Enter ${field.field_name}`}
+            noValidate
           />
         );
 
@@ -431,6 +452,50 @@ const AddEmployee = () => {
     }
   };
 
+  // Update the validation message styling and positioning
+  const renderFieldError = (error) => {
+    if (!error) return null;
+    return (
+      <p className="absolute -bottom-5 left-2 text-xs text-red-500 transition-all duration-200">
+        {error}
+      </p>
+    );
+  };
+
+  const SuccessModal = () => {
+    if (!showSuccessModal) return null;
+
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 transform animate-success-popup">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold text-center text-gray-900 mb-2">
+            Registration Successful!
+          </h3>
+          <p className="text-center text-gray-600">
+            The employee has been successfully registered.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="w-full  flex items-center justify-center">
@@ -485,132 +550,136 @@ const AddEmployee = () => {
     .animate-error-popup {
       animation: error-popup 0.3s ease-out forwards;
     }
+    @keyframes success-popup {
+      0% { opacity: 0; transform: scale(0.95); }
+      70% { transform: scale(1.02); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .animate-success-popup {
+      animation: success-popup 0.3s ease-out forwards;
+    }
   `;
   document.head.appendChild(style);
 
   return (
-    <div className="w-full p-6 bg-white rounded-lg shadow-sm">
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        Add Employee
-      </h1>
+    <div className="w-full p-8 bg-gradient-to-br from-white to-gray-50 rounded-xl ">
+      <h1 className="text-3xl font-bold text-gray-800 mb-8">Add Employee</h1>
 
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-8">
-          <div className="w-28 h-28 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-gray-600 text-2xl">
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center">
+            <span className=" text-3xl font-semibold">
               {formData.name ? formData.name.charAt(0).toUpperCase() : 'U'}
             </span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
-            <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Name
+        <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+            <div className="relative">
+              <label
+                htmlFor="name"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Name <span className="text-red-500">*</span>
               </label>
-              <div className="min-h-[20px]">
-                {fieldErrors.name && (
-                  <p className="text-sm text-red-500">{fieldErrors.name}</p>
-                )}
-              </div>
               <input
                 type="text"
                 id="name"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-3xl ${
-                  fieldErrors.name ? 'border-red-500' : 'border-gray-300'
-                } focus:outline-none focus:ring-1 focus:ring-purple-500`}
-                placeholder="Name"
+                className={`${commonInputClasses} ${
+                  fieldErrors.name ? 'border-red-300' : 'border-gray-200'
+                }`}
+                placeholder="Enter employee name"
+                noValidate
               />
+              {renderFieldError(fieldErrors.name)}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                e-mail
+            <div className="relative">
+              <label
+                htmlFor="email"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                e-mail <span className="text-red-500">*</span>
               </label>
-              <div className="min-h-[20px]">
-                {fieldErrors.email && (
-                  <p className="text-sm text-red-500">{fieldErrors.email}</p>
-                )}
-              </div>
               <input
                 type="email"
                 id="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-3xl ${
-                  fieldErrors.email ? 'border-red-500' : 'border-gray-300'
-                } focus:outline-none focus:ring-1 focus:ring-purple-500`}
-                placeholder="Enter your email address"
+                className={`${commonInputClasses} ${
+                  fieldErrors.email ? 'border-red-300' : 'border-gray-200'
+                }`}
+                placeholder="Enter email address"
+                noValidate
               />
+              {renderFieldError(fieldErrors.email)}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                Phone
+            <div className="relative">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Phone <span className="text-red-500">*</span>
               </label>
-              <div className="min-h-[20px]">
-                {fieldErrors.phone && (
-                  <p className="text-sm text-red-500">{fieldErrors.phone}</p>
-                )}
-              </div>
               <input
                 type="tel"
                 id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-3xl ${
-                  fieldErrors.phone ? 'border-red-500' : 'border-gray-300'
-                } focus:outline-none focus:ring-1 focus:ring-purple-500`}
-                placeholder="Enter your 10-digit phone number"
+                className={`${commonInputClasses} ${
+                  fieldErrors.phone ? 'border-red-300' : 'border-gray-200'
+                }`}
+                placeholder="Enter 10-digit phone number"
+                noValidate
               />
+              {renderFieldError(fieldErrors.phone)}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                Address
+            <div className="relative">
+              <label
+                htmlFor="address"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Address <span className="text-red-500">*</span>
               </label>
-              <div className="min-h-[20px]">
-                {fieldErrors.address && (
-                  <p className="text-sm text-red-500">{fieldErrors.address}</p>
-                )}
-              </div>
               <input
                 type="text"
                 id="address"
                 name="address"
                 value={formData.address}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-3xl ${
-                  fieldErrors.address ? 'border-red-500' : 'border-gray-300'
-                } focus:outline-none focus:ring-1 focus:ring-purple-500`}
+                className={`${commonInputClasses} ${
+                  fieldErrors.address ? 'border-red-300' : 'border-gray-200'
+                }`}
                 placeholder="Enter address"
+                noValidate
               />
+              {renderFieldError(fieldErrors.address)}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="position" className="block text-sm font-medium text-gray-700">
-                Position
+            <div className="relative">
+              <label
+                htmlFor="position"
+                className="block text-sm font-semibold text-gray-700 mb-2"
+              >
+                Position <span className="text-red-500">*</span>
               </label>
-              <div className="min-h-[20px]">
-                {fieldErrors.position && (
-                  <p className="text-sm text-red-500">{fieldErrors.position}</p>
-                )}
-              </div>
               <div className="relative">
                 <select
                   id="position"
                   name="position"
                   value={formData.position}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 pr-10 border rounded-3xl appearance-none ${
-                    fieldErrors.position ? 'border-red-500' : 'border-gray-300'
-                  } focus:outline-none focus:ring-1 focus:ring-purple-500`}
+                  className={`${commonInputClasses} ${
+                    fieldErrors.position ? 'border-red-300' : 'border-gray-200'
+                  } pr-10 appearance-none`}
                 >
                   <option value="">Select Position</option>
                   {positions.map((position) => (
@@ -622,9 +691,9 @@ const AddEmployee = () => {
                     </option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
                   <svg
-                    className="h-4 w-4 text-gray-400"
+                    className="h-5 w-5 text-gray-500"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                     fill="currentColor"
@@ -637,39 +706,46 @@ const AddEmployee = () => {
                   </svg>
                 </div>
               </div>
+              {renderFieldError(fieldErrors.position)}
             </div>
 
             {extraFields.map((field) => (
-              <div key={field.field_name} className="space-y-2">
-                <label htmlFor={field.field_name} className="block text-sm font-medium text-gray-700">
+              <div key={field.field_name} className="relative">
+                <label
+                  htmlFor={field.field_name}
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   {field.field_name}
-                  {field.is_required && <span className="text-red-500 ml-1">*</span>}
+                  {field.is_required && <span className="text-red-500">*</span>}
                 </label>
-                <div className="min-h-[20px]">
-                  {/* Add error handling for extra fields if needed */}
-                </div>
                 {renderExtraField(field)}
               </div>
             ))}
           </div>
 
-          <div className="flex justify-end space-x-4 mt-6 pt-16">
+          <div className="flex flex-col sm:flex-row justify-end gap-4 sm:space-x-4 mt-10 pt-6 border-t border-gray-100 col-span-2">
             <button
               type="button"
-              className="px-6 py-2 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-colors"
+              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-gray-200 rounded-full text-gray-700 
+                hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 
+                focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 text-sm sm:text-base"
               onClick={() => navigate('/admin/employee-details')}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-black text-white rounded-full hover:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-purple-500 transition-colors"
+              className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-black text-white rounded-full 
+                hover:bg-gray-800 focus:outline-none focus:ring-2 
+                focus:ring-gray-500 focus:ring-offset-2 transition-all duration-200 text-sm sm:text-base"
             >
-              Add
+              Add Employee
             </button>
           </div>
         </form>
       </div>
+
+      <SuccessModal />
     </div>
   );
 };

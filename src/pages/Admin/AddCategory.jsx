@@ -35,10 +35,17 @@ const AddCategory = () => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState(null);
-  
+
   // New state for success modal
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Add new state for position deletion confirmation
+  const [showPositionDeleteModal, setShowPositionDeleteModal] = useState(false);
+  const [positionToDelete, setPositionToDelete] = useState(null);
+
+  // Add new loading state
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {}, [event_group_id]);
 
@@ -94,6 +101,10 @@ const AddCategory = () => {
       fetchInitialData();
     }
   }, [event_group_id]);
+
+  const containsOnlyLetters = (str) => {
+    return /^[A-Za-z\s]+$/.test(str);
+  };
 
   const handleSavePositionChoices = async () => {
     try {
@@ -157,7 +168,15 @@ const AddCategory = () => {
 
     // Validate required fields
     if (!newCategoryLabel.trim()) {
-      setErrorMessage('Please enter a category label');
+      setErrorMessage('Please enter a Field label');
+      setShowError(true);
+      setTimeout(() => setShowError(false), 1500);
+      return;
+    }
+
+    // Add validation for letters only
+    if (!containsOnlyLetters(newCategoryLabel)) {
+      setErrorMessage('Field label can only contain letters');
       setShowError(true);
       setTimeout(() => setShowError(false), 1500);
       return;
@@ -246,7 +265,7 @@ const AddCategory = () => {
       };
 
       setCategories([...categories, newCategory]);
-      
+
       // Set success message and show success modal
       setSuccessMessage(`${newCategoryLabel} category added successfully`);
       setShowSuccessModal(true);
@@ -260,7 +279,6 @@ const AddCategory = () => {
       setTimeout(() => {
         setShowSuccessModal(false);
       }, 3000);
-
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message || 'Failed to add category'
@@ -275,50 +293,45 @@ const AddCategory = () => {
     <AnimatePresence>
       {showSuccessModal && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-5 right-5 bg-white rounded-lg p-6 max-w-md"
-          style={{
-            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-            border: '1px solid rgba(0,0,0,0.05)',
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50"
         >
-          <div className="flex items-start">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-6 w-6 text-green-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-gray-900">Success</h3>
-              <div className="mt-2">
-                <p className="text-sm text-gray-500">{successMessage}</p>
+          <motion.div
+            initial={{ scale: 0.95 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.95 }}
+            className="bg-white rounded-xl shadow-2xl p-8 w-[90%] md:w-[400px] transform transition-all"
+          >
+            <div className="flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <svg
+                  className="w-8 h-8 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
               </div>
+              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                Success!
+              </h3>
+              <p className="text-gray-500 text-center mb-6">{successMessage}</p>
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="px-6 py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors"
+              >
+                Close
+              </button>
             </div>
-            <button
-              onClick={() => setShowSuccessModal(false)}
-              className="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-500 focus:outline-none"
-            >
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
@@ -387,46 +400,56 @@ const AddCategory = () => {
     setTempRoles([...tempRoles, '']);
   };
 
-  const handleRemoveRoleOption = async (index) => {
+  const handleDeletePositionClick = (index, role) => {
+    const position = existingPositions.find((pos) => pos.name === role);
+    setPositionToDelete({
+      index,
+      name: role,
+      id: position?.id,
+    });
+    setShowPositionDeleteModal(true);
+  };
+
+  const handleConfirmPositionDelete = async () => {
+    setIsLoading(true);
     try {
-      const roleToRemove = tempRoles[index];
-      const existingPosition = existingPositions.find(
-        (pos) => pos.name === roleToRemove
-      );
-
-      if (existingPosition) {
-        const payload = {
-          event_group: event_group_id,
-          name: roleToRemove,
-        };
-
-        await axiosInstance.delete(
-          `/position-choices-details/${existingPosition.id}/`,
-          {
-            data: payload,
-          }
-        );
-
-        // Update existingPositions state
-        setExistingPositions((prevPositions) =>
-          prevPositions.filter((pos) => pos.id !== existingPosition.id)
-        );
-
-        // Update categories state
-        setCategories((prevCategories) =>
-          prevCategories.map((cat) =>
-            cat.id === 'role'
-              ? { ...cat, options: cat.options.filter((_, i) => i !== index) }
-              : cat
-          )
-        );
+      if (!positionToDelete?.id) {
+        throw new Error('Position ID not found');
       }
 
-      // Update tempRoles state
-      setTempRoles(tempRoles.filter((_, i) => i !== index));
+      await axiosInstance.delete(
+        `/remove-employee-with-position/${positionToDelete.name}/${positionToDelete.id}/`
+      );
+
+      // Refresh the positions data
+      const positionResponse = await axiosInstance.get(
+        `/position-choices/?event_group=${event_group_id}`
+      );
+      const positionOptions = positionResponse.data.data.map((pos) => pos.name);
+      setExistingPositions(positionResponse.data.data);
+
+      // Update categories with new data
+      setCategories(
+        categories.map((cat) =>
+          cat.id === 'role' ? { ...cat, options: positionOptions } : cat
+        )
+      );
+
+      // Close both modals
+      setShowPositionDeleteModal(false);
+      setIsEditModalOpen(false);
+      setPositionToDelete(null);
+
+      // Show success message
+      setSuccessMessage('Position deleted successfully');
+      setShowSuccessModal(true);
+      setTimeout(() => setShowSuccessModal(false), 3000);
     } catch (error) {
-      setErrorMessage('Failed to remove position. Please try again.');
+      setErrorMessage('Failed to delete position');
       setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -497,6 +520,7 @@ const AddCategory = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       const payload = {
         event_group: event_group_id,
@@ -505,19 +529,34 @@ const AddCategory = () => {
 
       await axiosInstance.post('/position-choices/', payload);
 
-      // Update local state
-      const updatedCategories = categories.map((cat) =>
-        cat.id === 'role'
-          ? { ...cat, options: [...cat.options, newRoleName.trim()] }
-          : cat
+      // Refresh the positions data
+      const positionResponse = await axiosInstance.get(
+        `/position-choices/?event_group=${event_group_id}`
+      );
+      const positionOptions = positionResponse.data.data.map((pos) => pos.name);
+      setExistingPositions(positionResponse.data.data);
+
+      // Update categories with new data
+      setCategories(
+        categories.map((cat) =>
+          cat.id === 'role' ? { ...cat, options: positionOptions } : cat
+        )
       );
 
-      setCategories(updatedCategories);
+      // Close the edit modal and reset form
+      setIsEditModalOpen(false);
       setNewRoleName('');
+
+      // Show success message
+      setSuccessMessage('Position added successfully');
+      setShowSuccessModal(true);
+      setTimeout(() => setShowSuccessModal(false), 3000);
     } catch (error) {
       setErrorMessage(error.response?.data?.message || 'Failed to add role');
       setShowError(true);
       setTimeout(() => setShowError(false), 1500);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -706,11 +745,76 @@ const AddCategory = () => {
     </div>
   );
 
+  // Add new Position Delete Confirmation Modal component
+  const PositionDeleteModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl shadow-2xl p-8 w-[90%] md:w-[400px] transform transition-all">
+        <div className="mb-6">
+          <div className="w-12 h-12 rounded-full bg-red-100 mx-auto flex items-center justify-center">
+            <svg
+              className="w-6 h-6 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900 text-center mb-4">
+          Delete Position
+        </h3>
+        <p className="text-gray-500 text-center mb-6">
+          Are you sure you want to delete "{positionToDelete?.name}"? All users
+          registered with this position will be removed.
+        </p>
+        <div className="flex gap-4">
+          <button
+            className="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+            onClick={() => setShowPositionDeleteModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+            className={`flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            onClick={handleConfirmPositionDelete}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
+            ) : (
+              'Delete'
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Update Loader component
+  const Loader = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-8 flex flex-col items-center">
+        <div className="w-full h-48 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-gray-900"></div>
+        </div>
+        <p className="mt-4 text-gray-600 font-medium">Processing...</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen ">
       <div className="w-full px-6 md:px-10 py-8 md:py-12">
         <h1 className="text-3xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-800 to-gray-600">
-          Employee Categories
+          Employee Fields
         </h1>
       </div>
 
@@ -852,7 +956,7 @@ const AddCategory = () => {
             {/* Content */}
             <div className="relative z-5">
               <h3 className="text-2xl font-bold mb-8 text-white">
-                Add New Category
+                Add New Field
               </h3>
               <form className="w-full space-y-6">
                 <div className="space-y-2">
@@ -860,7 +964,7 @@ const AddCategory = () => {
                     htmlFor="categoryLabel"
                     className="text-sm text-gray-300 font-medium block"
                   >
-                    Category Label
+                    Field Label <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -868,9 +972,14 @@ const AddCategory = () => {
                     className="w-full h-12 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400
                              focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all duration-200
                              backdrop-blur-sm px-4"
-                    placeholder="Enter category name"
+                    placeholder="Enter field name"
                     value={newCategoryLabel}
-                    onChange={(e) => setNewCategoryLabel(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '' || containsOnlyLetters(value)) {
+                        setNewCategoryLabel(value);
+                      }
+                    }}
                   />
                 </div>
 
@@ -879,7 +988,7 @@ const AddCategory = () => {
                     htmlFor="fieldType"
                     className="text-sm text-gray-300 font-medium block"
                   >
-                    Field Type
+                    Field Type <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -1001,7 +1110,7 @@ const AddCategory = () => {
                            justify-center gap-2 transform hover:scale-[1.02]"
                 >
                   <IoAddOutline className="w-5 h-5" />
-                  Add Category
+                  Add Field
                 </button>
               </form>
             </div>
@@ -1010,14 +1119,15 @@ const AddCategory = () => {
       </div>
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z- ">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="bg-white rounded-2xl w-[90%] max-w-2xl p-8 lg:ml-[300px] "
+            className="bg-white rounded-2xl w-[90%] max-w-2xl p-8 lg:ml-[300px] max-h-[80vh] flex flex-col"
           >
-            <div className="flex justify-between items-center mb-8 ">
+            {/* Header - Fixed at top */}
+            <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-bold text-black">
                 Manage Roles & Positions
               </h3>
@@ -1029,7 +1139,7 @@ const AddCategory = () => {
               </button>
             </div>
 
-            {/* Add new role section */}
+            {/* Add new role section - Fixed below header */}
             <div className="mb-8">
               <div className="flex sm:flex-row flex-col sm:items-center items-start gap-3">
                 <input
@@ -1041,80 +1151,95 @@ const AddCategory = () => {
                 />
                 <button
                   onClick={handleAddRole}
-                  className="px-6 py-3 bg-black hover:bg-grey-600 text-white rounded-xl flex items-center gap-2 transition-colors"
+                  disabled={isLoading}
+                  className={`px-6 py-3 bg-black hover:bg-grey-600 text-white rounded-xl flex items-center gap-2 transition-colors ${
+                    isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  <IoAddOutline className="w-5 h-5" />
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <IoAddOutline className="w-5 h-5" />
+                  )}
                   Add
                 </button>
               </div>
             </div>
 
-            {/* Roles list */}
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-              {categories.find((cat) => cat.id === 'role').options.length ===
-              0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p className="text-lg">No roles added yet</p>
-                  <p className="text-sm">Start by adding a new role above</p>
-                </div>
-              ) : (
-                categories
-                  .find((cat) => cat.id === 'role')
-                  .options.map((role, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
-                    >
-                      {editingId === index ? (
-                        <>
-                          <input
-                            type="text"
-                            value={editedRoleName}
-                            onChange={(e) => setEditedRoleName(e.target.value)}
-                            className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                          />
-                          <button
-                            onClick={() => handleSaveEdit(index)}
-                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                          >
-                            <IoCheckmark className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => setEditingId(null)}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          >
-                            <IoClose className="w-5 h-5" />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <span className="flex-1 font-medium">{role}</span>
-                          <button
-                            onClick={() => handleStartEdit(index, role)}
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                          >
-                            <IoPencil className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleRemoveRoleOption(index)}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          >
-                            <IoTrash className="w-5 h-5" />
-                          </button>
-                        </>
-                      )}
-                    </motion.div>
-                  ))
-              )}
+            {/* Roles list - Scrollable content */}
+            <div className="flex-1 overflow-y-auto pr-2">
+              <div className="space-y-4">
+                {categories.find((cat) => cat.id === 'role').options.length ===
+                0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-lg">No roles added yet</p>
+                    <p className="text-sm">Start by adding a new role above</p>
+                  </div>
+                ) : (
+                  categories
+                    .find((cat) => cat.id === 'role')
+                    .options.map((role, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        {editingId === index ? (
+                          <>
+                            <input
+                              type="text"
+                              value={editedRoleName}
+                              onChange={(e) =>
+                                setEditedRoleName(e.target.value)
+                              }
+                              className="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                            />
+                            <button
+                              onClick={() => handleSaveEdit(index)}
+                              className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                            >
+                              <IoCheckmark className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                            >
+                              <IoClose className="w-5 h-5" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="flex-1 font-medium">{role}</span>
+                            <button
+                              onClick={() => handleStartEdit(index, role)}
+                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                            >
+                              <IoPencil className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDeletePositionClick(index, role)
+                              }
+                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                            >
+                              <IoTrash className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
+                      </motion.div>
+                    ))
+                )}
+              </div>
             </div>
           </motion.div>
         </div>
       )}
-       <SuccessModal />
+      <SuccessModal />
       {showDeleteConfirmation && <DeleteConfirmationModal />}
+      {showPositionDeleteModal && <PositionDeleteModal />}
       <ErrorPopup />
+      {isLoading && <Loader />}
     </div>
   );
 };

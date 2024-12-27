@@ -209,7 +209,7 @@ const Login = () => {
 
   return (
     <div className="w-full h-auto lg:h-screen flex items-center justify-center p-10 lg:p-0">
-      <div className="w-[90%] lg:w-[70vw] h-auto lg:h-[80vh] flex flex-col lg:flex-row items-center justify-center gap-7 lg:gap-[10%] rounded-lg  py-5 lg:p-0">
+      <div className="w-[100%] lg:w-[70vw] h-auto lg:h-[80vh] flex flex-col lg:flex-row items-center justify-center gap-7 lg:gap-[10%] rounded-lg  py-5 lg:p-0">
         {/* Left image section */}
         <div className="left w-[90%] lg:w-[40%] h-auto lg:h-[90%] bg-[#EBF5FF] rounded-lg flex flex-col items-center justify-between object-contain">
           <img

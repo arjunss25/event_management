@@ -49,6 +49,8 @@ const AdminEventFood = () => {
   const [isListLoading, setIsListLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showError, setShowError] = useState(false);
+  const [loadingMealIds, setLoadingMealIds] = useState(new Set());
+  const [isAddingMeal, setIsAddingMeal] = useState(false);
 
   const refreshMealList = () => {
     setIsListLoading(true);
@@ -63,11 +65,10 @@ const AdminEventFood = () => {
     if (!categoryName.trim()) return;
 
     const selectedDay = days.find((day) => day.id === selectedDayId);
-    if (!selectedDay?.date) {
-      return;
-    }
+    if (!selectedDay?.date) return;
 
-    // When apply to all days is checked, we'll use postMealCategory regardless of which day is selected
+    setIsAddingMeal(true);
+
     if (applyToAllDays) {
       dispatch(postMealCategory(categoryName.trim()))
         .then(() => refreshMealList())
@@ -75,26 +76,34 @@ const AdminEventFood = () => {
           setErrorMessage(error.message || 'Failed to add meal category');
           setShowError(true);
           setTimeout(() => setShowError(false), 1500);
-        });
+        })
+        .finally(() => setIsAddingMeal(false));
     } else {
-      // For single day, use postMealCategoryForDate with the selected day's date
       dispatch(postMealCategoryForDate(categoryName.trim(), selectedDay.date))
         .then(() => refreshMealList())
         .catch((error) => {
           setErrorMessage(error.message || 'Failed to add meal category');
           setShowError(true);
           setTimeout(() => setShowError(false), 1500);
-        });
+        })
+        .finally(() => setIsAddingMeal(false));
     }
   };
 
   const handleRemoveMealCategory = (dayId, mealId, date) => {
-    if (!date) {
-      return;
-    }
-    dispatch(postRemoveMealCategory(mealId, date)).then(() =>
-      refreshMealList()
-    );
+    if (!date) return;
+
+    setLoadingMealIds((prev) => new Set([...prev, mealId]));
+
+    dispatch(postRemoveMealCategory(mealId, date))
+      .then(() => refreshMealList())
+      .finally(() => {
+        setLoadingMealIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(mealId);
+          return newSet;
+        });
+      });
   };
 
   const handleRemoveDay = (dayId) => {
@@ -154,6 +163,13 @@ const AdminEventFood = () => {
     };
   }, [dispatch]);
 
+  // Helper function to format date (add this near the top of the component)
+  const formatDisplayDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB'); // This will format as dd/mm/yyyy
+  };
+
   return (
     <div className="flex flex-col-reverse lg:flex-row w-full gap-4 meal-sec-main">
       {/* Left Section - Daily Meal Overview */}
@@ -189,7 +205,9 @@ const AdminEventFood = () => {
                 <div className="flex justify-between items-center mb-4">
                   <div>
                     <h3 className="text-lg font-medium">Day {day.id}</h3>
-                    <span className="text-sm text-gray-500">{day.date}</span>
+                    <span className="text-sm text-gray-500">
+                      {formatDisplayDate(day.date)}
+                    </span>
                   </div>
                 </div>
 
@@ -212,8 +230,13 @@ const AdminEventFood = () => {
                               );
                             }}
                             className="text-gray-400 hover:text-gray-600"
+                            disabled={loadingMealIds.has(meal.id)}
                           >
-                            <IoMdClose size={20} />
+                            {loadingMealIds.has(meal.id) ? (
+                              <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                            ) : (
+                              <IoMdClose size={20} />
+                            )}
                           </button>
                         </div>
                       </div>
@@ -242,7 +265,10 @@ const AdminEventFood = () => {
             selectedDayId &&
             days.find((d) => d.id === selectedDayId)?.date && (
               <span className="block text-sm text-gray-400">
-                Date: {days.find((d) => d.id === selectedDayId).date}
+                Date:{' '}
+                {formatDisplayDate(
+                  days.find((d) => d.id === selectedDayId).date
+                )}
               </span>
             )}
         </h2>
@@ -265,21 +291,26 @@ const AdminEventFood = () => {
                 'input[placeholder="Meal Category"]'
               );
               const value = input?.value?.trim();
-              
+
               if (!value) {
                 setErrorMessage('Please enter a meal category');
                 setShowError(true);
                 setTimeout(() => setShowError(false), 1500);
                 return;
               }
-              
+
               handleAddMealCategory(value);
               input.value = '';
               setShowError(false);
             }}
-            className="px-6 py-3 bg-white text-black rounded-lg hover:bg-gray-100 transition-colors"
+            disabled={isAddingMeal}
+            className="px-6 py-3 bg-white text-black rounded-lg hover:bg-gray-100 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
-            Add
+            {isAddingMeal ? (
+              <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            ) : (
+              'Add'
+            )}
           </button>
         </div>
       </div>
