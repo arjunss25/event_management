@@ -561,11 +561,11 @@ const UserRegistration = () => {
                         type="text"
                         value={registrationLink}
                         readOnly
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-gray-600"
+                        className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-sm text-gray-600"
                       />
                       <button
                         onClick={handleCopyLink}
-                        className="px-3 py-1 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-colors"
+                        className="px-3 py-1 bg-black text-white text-sm rounded-lg hover:bg-gray-800 transition-colors whitespace-nowrap"
                       >
                         {showCopySuccess ? 'Copied!' : 'Copy'}
                       </button>

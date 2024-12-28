@@ -29,16 +29,13 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
             : `https://event.neurocode.in${response.data.data.image}`;
           setLogoImage(imageUrl);
         }
-      } catch (error) {
-
-      }
+      } catch (error) {}
     };
 
     fetchEventLogo();
   }, [refreshKey]);
 
   useEffect(() => {
-    
     const unsubscribe = eventBus.subscribe(() => {
       setRefreshKey((prev) => prev + 1);
     });
@@ -71,7 +68,6 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
           } lg:translate-x-0`}
       >
         <div className="w-full relative">
-    
           <div
             className="absolute top-4 right-4 lg:hidden cursor-pointer"
             onClick={toggleSidebar}
@@ -137,19 +133,23 @@ const SidebarAdmin = ({ isSidebarOpen, toggleSidebar }) => {
                     <li>
                       <Link
                         to="/admin/employee-details"
-                        className={getLinkClass('/employee-details')}
+                        className={`flex items-center gap-4 ${getLinkClass(
+                          '/employee-details'
+                        )}`}
                         onClick={toggleSidebar}
                       >
-                        <span className="text-base">Employee Details</span>
+                        <span className="text-base ml-4 ">Employee Details</span>
                       </Link>
                     </li>
                     <li>
                       <Link
                         to="/admin/add-category"
-                        className={getLinkClass('/add-category')}
+                        className={`flex items-center gap-4 ${getLinkClass(
+                          '/add-category'
+                        )}`}
                         onClick={toggleSidebar}
                       >
-                        <span className="text-base">Add Field</span>
+                        <span className="text-base ml-4">Add Field</span>
                       </Link>
                     </li>
                   </ul>

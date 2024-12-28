@@ -330,10 +330,10 @@ const AdminEventDetails = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-end mt-8 pt-4 border-t gap-4">
+                  <div className="flex flex-col sm:flex-row justify-end mt-8 pt-4 border-t gap-4">
                     <button
                       onClick={toggleEditModal}
-                      className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
+                      className="w-full sm:w-auto px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium"
                     >
                       Cancel
                     </button>
@@ -341,10 +341,9 @@ const AdminEventDetails = () => {
                     <button
                       onClick={() => {
                         handleSave();
-
                         toggleEditModal();
                       }}
-                      className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center gap-2"
+                      className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium flex items-center justify-center gap-2"
                     >
                       <svg
                         className="w-5 h-5"
