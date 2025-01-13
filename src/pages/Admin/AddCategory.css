@@ -1,21 +1,30 @@
 @media (min-width: 1024px) and (max-width: 1394px) {
-    .addcategory-main{
-        flex-direction: column-reverse;
-    }
-    .right-sec-category,.left-sec-category{
-        width: 100%;
-    }
+  .addcategory-main {
+    flex-direction: column-reverse;
   }
-  
-@media (min-width: 350px) and (max-width: 442px) {
-    .drop-options{
-        display: flex;
-        flex-direction: column;
-        align-items: start;
-    }
-    .option-field{
-        padding: 0.8rem
-    }
+  .right-sec-category,
+  .left-sec-category {
+    width: 100%;
+  }
+}
 
+@media (min-width: 350px) and (max-width: 442px) {
+  .drop-options {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
   }
-  
+  .option-field {
+    padding: 0.8rem;
+  }
+}
+
+/* Add these CSS rules to handle z-index layering */
+
+.modal-backdrop {
+  z-index: 9;
+}
+
+.notification {
+  z-index: 60;
+}

@@ -182,7 +182,7 @@ const EmployeeProfile = () => {
 
         {/* Content sections */}
         {activeSection === 'personal-info' && (
-          <div className="bg-white p-6 rounded-lg">
+          <div className="bg-white  md:p-6 rounded-lg">
             <h1 className="text-2xl font-semibold mb-4">
               Employee Information
             </h1>

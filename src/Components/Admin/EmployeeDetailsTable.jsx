@@ -108,7 +108,7 @@ const EmployeeTable = () => {
   const searchEmployees = async (searchTerm) => {
     try {
       const response = await axiosInstance.get(
-        `/search-employee-start/${searchTerm}/`
+        `/search-employee-start/${positionFilter || 'all'}/${searchTerm}/`
       );
       if (response.data?.status_code !== 200) {
         setEmployees([]);
@@ -127,7 +127,10 @@ const EmployeeTable = () => {
     }
   };
 
-  const debouncedSearch = useMemo(() => debounce(searchEmployees, 300), []);
+  const debouncedSearch = useMemo(
+    () => debounce(searchEmployees, 300),
+    [positionFilter]
+  );
 
   useEffect(() => {
     return () => {

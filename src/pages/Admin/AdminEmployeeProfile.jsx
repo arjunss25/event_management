@@ -5,6 +5,7 @@ import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import AdminEventsAssignedTable from '../../Components/Admin/AdminEventsAssignedTable';
 import axiosInstance from '../../axiosConfig';
 import idCardTemplate from '../../assets/id.png';
+import { IoIosArrowDown } from 'react-icons/io';
 
 const AdminEmployeeProfile = () => {
   const navigate = useNavigate();
@@ -635,7 +636,7 @@ const AdminEmployeeProfile = () => {
         {/* Edit Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md h-[80vh] overflow-y-scroll">
+            <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md  overflow-y-scroll">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">
                   Edit Employee Information
@@ -658,24 +659,29 @@ const AdminEmployeeProfile = () => {
                             {key.replace(/_/g, ' ')}
                           </span>
                           {key === 'position' ? (
-                            <select
-                              name={key}
-                              value={value}
-                              onChange={handleInputChange}
-                              className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
-                                ${
-                                  validationErrors[key]
-                                    ? 'border-red-500'
-                                    : 'border-gray-300'
-                                }`}
-                            >
-                              <option value="">Select Position</option>
-                              {positions.map((position) => (
-                                <option key={position} value={position}>
-                                  {position}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="relative">
+                              <select
+                                name={key}
+                                value={value}
+                                onChange={handleInputChange}
+                                className={`w-full border p-2 mt-1 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none
+                                  ${
+                                    validationErrors[key]
+                                      ? 'border-red-500'
+                                      : 'border-gray-300'
+                                  }`}
+                              >
+                                <option value="">Select Position</option>
+                                {positions.map((position) => (
+                                  <option key={position} value={position}>
+                                    {position}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-3 mt-1 pointer-events-none">
+                                <IoIosArrowDown className="h-5 w-5 text-gray-400" />
+                              </div>
+                            </div>
                           ) : (
                             <input
                               type="text"

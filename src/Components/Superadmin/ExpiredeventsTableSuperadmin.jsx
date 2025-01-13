@@ -45,7 +45,7 @@ const ExpiredeventsTableSuperadmin = () => {
   const [sendingMailEvents, setSendingMailEvents] = useState({});
 
   const handleSendMail = async (eventName, eventGroup, eventId) => {
-    setSendingMailEvents(prev => ({ ...prev, [eventId]: true }));
+    setSendingMailEvents((prev) => ({ ...prev, [eventId]: true }));
     try {
       await axiosInstance.post(`/notifications-payment-delay/${eventId}/`);
       setNotification({
@@ -60,7 +60,7 @@ const ExpiredeventsTableSuperadmin = () => {
         message: 'Failed to send payment reminder email. Please try again.',
       });
     } finally {
-      setSendingMailEvents(prev => ({ ...prev, [eventId]: false }));
+      setSendingMailEvents((prev) => ({ ...prev, [eventId]: false }));
     }
   };
 
@@ -73,7 +73,7 @@ const ExpiredeventsTableSuperadmin = () => {
     setIsRefunding(true);
     try {
       await axiosInstance.post('/marking-event-refunded/', {
-        event_id: selectedEvent.eventId.toString()
+        event_id: selectedEvent.eventId.toString(),
       });
       setNotification({
         show: true,
@@ -111,7 +111,7 @@ const ExpiredeventsTableSuperadmin = () => {
           endDate: event.end_date.split('-').reverse().join('-'),
           status: event.event_status,
           paymentStatus: event.payment_status,
-          isRefunded: event.is_refunded
+          isRefunded: event.is_refunded,
         }));
         setEvents(transformedData);
         setDisplayData(transformedData);
@@ -179,16 +179,35 @@ const ExpiredeventsTableSuperadmin = () => {
   );
 
   const getStatusStyle = (status) => {
+    const baseStyle =
+      'px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap w-full text-center inline-block';
+
     if (status === 'completed') {
-      return 'bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+      return `${baseStyle} bg-green-500 text-white`;
     }
     if (status === 'cancelled') {
-      return 'bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+      return `${baseStyle} bg-red-100 text-red-800`;
     }
     if (status === 'advance Paid') {
-      return 'bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+      return `${baseStyle} bg-yellow-100 text-yellow-600`;
     }
-    return 'bg-yellow-100 text-yellow-00 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap';
+    return `${baseStyle} bg-yellow-100 text-yellow-800`;
+  };
+
+  const getPaymentStatusStyle = (status) => {
+    const baseStyle =
+      'px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap w-full text-center inline-block';
+
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return `${baseStyle} bg-green-100 text-green-800`;
+      case 'pending':
+        return `${baseStyle} bg-red-100 text-red-800`;
+      case 'advance paid':
+        return `${baseStyle} bg-yellow-100 text-yellow-800`;
+      default:
+        return `${baseStyle} bg-gray-100 text-gray-800`;
+    }
   };
 
   if (loading)
@@ -292,13 +311,19 @@ const ExpiredeventsTableSuperadmin = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 font-medium whitespace-nowrap">
+                      Payment Status
+                    </th>
+                    <th className="px-6 py-3 font-medium whitespace-nowrap">
                       Action
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {displayData.map((event) => (
-                    <tr key={event.eventId} className="bg-white hover:bg-gray-50">
+                    <tr
+                      key={event.eventId}
+                      className="bg-white hover:bg-gray-50"
+                    >
                       <td className="px-6 py-6 text-black whitespace-nowrap">
                         {event.eventName}
                       </td>
@@ -312,9 +337,20 @@ const ExpiredeventsTableSuperadmin = () => {
                         {event.endDate}
                       </td>
                       <td className="px-6 py-6 whitespace-nowrap">
-                        <div className="w-28">
+                        <div className="w-32">
                           <span className={getStatusStyle(event.status)}>
                             {event.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6 whitespace-nowrap">
+                        <div className="w-32">
+                          <span
+                            className={getPaymentStatusStyle(
+                              event.paymentStatus
+                            )}
+                          >
+                            {event.paymentStatus}
                           </span>
                         </div>
                       </td>
@@ -346,18 +382,18 @@ const ExpiredeventsTableSuperadmin = () => {
                           )}
                         {event.status.toLowerCase() === 'cancelled' &&
                           event.paymentStatus === 'Completed' && (
-                          <button
-                            onClick={() => handleRefund(event)}
-                            disabled={event.isRefunded}
-                            className={`${
-                              event.isRefunded
-                                ? 'bg-gray-400'
-                                : 'bg-red-500 hover:bg-red-600'
-                            } text-white px-4 py-2 rounded-md text-sm`}
-                          >
-                            {event.isRefunded ? 'Refunded' : 'Refund'}
-                          </button>
-                        )}
+                            <button
+                              onClick={() => handleRefund(event)}
+                              disabled={event.isRefunded}
+                              className={`${
+                                event.isRefunded
+                                  ? 'bg-gray-400'
+                                  : 'bg-red-500 hover:bg-red-600'
+                              } text-white px-4 py-2 rounded-md text-sm`}
+                            >
+                              {event.isRefunded ? 'Refunded' : 'Refund'}
+                            </button>
+                          )}
                       </td>
                     </tr>
                   ))}

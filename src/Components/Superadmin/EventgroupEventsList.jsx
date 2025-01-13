@@ -6,6 +6,7 @@ import './TableComponent.css';
 import {
   fetchEventsByGroupId,
   updateEvent,
+  cancelEvent,
 } from '../../Redux/Slices/SuperAdmin/eventssuperadminSlice';
 
 const STATUS_STYLES = {
@@ -113,7 +114,11 @@ const EditModal = memo(({ isOpen, onClose, formData, onSubmit, onChange }) => {
               type="date"
               value={formatDateForInput(formData.end_date)}
               onChange={onChange}
-              min={formData.start_date ? formatDateForInput(formData.start_date) : today}
+              min={
+                formData.start_date
+                  ? formatDateForInput(formData.start_date)
+                  : today
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-black focus:border-black transition-all duration-200"
             />
           </div>
@@ -154,7 +159,7 @@ const EventgroupEventsList = ({ eventGroupId }) => {
   const [notification, setNotification] = useState({
     open: false,
     message: '',
-    severity: 'success'
+    severity: 'success',
   });
 
   useEffect(() => {
@@ -167,7 +172,9 @@ const EventgroupEventsList = ({ eventGroupId }) => {
     setSelectedEvent(event);
     setFormData({
       event_name: event.event_name || '',
-      start_date: event.start_date ? formatDateForDisplay(event.start_date) : '',
+      start_date: event.start_date
+        ? formatDateForDisplay(event.start_date)
+        : '',
       end_date: event.end_date ? formatDateForDisplay(event.end_date) : '',
       event_status: event.event_status || '',
       payment_status: event.payment_status || '',
@@ -181,21 +188,21 @@ const EventgroupEventsList = ({ eventGroupId }) => {
       // Convert from YYYY-MM-DD to DD-MM-YYYY
       const [year, month, day] = value.split('-');
       const formattedDate = `${day}-${month}-${year}`;
-      setFormData(prevData => ({
+      setFormData((prevData) => ({
         ...prevData,
-        [name]: formattedDate
+        [name]: formattedDate,
       }));
     } else {
-      setFormData(prevData => ({
+      setFormData((prevData) => ({
         ...prevData,
-        [name]: value
+        [name]: value,
       }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Convert dates from DD-MM-YYYY to YYYY-MM-DD
     const formatDateForAPI = (dateString) => {
       if (!dateString) return '';
@@ -222,21 +229,48 @@ const EventgroupEventsList = ({ eventGroupId }) => {
       setNotification({
         open: true,
         message: 'Event updated successfully',
-        severity: 'success'
+        severity: 'success',
       });
     } catch (error) {
       let errorMessage = 'Unable to add event. Please try again.';
-      
+
       if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
       } else if (error.response?.status === 400) {
-        errorMessage = 'An event already exists during these dates. Please choose different dates.';
+        errorMessage =
+          'An event already exists during these dates. Please choose different dates.';
       }
 
       setNotification({
         open: true,
         message: errorMessage,
-        severity: 'error'
+        severity: 'error',
+      });
+    }
+  };
+
+  const handleCancelEvent = async (event) => {
+    try {
+      await dispatch(
+        cancelEvent({
+          eventId: event.id,
+          eventGroupId: event.event_group,
+        })
+      ).unwrap();
+
+      // Refresh the events list after cancellation
+      dispatch(fetchEventsByGroupId(eventGroupId));
+
+      setNotification({
+        open: true,
+        message: 'Event cancelled successfully',
+        severity: 'success',
+      });
+    } catch (error) {
+      setNotification({
+        open: true,
+        message: error.message || 'Failed to cancel event',
+        severity: 'error',
       });
     }
   };
@@ -308,10 +342,14 @@ const EventgroupEventsList = ({ eventGroupId }) => {
                     {event.event_name || 'N/A'}
                   </td>
                   <td className="px-4 py-4 text-black whitespace-nowrap w-[20%]">
-                    {event.start_date ? formatDateForDisplay(event.start_date) : 'N/A'}
+                    {event.start_date
+                      ? formatDateForDisplay(event.start_date)
+                      : 'N/A'}
                   </td>
                   <td className="px-4 py-4 text-black whitespace-nowrap w-[20%]">
-                    {event.end_date ? formatDateForDisplay(event.end_date) : 'N/A'}
+                    {event.end_date
+                      ? formatDateForDisplay(event.end_date)
+                      : 'N/A'}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap w-[12%]">
                     <span
@@ -342,6 +380,15 @@ const EventgroupEventsList = ({ eventGroupId }) => {
                         <RiEditLine />
                       </button>
                     )}
+                    {event.event_status === 'ongoing' &&
+                      event.payment_status?.toLowerCase() === 'pending' && (
+                        <button
+                          onClick={() => handleCancelEvent(event)}
+                          className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-xs transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      )}
                   </td>
                 </tr>
               ))}

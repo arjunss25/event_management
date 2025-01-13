@@ -51,6 +51,8 @@ const AdminEventFood = () => {
   const [showError, setShowError] = useState(false);
   const [loadingMealIds, setLoadingMealIds] = useState(new Set());
   const [isAddingMeal, setIsAddingMeal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const refreshMealList = () => {
     setIsListLoading(true);
@@ -71,20 +73,34 @@ const AdminEventFood = () => {
 
     if (applyToAllDays) {
       dispatch(postMealCategory(categoryName.trim()))
-        .then(() => refreshMealList())
+        .then((response) => {
+          if (response?.message) {
+            setSuccessMessage(response.message);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 2000);
+          }
+          refreshMealList();
+        })
         .catch((error) => {
           setErrorMessage(error.message || 'Failed to add meal category');
           setShowError(true);
-          setTimeout(() => setShowError(false), 1500);
+          setTimeout(() => setShowError(false), 2000);
         })
         .finally(() => setIsAddingMeal(false));
     } else {
       dispatch(postMealCategoryForDate(categoryName.trim(), selectedDay.date))
-        .then(() => refreshMealList())
+        .then((response) => {
+          if (response?.message) {
+            setSuccessMessage(response.message);
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 2000);
+          }
+          refreshMealList();
+        })
         .catch((error) => {
           setErrorMessage(error.message || 'Failed to add meal category');
           setShowError(true);
-          setTimeout(() => setShowError(false), 1500);
+          setTimeout(() => setShowError(false), 2000);
         })
         .finally(() => setIsAddingMeal(false));
     }
@@ -139,6 +155,36 @@ const AdminEventFood = () => {
           </div>
           <button
             onClick={() => setShowError(false)}
+            className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+          >
+            <IoClose size={20} />
+          </button>
+        </motion.div>
+      </AnimatePresence>
+    );
+  };
+
+  // Add Success Popup Component
+  const SuccessPopup = () => {
+    if (!showSuccess) return null;
+
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          className="fixed bottom-4 right-4 bg-white rounded-xl shadow-lg p-4 flex items-start gap-3 z-50"
+        >
+          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+            <span className="text-green-500 text-lg">✓</span>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-medium text-gray-900">Success</h4>
+            <p className="text-gray-600">{successMessage}</p>
+          </div>
+          <button
+            onClick={() => setShowSuccess(false)}
             className="flex-shrink-0 text-gray-400 hover:text-gray-600"
           >
             <IoClose size={20} />
@@ -295,7 +341,7 @@ const AdminEventFood = () => {
               if (!value) {
                 setErrorMessage('Please enter a meal category');
                 setShowError(true);
-                setTimeout(() => setShowError(false), 1500);
+                setTimeout(() => setShowError(false), 2000);
                 return;
               }
 
@@ -315,6 +361,7 @@ const AdminEventFood = () => {
         </div>
       </div>
       <ErrorPopup />
+      <SuccessPopup />
     </div>
   );
 };

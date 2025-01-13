@@ -607,7 +607,7 @@ const AdminEmployeeAllocation = () => {
         )}
       </div>
 
-      <div className="w-full lg:w-1/2 bg-black rounded-lg p-6">
+      <div className="w-full lg:w-1/2 lg:min-h-[80vh] bg-black rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-6 text-white">
           Add Employees to Position
         </h2>

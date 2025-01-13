@@ -114,8 +114,12 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
     }));
   };
 
-  const handleDateClick = () => {
-    setShowDatePicker(true);
+  const handleDateClick = (e) => {
+    e.preventDefault(); // Prevent default to avoid any unwanted behavior
+    const dateInput = document.querySelector('input[type="date"]');
+    if (dateInput) {
+      dateInput.showPicker(); // This will open the native date picker
+    }
   };
 
   const handleDateBlur = () => {
@@ -255,31 +259,16 @@ const AddPaymentModal = ({ onClose, eventId, eventGroupId }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Date <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={formData.date || ''}
-                      onClick={handleDateClick}
-                      readOnly
-                      placeholder="Select date"
-                      className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 cursor-pointer"
-                    />
-                    <IoCalendarOutline 
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl pointer-events-none" 
-                    />
-                    <input
-                      type="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      max={getCurrentDate()}
-                      onBlur={handleDateBlur}
-                      className={`absolute inset-0 opacity-0 cursor-pointer ${
-                        showDatePicker ? '' : 'hidden'
-                      }`}
-                      required
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    max={getCurrentDate()}
+                    className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-[1.5rem] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                    placeholder="dd-mm-yyyy"
+                  />
                 </div>
 
                 <div>
@@ -570,7 +559,8 @@ const EventsTable = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const { data: events, loading, error } = useSelector((state) => state.events);
   const [isCanceling, setIsCanceling] = useState(false);
-  const [isCancelSuccessModalOpen, setIsCancelSuccessModalOpen] = useState(false);
+  const [isCancelSuccessModalOpen, setIsCancelSuccessModalOpen] =
+    useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [deleteStatus, setDeleteStatus] = useState(null); // 'loading', 'success', 'error'
 
@@ -619,7 +609,7 @@ const EventsTable = () => {
           const response = await axiosInstance.get(
             `/search-events/${searchTerm}`
           );
-          
+
           if (response.status === 200) {
             // Directly set the data from the response
             const searchResults = response.data?.data;
@@ -702,7 +692,7 @@ const EventsTable = () => {
         })
       ).unwrap();
       setDeleteStatus('success');
-      
+
       setTimeout(() => {
         setShowConfirmationModal(false);
         setSelectedEvent(null);
@@ -710,7 +700,7 @@ const EventsTable = () => {
       }, 1500);
     } catch (error) {
       setDeleteStatus('error');
-      
+
       setTimeout(() => {
         setShowConfirmationModal(false);
         setSelectedEvent(null);
@@ -809,7 +799,8 @@ const EventsTable = () => {
               Cancel Event
             </h3>
             <p className="text-gray-500 text-center mb-8">
-              This action cannot be undone. Are you sure you want to cancel this event?
+              This action cannot be undone. Are you sure you want to cancel this
+              event?
             </p>
             <div className="flex gap-4">
               <button
@@ -941,10 +932,13 @@ const EventsTable = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="w-20">
-                          {(event.event_status === 'upcoming' || event.event_status === 'ongoing') && (
+                          {(event.event_status === 'upcoming' ||
+                            event.event_status === 'ongoing') && (
                             <button
                               className={`w-full bg-red-500 text-white px-3 py-1 rounded-md text-xs hover:bg-red-600 transition-colors ${
-                                isCanceling ? 'opacity-50 cursor-not-allowed' : ''
+                                isCanceling
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : ''
                               }`}
                               onClick={() => handleCancelClick(event)}
                               disabled={isCanceling}
@@ -974,7 +968,9 @@ const EventsTable = () => {
       {showConfirmationModal && <CancellationModal />}
 
       {isCancelSuccessModalOpen && (
-        <CancelSuccessModal onClose={() => setIsCancelSuccessModalOpen(false)} />
+        <CancelSuccessModal
+          onClose={() => setIsCancelSuccessModalOpen(false)}
+        />
       )}
     </>
   );

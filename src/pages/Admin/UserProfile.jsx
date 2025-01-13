@@ -161,7 +161,7 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex  bg-white">
       {/* Sidebar */}
       <div className={`fixed top-0 left-0 h-screen w-64 bg-white z-10 transform border-r-2 border-grey-200 ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -203,7 +203,7 @@ const UserProfile = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-x-hidden w-[900px]">
+      <div className="flex-1 p-3 md:p-8 overflow-x-hidden w-[900px]">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={toggleSidebar}

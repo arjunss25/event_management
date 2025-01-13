@@ -131,15 +131,21 @@ const EventgroupProfile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'ownerName') {
       const noNumbers = value.replace(/[0-9]/g, '');
-      setTempData(prev => ({
+      setTempData((prev) => ({
         ...prev,
         [name]: noNumbers,
       }));
+    } else if (name === 'phone') {
+      const numbersOnly = value.replace(/\D/g, '').slice(0, 10); // Only allow numbers, max 10 digits
+      setTempData((prev) => ({
+        ...prev,
+        [name]: numbersOnly,
+      }));
     } else {
-      setTempData(prev => ({
+      setTempData((prev) => ({
         ...prev,
         [name]: value,
       }));
@@ -153,7 +159,8 @@ const EventgroupProfile = () => {
       if (!data.eventGroupName?.trim()) {
         errors.eventGroupName = 'Event Group Name is required';
       } else if (data.eventGroupName.length < 2) {
-        errors.eventGroupName = 'Event Group Name must be at least 2 characters';
+        errors.eventGroupName =
+          'Event Group Name must be at least 2 characters';
       }
 
       if (!data.ownerName?.trim()) {
@@ -544,7 +551,9 @@ const EventgroupProfile = () => {
                         }`}
                       />
                       {editFormErrors.eventGroupName && (
-                        <p className="text-red-500 text-sm mt-1">{editFormErrors.eventGroupName}</p>
+                        <p className="text-red-500 text-sm mt-1">
+                          {editFormErrors.eventGroupName}
+                        </p>
                       )}
                     </label>
                     <label className="block mb-4">
@@ -559,7 +568,9 @@ const EventgroupProfile = () => {
                         }`}
                       />
                       {editFormErrors.ownerName && (
-                        <p className="text-red-500 text-sm mt-1">{editFormErrors.ownerName}</p>
+                        <p className="text-red-500 text-sm mt-1">
+                          {editFormErrors.ownerName}
+                        </p>
                       )}
                     </label>
                   </>
@@ -577,7 +588,9 @@ const EventgroupProfile = () => {
                         }`}
                       />
                       {editFormErrors.email && (
-                        <p className="text-red-500 text-sm mt-1">{editFormErrors.email}</p>
+                        <p className="text-red-500 text-sm mt-1">
+                          {editFormErrors.email}
+                        </p>
                       )}
                     </label>
                     <label className="block mb-4">
@@ -592,7 +605,9 @@ const EventgroupProfile = () => {
                         }`}
                       />
                       {editFormErrors.phone && (
-                        <p className="text-red-500 text-sm mt-1">{editFormErrors.phone}</p>
+                        <p className="text-red-500 text-sm mt-1">
+                          {editFormErrors.phone}
+                        </p>
                       )}
                     </label>
                   </>

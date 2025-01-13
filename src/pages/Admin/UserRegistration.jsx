@@ -54,6 +54,20 @@ const UserRegistration = () => {
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
   useEffect(() => {
+    let timeoutId;
+    if (notification.show) {
+      timeoutId = setTimeout(() => {
+        setNotification({ show: false, type: '', message: '' });
+      }, 2000);
+    }
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [notification.show]);
+
+  useEffect(() => {
     const fetchExtraFields = async () => {
       try {
         const response = await axiosConfig.get('/add-user-extrafield/');
@@ -779,18 +793,18 @@ const UserRegistration = () => {
                       });
                       setOptionInput('');
                     }}
-                    className="w-full p-3 pr-10 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all appearance-none"
+                    className="w-full p-3 pr-10 rounded-lg border border-gray-200 focus:border-gray-300 focus:ring-2 focus:ring-gray-200 transition-all appearance-none bg-white cursor-pointer"
                   >
-                    <option value="" disabled>
-                      Choose field type
-                    </option>
+                    <option value="">Choose field type</option>
                     {fieldTypes.map((type) => (
                       <option key={type} value={type}>
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </option>
                     ))}
                   </select>
-                  <IoIosArrowDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                    <IoIosArrowDown className="text-gray-400 w-5 h-5" />
+                  </div>
                 </div>
               </div>
 
