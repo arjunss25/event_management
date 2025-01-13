@@ -84,10 +84,13 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
   };
 
   const handleAddToEvent = () => {
-    const employees = eventEmployees.map((emp) => ({
-      id: emp.id,
-      name: emp.name,
-    }));
+    const employees = Array.isArray(eventEmployees)
+      ? eventEmployees.map((emp) => ({
+          id: emp.id,
+          name: emp.name,
+        }))
+      : [];
+
     dispatch(addEmployeesToEvent(employees))
       .unwrap()
       .then(() => {
@@ -97,22 +100,24 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
       .catch((error) => {});
   };
 
-  const groupedEmployees = eventEmployees.reduce((acc, emp) => {
-    if (!acc[emp.position]) {
-      acc[emp.position] = [];
-    }
-    acc[emp.position].push(emp);
-    return acc;
-  }, {});
+  const groupedEmployees = Array.isArray(eventEmployees)
+    ? eventEmployees.reduce((acc, emp) => {
+        if (!acc[emp.position]) {
+          acc[emp.position] = [];
+        }
+        acc[emp.position].push(emp);
+        return acc;
+      }, {})
+    : {};
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
-        <div className="p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden border border-gray-100">
+        <div className="p-6 border-b border-gray-100">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-2xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               {selectedEvent
                 ? 'Event Employees'
                 : 'Import from Previous Events'}
@@ -122,7 +127,7 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
                 setSelectedEvent(null);
                 onClose();
               }}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full"
             >
               <IoMdClose size={24} />
             </button>
@@ -137,25 +142,25 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
               <LoadingState />
             ) : (
               <div className="space-y-6">
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex justify-between items-center mb-6 bg-gray-50 p-4 rounded-xl">
                   <div>
-                    <h3 className="text-lg font-medium">
+                    <h3 className="text-xl font-semibold text-gray-800">
                       {selectedEvent.event_name}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 mt-1">
                       {selectedEvent.start_date} to {selectedEvent.end_date}
                     </p>
                   </div>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setSelectedEvent(null)}
-                      className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                      className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors hover:bg-gray-100 rounded-lg"
                     >
                       ← Back
                     </button>
                     <button
                       onClick={handleAddToEvent}
-                      className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all"
+                      className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-all shadow-sm"
                     >
                       Add to Event
                     </button>
@@ -163,37 +168,37 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
                 </div>
 
                 {eventEmployees.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">
+                  <div className="text-center py-12 bg-gray-50 rounded-2xl">
+                    <p className="text-gray-500 text-lg">
                       No employees found for this event.
                     </p>
                   </div>
                 ) : (
                   Object.entries(groupedEmployees).map(
                     ([position, employees]) => (
-                      <div key={position} className="bg-gray-50 rounded-xl p-4">
-                        <h4 className="text-md font-semibold text-gray-800 mb-3">
+                      <div key={position} className="bg-gray-50 rounded-xl p-6">
+                        <h4 className="text-lg font-semibold text-gray-800 mb-4">
                           {position}
                         </h4>
                         <div className="grid gap-3">
                           {employees.map((employee) => (
                             <div
                               key={employee.id}
-                              className="flex items-center justify-between bg-white p-3 rounded-lg shadow-sm"
+                              className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-100"
                             >
                               <div>
-                                <span className="font-medium">
+                                <span className="font-medium text-gray-800">
                                   {employee.name}
                                 </span>
-                                <span className="text-sm text-gray-500 ml-2">
+                                <span className="text-sm text-gray-400 ml-2">
                                   #{employee.id}
                                 </span>
                               </div>
                               <span
-                                className={`px-2 py-1 rounded-full text-xs ${
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium ${
                                   employee.is_available
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-red-100 text-red-700'
                                 }`}
                               >
                                 {employee.is_available
@@ -214,26 +219,31 @@ const ImportModal = ({ isOpen, onClose, events, loading }) => {
               {events.map((event) => (
                 <div
                   key={event.id}
-                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="border border-gray-100 rounded-xl p-5 hover:bg-gray-50 transition-all cursor-pointer group"
                   onClick={() => handleEventSelect(event)}
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="font-medium">{event.event_name}</h3>
-                      <p className="text-sm text-gray-500">
+                      <h3 className="font-medium text-lg text-gray-800 group-hover:text-black">
+                        {event.event_name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
                         {event.start_date} to {event.end_date}
                       </p>
                       <span
-                        className={`text-xs px-2 py-1 rounded-full ${
+                        className={`inline-block mt-2 text-xs px-3 py-1.5 rounded-full font-medium ${
                           event.event_status === 'upcoming'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-red-100 text-red-700'
                         }`}
                       >
                         {event.event_status}
                       </span>
                     </div>
-                    <IoIosArrowDown size={20} className="text-gray-400" />
+                    <IoIosArrowDown
+                      size={20}
+                      className="text-gray-400 group-hover:text-gray-600 transition-colors"
+                    />
                   </div>
                 </div>
               ))}
