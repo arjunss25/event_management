@@ -16,7 +16,7 @@ const processQueue = (error, token = null) => {
 };
 
 const axiosInstance = axios.create({
-  baseURL: 'https://event.neurocode.in/webapi',
+  baseURL: 'https://confapi.neurocode.in/',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
